@@ -8,7 +8,7 @@
     <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
     <title> 
 	  
-  	导航条navbar - Ascetic in the deadlock
+  	继承与多态 - Ascetic in the deadlock
   	
   	</title>
     <link href="asset/css/bootstrap.min.css" rel="stylesheet">
@@ -50,54 +50,64 @@
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">导航条navbar</h2>
-			            <p class="blog-post-meta">2017/1/11 21:1 PM 
+			            <h2 class="blog-post-title">继承与多态</h2>
+			            <p class="blog-post-meta">2017/3/16 21:18 PM 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='Bootstrap.html'>Bootstrap</a>&nbsp;
+							    <a class='category' href='Objective-C.html'>Objective-C</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <ol>
-<li>navbar有<strong>背景色</strong></li>
-<li>navbar可以是<strong>纯链接</strong>，也可以是<strong>表单</strong></li>
-<li>navbar可以是表单和导航一起结合</li>
-</ol>
-
-<p>LESS版本：对应源文件navbar.less<br/>
-Sass版本：对应元文件navbar.scss</p>
-
-<h2 id="toc_0">基本导航条</h2>
-
-<p>基本导航条分为两个步骤：<br/>
-1. 制作导航的列表（<code>&lt;ul class=“navbar”&gt;</code>）基础上添上类名“navbar-nav”<br/>
-2. 列表外部添加一个容器（div），使用类名“navbar”和“navbar-default”</p>
-
-<p>“.navbar”样式主要功能：<br/>
-* 设置左右padding<br/>
-* 圆角</p>
-
-<p>导航条的颜色是通过“.navbar-default”来控制，颜色和其他样式是通过配合父容器“navbar-default”来一起实现。</p>
-
-<h2 id="toc_1">为导航条增加标题</h2>
+			            <h3 id="toc_0">static关键字</h3>
 
 <ol>
-<li>navbar-header</li>
-<li>navbar-brand</li>
+<li><p>C语言中的static</p>
+
+<ul>
+<li>修饰局部变量</li>
+<li>修饰全局变量</li>
+<li>修饰函数</li>
+</ul></li>
+<li><p>OC中的static关键字</p>
+
+<ul>
+<li>static不能修饰属性，也不能修饰方法</li>
+<li>static可以修饰方法中的局部变量</li>
+</ul>
+
+<p>如果方法中的局部变量被static修饰，那么这个变量就会变成静态变量，存储在常量区，当方法执行完毕不会被回收。下次再执行这个方法的时候，直接使用而不用再次声明。<br/>
+<img src="media/14896702983964/14896706781899.jpg" alt=""/></p>
+
+<ul>
+<li>如果方法的返回值是当前类的对象，那么方法的返回值就写为instanceType</li>
+</ul></li>
+<li><p>什么时候用到static<br/>
+<img src="media/14896702983964/14896717656421.jpg" alt=""/></p></li>
 </ol>
 
-<h2 id="toc_2">带表单的导航条</h2>
+<h3 id="toc_1">self关键字</h3>
 
-<p>在navbar容器中放置一个带有navbar-form类名的表单。</p>
+<ul>
+<li>self是一个指针；</li>
+<li>在对象方法中self指向当前对象；</li>
+<li><p>在类方法中self指向当前类；</p></li>
+<li><p>作用：</p>
 
-<pre><code>&lt;form action=&quot;##&quot; class=&quot;navbar-form navbar-left&quot; rol=&quot;search&quot;&gt;
-    &lt;div class=&quot;form-group&quot;&gt;
-        &lt;input type=&quot;text&quot; class=&quot;form-control&quot; placeholder=&quot;请输入关键词&quot; /&gt;
-    &lt;/div&gt;
-    &lt;button type=&quot;submit&quot; class=&quot;btn btn-default&quot;&gt;搜索&lt;/button&gt;
-&lt;/form&gt;
-</code></pre>
+<ul>
+<li>可以显式的访问当前对象的属性； self -&gt; 属性</li>
+<li>可以使用self来调用当前对象的其他的对象方法；</li>
+</ul></li>
+</ul>
+
+<h3 id="toc_2">私有属性和私有方法</h3>
+
+<ul>
+<li>将属性定义在@implementation之中和将属性定义在@interface之中并标记为@private唯一的区别： 提示和不提示</li>
+<li>都不能被外界访问</li>
+<li>方法不写声明，只写实现，那么这个方法就是一个私有方法；</li>
+<li>私有方法只能在本类的其他方法中调用，不能被外界调用</li>
+</ul>
 
 			            </div>
 						
