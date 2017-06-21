@@ -4,7 +4,7 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2017-05-20T21:18:32+08:00</updated>
+  <updated>2017-06-04T17:22:07+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -12,6 +12,288 @@
   </author>
   <generator uri="http://www.coderforart.com/">CoderForArt</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[UIButton]]></title>
+    <link href="https://sparkbye.github.io/myBlog/14976187081535.html"/>
+    <updated>2017-06-16T21:11:48+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/14976187081535.html</id>
+    <content type="html"><![CDATA[
+<h3 id="toc_0">UIButton的状态</h3>
+
+<ul>
+<li><p>normal(普通状态)</p>
+
+<ul>
+<li>默认情况（DEFAULT）</li>
+<li>对应的枚举常量： UIControlStateNormal</li>
+</ul></li>
+<li><p>highlighted (高亮状态)</p>
+
+<ul>
+<li>按钮被按下去的时候</li>
+<li>对应的枚举常量： UIControlStateHighlighted</li>
+</ul></li>
+<li><p>disabled (失效状态)</p>
+
+<ul>
+<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
+<li>对应的枚举变量： UIControlStateDisabled</li>
+</ul></li>
+</ul>
+
+<h3 id="toc_1">UIButton代码应用</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(100, 300, 200, 100);
+    button.backgroundColor = [UIColor redColor];
+    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
+    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
+    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
+    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
+
+    [self.view addSubview:button];
+    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
+}
+
+-(IBAction)clickButton:(UIButton *)button {
+    button.enabled = NO;
+
+}
+</code></pre>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[UILable]]></title>
+    <link href="https://sparkbye.github.io/myBlog/14966683926548.html"/>
+    <updated>2017-06-05T21:13:12+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/14966683926548.html</id>
+    <content type="html"><![CDATA[
+<h3 id="toc_0">UILable常见属性</h3>
+
+<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
+* 显示文字</p>
+
+<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
+* 显示字体</p>
+
+<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
+* 文字颜色</p>
+
+<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
+* 对齐模式(左对齐，居中对齐， 右对齐)</p>
+
+<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
+*文字行数</p>
+
+<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
+* 换行模式</p>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UILabel *lable = [[UILabel alloc] init];
+    
+    lable.frame = CGRectMake(50, 300, 300, 200);
+    lable.backgroundColor = [UIColor redColor];
+    lable.text = @&quot;你这头猪&quot;;
+    lable.textAlignment = NSTextAlignmentCenter;
+    lable.font = [UIFont systemFontOfSize:20.f];
+    lable.font = [UIFont boldSystemFontOfSize:20.f];
+    lable.textColor = [UIColor purpleColor];
+    lable.shadowOffset = CGSizeMake(4, -10);
+    lable.shadowColor = [UIColor blueColor];
+    lable.lineBreakMode = NSLineBreakByClipping;
+    [self.view addSubview:lable];   
+}
+</code></pre>
+
+<h3 id="toc_1">UIImageView</h3>
+
+<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
+
+<h3 id="toc_2">毛玻璃效果</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UIImageView *imageView = [[UIImageView alloc] init];
+    imageView.backgroundColor = [UIColor redColor];
+    imageView.frame = self.view.bounds;
+    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    
+    UIToolbar *toolBar = [[UIToolbar alloc] init];
+    toolBar.frame = imageView.bounds;
+    toolBar.barStyle = UIBarStyleBlack;
+    toolBar.alpha = 0.85;
+    [imageView addSubview:toolBar];
+    
+    [self.view addSubview:imageView];
+}
+</code></pre>
+
+<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIImageView *imageView = [[UIImageView alloc] init];
+    //第一种方式
+    imageView.frame = CGRectMake(100, 100, 200, 200);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    //第二种方式
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = image;
+    //第三种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
+    imageView.center = CGPointMake(100, 300);
+    //第四种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.image = image;
+    
+    [self.view addSubview:imageView];
+}
+</code></pre>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[UIView]]></title>
+    <link href="https://sparkbye.github.io/myBlog/14965374170472.html"/>
+    <updated>2017-06-04T08:50:17+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/14965374170472.html</id>
+    <content type="html"><![CDATA[
+<h3 id="toc_0">UIView常见属性</h3>
+
+<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
+* 获取自己的父控件对象</p>
+
+<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
+* 获取自己的子控件对象</p>
+
+<p><code>@property(nonatomic) NSInteger tag;</code><br/>
+* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
+
+<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
+* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
+
+<p><code>@property(nonatomic) CGRect frame;</code><br/>
+* 控件矩形框在父控件中的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGRect bounds;</code><br/>
+* 控件矩形框的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGPoint center;</code><br/>
+* 控件重点的位置</p>
+
+<pre><code>#import &quot;ViewController.h&quot;
+
+@interface ViewController ()
+
+@property(weak, nonatomic) UILabel *lable;
+
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UILabel *lable = [[UILabel alloc] init];
+    lable.frame = CGRectMake(200, 100, 100, 60);
+    lable.backgroundColor = [UIColor redColor];
+    [self.view addSubview:lable];
+    self.lable = lable;
+}
+
+- (IBAction)bounds {
+    self.lable.bounds = CGRectMake(0, 0, 200, 40);
+}
+
+- (IBAction)center {
+    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
+}
+@end
+
+</code></pre>
+
+<h3 id="toc_1">常见的方法</h3>
+
+<pre><code>-(void)loadView{
+    [super loadView];
+}
+
+-(void)viewDidLoad{
+    [super viewDidLoad];
+} 
+
+-(void)didReceiveMemoryWarning{
+    [super didReceiveMemoryWarning];
+}
+</code></pre>
+
+<h5 id="toc_2">viewDidLoad</h5>
+
+<ul>
+<li>系统调用</li>
+<li>controller的View加载完毕的时候调用</li>
+<li>控件的初始化，数据的初始化(懒加载)</li>
+</ul>
+
+<h5 id="toc_3">didReceiveMemoryWarning</h5>
+
+<ul>
+<li>系统调用</li>
+<li>当控制器接受到内存警告调用</li>
+<li>去除一些不必要的内存，去除耗时的内存</li>
+</ul>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+//    NSLog(@&quot;%@&quot;, self.greenView.superview);
+//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
+//    NSLog(@&quot;%@&quot;, self.view.subviews);
+    UISwitch *sw = [[UISwitch alloc] init];
+    [sw setHighlighted:true];
+    [self.view addSubview:sw];
+    [sw removeFromSuperview];
+}
+</code></pre>
+
+<h5 id="toc_4">addSubview</h5>
+
+<ul>
+<li>添加一个子控件
+##### removeFromSuperview</li>
+<li>从父控件中移除
+##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
+<li>根据一个tag找出对应的控件</li>
+<li>不推荐使用tag
+
+<ul>
+<li>tag的效率差</li>
+<li>tag容易乱</li>
+</ul></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Block]]></title>
@@ -159,6 +441,82 @@ block1();
 <li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
 <li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
 </ul>
+
+<h3 id="toc_4">block作为函数的参数</h3>
+
+<ol>
+<li>可以在函数中声明一个指定格式的block：</li>
+</ol>
+
+<pre><code>void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+</code></pre>
+
+<ol>
+<li>使用typedef简化定义：</li>
+</ol>
+
+<pre><code>typedef void (^NewBlock) ();
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+</code></pre>
+
+<ol>
+<li>如何调用：</li>
+</ol>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+typedef void (^NewBlock) ();
+
+void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+int main(int argc, const char * argv[]) {
+
+    NewBlock type = ^{
+        NSLog(@&quot;hahahah&quot;);
+    };
+    
+    test_2(type);
+    
+    test_2(^{
+        NSLog(@&quot;hahahah&quot;);
+    });
+    
+    return 0;
+}
+</code></pre>
+
+<p>在这个状态下直接敲回车：<br/>
+<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
+可以转换成：<br/>
+<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
+然后直接补充代码即可：<br/>
+<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
+
+<blockquote>
+<p>将block作为函数的参数可以实现什么效果？</p>
+</blockquote>
+
+<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
+</code></pre>
 
 ]]></content>
   </entry>

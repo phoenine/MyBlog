@@ -50,155 +50,61 @@
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">Block</h2>
-			            <p class="blog-post-meta">2017/5/17 20:35 PM 
+			            <h2 class="blog-post-title">UIButton</h2>
+			            <p class="blog-post-meta">2017/6/16 21:11 PM 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='Objective-C.html'>Objective-C</a>&nbsp;
+							    <a class='category' href='UI%20Basic.html'>UI Basic</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <ul>
-<li>Block是一个数据类型；</li>
+			            <h3 id="toc_0">UIButton的状态</h3>
+
+<ul>
+<li><p>normal(普通状态)</p>
+
+<ul>
+<li>默认情况（DEFAULT）</li>
+<li>对应的枚举常量： UIControlStateNormal</li>
+</ul></li>
+<li><p>highlighted (高亮状态)</p>
+
+<ul>
+<li>按钮被按下去的时候</li>
+<li>对应的枚举常量： UIControlStateHighlighted</li>
+</ul></li>
+<li><p>disabled (失效状态)</p>
+
+<ul>
+<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
+<li>对应的枚举变量： UIControlStateDisabled</li>
+</ul></li>
 </ul>
 
-<hr/>
+<h3 id="toc_1">UIButton代码应用</h3>
 
-<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(100, 300, 200, 100);
+    button.backgroundColor = [UIColor redColor];
+    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
+    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
+    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
+    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
 
-<hr/>
+    [self.view addSubview:button];
+    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
+}
 
-<blockquote>
-<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
-</blockquote>
+-(IBAction)clickButton:(UIButton *)button {
+    button.enabled = NO;
 
-<h3 id="toc_0">如何声明一个block变量</h3>
-
-<pre><code>void (^myBlock1)();
-int (^myBlock2)();
-int (^myBlock3)(int num1, int num2);
-</code></pre>
-
-<h3 id="toc_1">block变量的初始化</h3>
-
-<pre><code>void (^myBlock1)() = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-
-int (^myBlock2)() = ^int(){
-    int num1 = 10 + 20;
-    return num1;
-};
-
-int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<blockquote>
-<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
-</blockquote>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-int main(int argc, const char * argv[]) {
-    
-    void (^myBlock1)();
-    myBlock1 = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-    myBlock1();
-    
-    int (^myBlock2)() = ^int(){
-        int num1 = 10 + 20;
-        return num1;
-    };
-    int sum = myBlock2();
-    NSLog(@&quot;sum = %d&quot;, sum);
-    
-    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-        int num3 = num1 + num2;
-        return num3;
-    };
-    
-    int res = myblock3(10, 100);
-    NSLog(@&quot;res = %d&quot;, res);
-    
-    
-    return 0;
 }
 </code></pre>
-
-<h3 id="toc_2">block的简写</h3>
-
-<ol>
-<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
-</ol>
-
-<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
-void (^myBlock1)() = ^(){
-        NSLog(@&quot;test&quot;);
-    };
-</code></pre>
-
-<ol>
-<li>如果代码段没有参数，代码段的（）也可以省略：</li>
-</ol>
-
-<pre><code>int (^myBlock2)() = ^int{
-    int num1 = 10 + 20;
-    return num1;
-};
-</code></pre>
-
-<ol>
-<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
-</ol>
-
-<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<ol>
-<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
-</ol>
-
-<ul>
-<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
-<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
-</ul>
-
-<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-    
-int result = myBlock4(20, 30);
-NSLog(@&quot;result is %d&quot;, result);
-</code></pre>
-
-<h3 id="toc_3">简化block的定义</h3>
-
-<ol>
-<li>typedef: 将block定义为一个短类型。</li>
-</ol>
-
-<pre><code>typedef void (^NewType)();
-NewType block1 = ^void(){
-    NSLog(@&quot;Hello&quot;);
-};
-block1();
-</code></pre>
-
-<ul>
-<li>block内部可以取外部的局部变量和全局变量的值</li>
-<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
-<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
-</ul>
 
 
 
@@ -241,6 +147,14 @@ block1();
             
             <ol class="list-unstyled">
 	      <li class="post">
+	        <a href="UI%20Basic.html">UI Basic&nbsp;(3)</a>
+	        
+	        
+	        
+	      </li>
+	  
+            <ol class="list-unstyled">
+	      <li class="post">
 	        <a href="Bootstrap.html">Bootstrap&nbsp;(3)</a>
 	        
 	        
@@ -261,6 +175,24 @@ block1();
           <div class="sidebar-module">
             <h4>Recent Posts</h4>
             
+	  
+	      
+		      
+		        <a href="14976187081535.html">UIButton</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14966683926548.html">UILable</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14965374170472.html">UIView</a><br />
+		      
+	     
 	  
 	      
 		      
@@ -305,22 +237,10 @@ block1();
 	     
 	  
 	      
-		      
-		        <a href="14841396902336.html">导航条navbar</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14834488859095.html">Bootstrap Study_1</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14832356716225.html">Bootstrap Basic</a><br />
-		      
-	     
 	   
 
           </div>

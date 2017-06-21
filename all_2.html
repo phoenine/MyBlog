@@ -50,55 +50,129 @@
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">类方法与对象方法</h2>
-			            <p class="blog-post-meta">2017/3/4 10:24 AM 
+			            <h2 class="blog-post-title">UIView</h2>
+			            <p class="blog-post-meta">2017/6/4 8:50 AM 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='Objective-C.html'>Objective-C</a>&nbsp;
+							    <a class='category' href='UI%20Basic.html'>UI Basic</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <h4 id="toc_0">对象方法</h4>
+			            <h3 id="toc_0">UIView常见属性</h3>
+
+<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
+* 获取自己的父控件对象</p>
+
+<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
+* 获取自己的子控件对象</p>
+
+<p><code>@property(nonatomic) NSInteger tag;</code><br/>
+* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
+
+<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
+* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
+
+<p><code>@property(nonatomic) CGRect frame;</code><br/>
+* 控件矩形框在父控件中的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGRect bounds;</code><br/>
+* 控件矩形框的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGPoint center;</code><br/>
+* 控件重点的位置</p>
+
+<pre><code>#import &quot;ViewController.h&quot;
+
+@interface ViewController ()
+
+@property(weak, nonatomic) UILabel *lable;
+
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UILabel *lable = [[UILabel alloc] init];
+    lable.frame = CGRectMake(200, 100, 100, 60);
+    lable.backgroundColor = [UIColor redColor];
+    [self.view addSubview:lable];
+    self.lable = lable;
+}
+
+- (IBAction)bounds {
+    self.lable.bounds = CGRectMake(0, 0, 200, 40);
+}
+
+- (IBAction)center {
+    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
+}
+@end
+
+</code></pre>
+
+<h3 id="toc_1">常见的方法</h3>
+
+<pre><code>-(void)loadView{
+    [super loadView];
+}
+
+-(void)viewDidLoad{
+    [super viewDidLoad];
+} 
+
+-(void)didReceiveMemoryWarning{
+    [super didReceiveMemoryWarning];
+}
+</code></pre>
+
+<h5 id="toc_2">viewDidLoad</h5>
 
 <ul>
-<li>调用：如果想要调用对象方法就必须先创建对象，通过对象名来调用</li>
-<li>声明：使用‘-’号</li>
+<li>系统调用</li>
+<li>controller的View加载完毕的时候调用</li>
+<li>控件的初始化，数据的初始化(懒加载)</li>
 </ul>
 
-<h4 id="toc_1">类方法</h4>
+<h5 id="toc_3">didReceiveMemoryWarning</h5>
 
 <ul>
-<li>调用：类方法的调用不依赖于对象，如果要调用类方法，不需要去创建对象，直接通过类名来调用。</li>
-<li>声明：使用‘+’号</li>
-<li>在类方法中不能直接访问属性</li>
-<li>属性是在对象创建的时候，跟随着对象一起创建在对象之中</li>
-<li>类第一次被访问的时候，会做类加载，是把类的带啊存储在代码段</li>
-<li>节约空间，提高效率</li>
-<li>如果方法不需要直接访问属性，也不需要直接调用其他的对象方法，则可以定义为类方法</li>
+<li>系统调用</li>
+<li>当控制器接受到内存警告调用</li>
+<li>去除一些不必要的内存，去除耗时的内存</li>
 </ul>
 
-<h4 id="toc_2">类方法规范</h4>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+//    NSLog(@&quot;%@&quot;, self.greenView.superview);
+//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
+//    NSLog(@&quot;%@&quot;, self.view.subviews);
+    UISwitch *sw = [[UISwitch alloc] init];
+    [sw setHighlighted:true];
+    [self.view addSubview:sw];
+    [sw removeFromSuperview];
+}
+</code></pre>
+
+<h5 id="toc_4">addSubview</h5>
 
 <ul>
-<li>如果写一个类，可以为这个类提供一个和类同名的类方法；</li>
+<li>添加一个子控件
+##### removeFromSuperview</li>
+<li>从父控件中移除
+##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
+<li>根据一个tag找出对应的控件</li>
+<li>不推荐使用tag
+
+<ul>
+<li>tag的效率差</li>
+<li>tag容易乱</li>
+</ul></li>
 </ul>
-
-<h4 id="toc_3">NSString最常用的类方法</h4>
-
-<p>instanceType 作为返回值 代表返回的是当前类的对象<br/>
-<img src="media/14885942470746/14888085422135.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888090342021.jpg" alt=""/></p>
-
-<h4 id="toc_4">NSString最常用的对象方法</h4>
-
-<p><img src="media/14885942470746/14888092424014.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888094300096.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888095451151.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888099962376.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888102494936.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892006938627.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892007099870.jpg" alt=""/></p>
 
 
 
@@ -141,6 +215,14 @@
             
             <ol class="list-unstyled">
 	      <li class="post">
+	        <a href="UI%20Basic.html">UI Basic&nbsp;(3)</a>
+	        
+	        
+	        
+	      </li>
+	  
+            <ol class="list-unstyled">
+	      <li class="post">
 	        <a href="Bootstrap.html">Bootstrap&nbsp;(3)</a>
 	        
 	        
@@ -161,6 +243,24 @@
           <div class="sidebar-module">
             <h4>Recent Posts</h4>
             
+	  
+	      
+		      
+		        <a href="14976187081535.html">UIButton</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14966683926548.html">UILable</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14965374170472.html">UIView</a><br />
+		      
+	     
 	  
 	      
 		      
@@ -205,22 +305,10 @@
 	     
 	  
 	      
-		      
-		        <a href="14841396902336.html">导航条navbar</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14834488859095.html">Bootstrap Study_1</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14832356716225.html">Bootstrap Basic</a><br />
-		      
-	     
 	   
 
           </div>

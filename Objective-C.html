@@ -200,6 +200,82 @@ block1();
 <li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
 </ul>
 
+<h3 id="toc_4">block作为函数的参数</h3>
+
+<ol>
+<li>可以在函数中声明一个指定格式的block：</li>
+</ol>
+
+<pre><code>void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+</code></pre>
+
+<ol>
+<li>使用typedef简化定义：</li>
+</ol>
+
+<pre><code>typedef void (^NewBlock) ();
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+</code></pre>
+
+<ol>
+<li>如何调用：</li>
+</ol>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+typedef void (^NewBlock) ();
+
+void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+int main(int argc, const char * argv[]) {
+
+    NewBlock type = ^{
+        NSLog(@&quot;hahahah&quot;);
+    };
+    
+    test_2(type);
+    
+    test_2(^{
+        NSLog(@&quot;hahahah&quot;);
+    });
+    
+    return 0;
+}
+</code></pre>
+
+<p>在这个状态下直接敲回车：<br/>
+<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
+可以转换成：<br/>
+<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
+然后直接补充代码即可：<br/>
+<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
+
+<blockquote>
+<p>将block作为函数的参数可以实现什么效果？</p>
+</blockquote>
+
+<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
+</code></pre>
+
 
 
 						
@@ -241,6 +317,14 @@ block1();
             
             <ol class="list-unstyled">
 	      <li class="post">
+	        <a href="UI%20Basic.html">UI Basic&nbsp;(3)</a>
+	        
+	        
+	        
+	      </li>
+	  
+            <ol class="list-unstyled">
+	      <li class="post">
 	        <a href="Bootstrap.html">Bootstrap&nbsp;(3)</a>
 	        
 	        
@@ -261,6 +345,24 @@ block1();
           <div class="sidebar-module">
             <h4>Recent Posts</h4>
             
+	  
+	      
+		      
+		        <a href="14976187081535.html">UIButton</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14966683926548.html">UILable</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14965374170472.html">UIView</a><br />
+		      
+	     
 	  
 	      
 		      
@@ -305,22 +407,10 @@ block1();
 	     
 	  
 	      
-		      
-		        <a href="14841396902336.html">导航条navbar</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14834488859095.html">Bootstrap Study_1</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14832356716225.html">Bootstrap Basic</a><br />
-		      
-	     
 	   
 
           </div>

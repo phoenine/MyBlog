@@ -50,64 +50,107 @@
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">继承与多态</h2>
-			            <p class="blog-post-meta">2017/3/16 21:18 PM 
+			            <h2 class="blog-post-title">UILable</h2>
+			            <p class="blog-post-meta">2017/6/5 21:13 PM 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='Objective-C.html'>Objective-C</a>&nbsp;
+							    <a class='category' href='UI%20Basic.html'>UI Basic</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <h3 id="toc_0">static关键字</h3>
+			            <h3 id="toc_0">UILable常见属性</h3>
 
-<ol>
-<li><p>C语言中的static</p>
+<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
+* 显示文字</p>
 
-<ul>
-<li>修饰局部变量</li>
-<li>修饰全局变量</li>
-<li>修饰函数</li>
-</ul></li>
-<li><p>OC中的static关键字</p>
+<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
+* 显示字体</p>
 
-<ul>
-<li>static不能修饰属性，也不能修饰方法</li>
-<li>static可以修饰方法中的局部变量</li>
-</ul>
+<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
+* 文字颜色</p>
 
-<p>如果方法中的局部变量被static修饰，那么这个变量就会变成静态变量，存储在常量区，当方法执行完毕不会被回收。下次再执行这个方法的时候，直接使用而不用再次声明。<br/>
-<img src="media/14896702983964/14896706781899.jpg" alt=""/></p>
+<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
+* 对齐模式(左对齐，居中对齐， 右对齐)</p>
 
-<ul>
-<li>如果方法的返回值是当前类的对象，那么方法的返回值就写为instanceType</li>
-</ul></li>
-<li><p>什么时候用到static<br/>
-<img src="media/14896702983964/14896717656421.jpg" alt=""/></p></li>
-</ol>
+<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
+*文字行数</p>
 
-<h3 id="toc_1">self关键字</h3>
+<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
+* 换行模式</p>
 
-<ul>
-<li>self是一个指针；</li>
-<li>在对象方法中self指向当前对象；</li>
-<li><p>在类方法中self指向当前类；</p></li>
-<li><p>作用：</p>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UILabel *lable = [[UILabel alloc] init];
+    
+    lable.frame = CGRectMake(50, 300, 300, 200);
+    lable.backgroundColor = [UIColor redColor];
+    lable.text = @&quot;你这头猪&quot;;
+    lable.textAlignment = NSTextAlignmentCenter;
+    lable.font = [UIFont systemFontOfSize:20.f];
+    lable.font = [UIFont boldSystemFontOfSize:20.f];
+    lable.textColor = [UIColor purpleColor];
+    lable.shadowOffset = CGSizeMake(4, -10);
+    lable.shadowColor = [UIColor blueColor];
+    lable.lineBreakMode = NSLineBreakByClipping;
+    [self.view addSubview:lable];   
+}
+</code></pre>
 
-<ul>
-<li>可以显式的访问当前对象的属性； self -&gt; 属性</li>
-<li>可以使用self来调用当前对象的其他的对象方法；</li>
-</ul></li>
-</ul>
+<h3 id="toc_1">UIImageView</h3>
 
-<h3 id="toc_2">私有属性和私有方法</h3>
+<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
 
-<ul>
-<li>将属性定义在@implementation之中和将属性定义在@interface之中并标记为@private唯一的区别： 提示和不提示</li>
-<li>都不能被外界访问</li>
-<li>方法不写声明，只写实现，那么这个方法就是一个私有方法；</li>
-<li>私有方法只能在本类的其他方法中调用，不能被外界调用</li>
-</ul>
+<h3 id="toc_2">毛玻璃效果</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UIImageView *imageView = [[UIImageView alloc] init];
+    imageView.backgroundColor = [UIColor redColor];
+    imageView.frame = self.view.bounds;
+    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    
+    UIToolbar *toolBar = [[UIToolbar alloc] init];
+    toolBar.frame = imageView.bounds;
+    toolBar.barStyle = UIBarStyleBlack;
+    toolBar.alpha = 0.85;
+    [imageView addSubview:toolBar];
+    
+    [self.view addSubview:imageView];
+}
+</code></pre>
+
+<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIImageView *imageView = [[UIImageView alloc] init];
+    //第一种方式
+    imageView.frame = CGRectMake(100, 100, 200, 200);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    //第二种方式
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = image;
+    //第三种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
+    imageView.center = CGPointMake(100, 300);
+    //第四种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.image = image;
+    
+    [self.view addSubview:imageView];
+}
+</code></pre>
 
 
 
@@ -150,6 +193,14 @@
             
             <ol class="list-unstyled">
 	      <li class="post">
+	        <a href="UI%20Basic.html">UI Basic&nbsp;(3)</a>
+	        
+	        
+	        
+	      </li>
+	  
+            <ol class="list-unstyled">
+	      <li class="post">
 	        <a href="Bootstrap.html">Bootstrap&nbsp;(3)</a>
 	        
 	        
@@ -170,6 +221,24 @@
           <div class="sidebar-module">
             <h4>Recent Posts</h4>
             
+	  
+	      
+		      
+		        <a href="14976187081535.html">UIButton</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14966683926548.html">UILable</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14965374170472.html">UIView</a><br />
+		      
+	     
 	  
 	      
 		      
@@ -214,22 +283,10 @@
 	     
 	  
 	      
-		      
-		        <a href="14841396902336.html">导航条navbar</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14834488859095.html">Bootstrap Study_1</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14832356716225.html">Bootstrap Basic</a><br />
-		      
-	     
 	   
 
           </div>

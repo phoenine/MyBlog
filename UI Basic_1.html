@@ -8,7 +8,7 @@
     <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
     <title> 
 	  
-  	Block - Ascetic in the deadlock
+  	UI Basic - Ascetic in the deadlock
   	
   	</title>
     <link href="asset/css/bootstrap.min.css" rel="stylesheet">
@@ -38,255 +38,147 @@
       </div>
     </div>
 
-        <script type="text/javascript">
+        <div class="container" id="content-wrap">
+
+      <script type="text/javascript">
       $(function(){
       	$('#menu-blog').addClass('active');
       });
       </script>
-   <div class="container" id="content-wrap">
-
       <div class="row">
 
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">Block</h2>
-			            <p class="blog-post-meta">2017/5/17 20:35 PM 
+			            <h2 class="blog-post-title">UILable</h2>
+			            <p class="blog-post-meta">2017/6/5 21:13 PM 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='Objective-C.html'>Objective-C</a>&nbsp;
+							    <a class='category' href='UI%20Basic.html'>UI Basic</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <ul>
-<li>Block是一个数据类型；</li>
-</ul>
+			            <h3 id="toc_0">UILable常见属性</h3>
 
-<hr/>
+<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
+* 显示文字</p>
 
-<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
+<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
+* 显示字体</p>
 
-<hr/>
+<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
+* 文字颜色</p>
 
-<blockquote>
-<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
-</blockquote>
+<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
+* 对齐模式(左对齐，居中对齐， 右对齐)</p>
 
-<h3 id="toc_0">如何声明一个block变量</h3>
+<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
+*文字行数</p>
 
-<pre><code>void (^myBlock1)();
-int (^myBlock2)();
-int (^myBlock3)(int num1, int num2);
-</code></pre>
+<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
+* 换行模式</p>
 
-<h3 id="toc_1">block变量的初始化</h3>
-
-<pre><code>void (^myBlock1)() = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-
-int (^myBlock2)() = ^int(){
-    int num1 = 10 + 20;
-    return num1;
-};
-
-int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<blockquote>
-<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
-</blockquote>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-int main(int argc, const char * argv[]) {
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UILabel *lable = [[UILabel alloc] init];
     
-    void (^myBlock1)();
-    myBlock1 = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-    myBlock1();
-    
-    int (^myBlock2)() = ^int(){
-        int num1 = 10 + 20;
-        return num1;
-    };
-    int sum = myBlock2();
-    NSLog(@&quot;sum = %d&quot;, sum);
-    
-    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-        int num3 = num1 + num2;
-        return num3;
-    };
-    
-    int res = myblock3(10, 100);
-    NSLog(@&quot;res = %d&quot;, res);
-    
-    
-    return 0;
+    lable.frame = CGRectMake(50, 300, 300, 200);
+    lable.backgroundColor = [UIColor redColor];
+    lable.text = @&quot;你这头猪&quot;;
+    lable.textAlignment = NSTextAlignmentCenter;
+    lable.font = [UIFont systemFontOfSize:20.f];
+    lable.font = [UIFont boldSystemFontOfSize:20.f];
+    lable.textColor = [UIColor purpleColor];
+    lable.shadowOffset = CGSizeMake(4, -10);
+    lable.shadowColor = [UIColor blueColor];
+    lable.lineBreakMode = NSLineBreakByClipping;
+    [self.view addSubview:lable];   
 }
 </code></pre>
 
-<h3 id="toc_2">block的简写</h3>
+<h3 id="toc_1">UIImageView</h3>
 
-<ol>
-<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
-</ol>
+<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
 
-<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
-void (^myBlock1)() = ^(){
-        NSLog(@&quot;test&quot;);
-    };
-</code></pre>
+<h3 id="toc_2">毛玻璃效果</h3>
 
-<ol>
-<li>如果代码段没有参数，代码段的（）也可以省略：</li>
-</ol>
-
-<pre><code>int (^myBlock2)() = ^int{
-    int num1 = 10 + 20;
-    return num1;
-};
-</code></pre>
-
-<ol>
-<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
-</ol>
-
-<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<ol>
-<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
-</ol>
-
-<ul>
-<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
-<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
-</ul>
-
-<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
     
-int result = myBlock4(20, 30);
-NSLog(@&quot;result is %d&quot;, result);
-</code></pre>
-
-<h3 id="toc_3">简化block的定义</h3>
-
-<ol>
-<li>typedef: 将block定义为一个短类型。</li>
-</ol>
-
-<pre><code>typedef void (^NewType)();
-NewType block1 = ^void(){
-    NSLog(@&quot;Hello&quot;);
-};
-block1();
-</code></pre>
-
-<ul>
-<li>block内部可以取外部的局部变量和全局变量的值</li>
-<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
-<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
-</ul>
-
-<h3 id="toc_4">block作为函数的参数</h3>
-
-<ol>
-<li>可以在函数中声明一个指定格式的block：</li>
-</ol>
-
-<pre><code>void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>使用typedef简化定义：</li>
-</ol>
-
-<pre><code>typedef void (^NewBlock) ();
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>如何调用：</li>
-</ol>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-typedef void (^NewBlock) ();
-
-void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-int main(int argc, const char * argv[]) {
-
-    NewBlock type = ^{
-        NSLog(@&quot;hahahah&quot;);
-    };
+    UIImageView *imageView = [[UIImageView alloc] init];
+    imageView.backgroundColor = [UIColor redColor];
+    imageView.frame = self.view.bounds;
+    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
     
-    test_2(type);
+    UIToolbar *toolBar = [[UIToolbar alloc] init];
+    toolBar.frame = imageView.bounds;
+    toolBar.barStyle = UIBarStyleBlack;
+    toolBar.alpha = 0.85;
+    [imageView addSubview:toolBar];
     
-    test_2(^{
-        NSLog(@&quot;hahahah&quot;);
-    });
-    
-    return 0;
+    [self.view addSubview:imageView];
 }
 </code></pre>
 
-<p>在这个状态下直接敲回车：<br/>
-<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
-可以转换成：<br/>
-<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
-然后直接补充代码即可：<br/>
-<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
+<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
 
-<blockquote>
-<p>将block作为函数的参数可以实现什么效果？</p>
-</blockquote>
-
-<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIImageView *imageView = [[UIImageView alloc] init];
+    //第一种方式
+    imageView.frame = CGRectMake(100, 100, 200, 200);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    //第二种方式
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = image;
+    //第三种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
+    imageView.center = CGPointMake(100, 300);
+    //第四种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.image = image;
+    
+    [self.view addSubview:imageView];
+}
 </code></pre>
 
-			            </div>
+
+
 						
-			           
+			           </div>
 			          </div><!-- /.blog-post -->
-			<div class="share-comment">
+			  
+
+
+          <nav>
+            <ul class="pager">
+            
+            	<li class=""><a href="UI Basic.html"><span aria-hidden="true">&larr;</span> Newer</a></li>
+            
+
+				<li class=""><a href="archives.html">Archives</a></li>
+
 			
-			</div>
+			<li class=""><a href="UI Basic_2.html">Older <span aria-hidden="true">&rarr;</span></a></li>
+			
+            </ul>
+          </nav>
 
         </div><!-- /.blog-main -->
 
-       <!-- slider start -->  		<div class="col-sm-3 col-sm-offset-1 blog-sidebar">
+       <!-- slider start -->
+
+  		<div class="col-sm-3 col-sm-offset-1 blog-sidebar">
           
 
           <div class="sidebar-module">
