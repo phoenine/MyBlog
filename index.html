@@ -50,61 +50,61 @@
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">UIButton</h2>
-			            <p class="blog-post-meta">2017/6/16 21:11 PM 
+			            <h2 class="blog-post-title">python中的__name__和__main__</h2>
+			            <p class="blog-post-meta">2017/11/2 20:32 下午 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='UI%20Basic.html'>UI Basic</a>&nbsp;
+							    <a class='category' href='Python.html'>Python</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <h3 id="toc_0">UIButton的状态</h3>
+			            <p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
+python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
 
-<ul>
-<li><p>normal(普通状态)</p>
+<ol>
+<li>当代码被执行时，__name__的值为 ‘__main__’</li>
+<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
+</ol>
 
-<ul>
-<li>默认情况（DEFAULT）</li>
-<li>对应的枚举常量： UIControlStateNormal</li>
-</ul></li>
-<li><p>highlighted (高亮状态)</p>
+<p>举个栗子：<br/>
+在test_1.py中写入如下代码：</p>
 
-<ul>
-<li>按钮被按下去的时候</li>
-<li>对应的枚举常量： UIControlStateHighlighted</li>
-</ul></li>
-<li><p>disabled (失效状态)</p>
+<pre><code>print &quot;I&#39;m the first...&quot;
 
-<ul>
-<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
-<li>对应的枚举变量： UIControlStateDisabled</li>
-</ul></li>
-</ul>
+def test():
+    print &quot;I&#39;m the second...&quot;
 
-<h3 id="toc_1">UIButton代码应用</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.frame = CGRectMake(100, 300, 200, 100);
-    button.backgroundColor = [UIColor redColor];
-    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
-    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
-    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
-    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
-    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
-
-    [self.view addSubview:button];
-    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
-}
-
--(IBAction)clickButton:(UIButton *)button {
-    button.enabled = NO;
-
-}
+print __name__
+if __name__ == &quot;__main__&quot;:
+    test()
+    print &quot;I&#39;m the third...&quot;
+else:
+    print &quot;I&#39;m the last...&quot;
 </code></pre>
+
+<p>直接执行test_1.py，会有如下结果：</p>
+
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
+I&#39;m the first...
+__main__
+I&#39;m the second...
+I&#39;m the third...
+</code></pre>
+
+<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
+而作为调用来执行时：<br/>
+<code>from test_1 import test</code><br/>
+会有如下结果：</p>
+
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
+I&#39;m the first...
+test_1
+I&#39;m the last...
+</code></pre>
+
+<p>此时__name__的值为test_1，即模块的名字 。 <br/>
+其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
 
 
 
@@ -147,7 +147,15 @@
             
             <ol class="list-unstyled">
 	      <li class="post">
-	        <a href="UI%20Basic.html">UI Basic&nbsp;(3)</a>
+	        <a href="UI%20Basic.html">UI Basic&nbsp;(4)</a>
+	        
+	        
+	        
+	      </li>
+	  
+            <ol class="list-unstyled">
+	      <li class="post">
+	        <a href="Python.html">Python&nbsp;(2)</a>
 	        
 	        
 	        
@@ -175,6 +183,24 @@
           <div class="sidebar-module">
             <h4>Recent Posts</h4>
             
+	  
+	      
+		      
+		        <a href="15096259430881.html">python中的__name__和__main__</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="15095429404216.html">通过MWeb上传Blog</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14991719231835.html">自定义控件</a><br />
+		      
+	     
 	  
 	      
 		      
@@ -219,22 +245,10 @@
 	     
 	  
 	      
-		      
-		        <a href="14878614535108.html">nil和NULL</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14848362414368.html">类、对象和方法</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14848334530232.html">Objective-C 编程</a><br />
-		      
-	     
 	  
 	      
 	  
@@ -266,7 +280,7 @@ Theme by <a target="_blank" href="http://getbootstrap.com">Bootstrap</a>、<a ta
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="asset/js/ie10-viewport-bug-workaround.js"></script>
     <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
 
   </body>
 </html>

@@ -4,7 +4,7 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2017-06-04T17:22:07+08:00</updated>
+  <updated>2017-06-21T22:06:17+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -12,6 +12,247 @@
   </author>
   <generator uri="http://www.coderforart.com/">CoderForArt</generator>
 
+  
+  <entry>
+    <title type="html"><![CDATA[python中的__name__和__main__]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15096259430881.html"/>
+    <updated>2017-11-02T20:32:23+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15096259430881.html</id>
+    <content type="html"><![CDATA[
+<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
+python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
+
+<ol>
+<li>当代码被执行时，__name__的值为 ‘__main__’</li>
+<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
+</ol>
+
+<p>举个栗子：<br/>
+在test_1.py中写入如下代码：</p>
+
+<pre><code>print &quot;I&#39;m the first...&quot;
+
+def test():
+    print &quot;I&#39;m the second...&quot;
+
+print __name__
+if __name__ == &quot;__main__&quot;:
+    test()
+    print &quot;I&#39;m the third...&quot;
+else:
+    print &quot;I&#39;m the last...&quot;
+</code></pre>
+
+<p>直接执行test_1.py，会有如下结果：</p>
+
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
+I&#39;m the first...
+__main__
+I&#39;m the second...
+I&#39;m the third...
+</code></pre>
+
+<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
+而作为调用来执行时：<br/>
+<code>from test_1 import test</code><br/>
+会有如下结果：</p>
+
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
+I&#39;m the first...
+test_1
+I&#39;m the last...
+</code></pre>
+
+<p>此时__name__的值为test_1，即模块的名字 。 <br/>
+其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[通过MWeb上传Blog]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15095429404216.html"/>
+    <updated>2017-11-01T21:29:00+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15095429404216.html</id>
+    <content type="html"><![CDATA[
+<h6 id="toc_0">你所需要做的，仅仅是：</h6>
+
+<ol>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
+</ol>
+
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
+
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[自定义控件]]></title>
+    <link href="https://sparkbye.github.io/myBlog/14991719231835.html"/>
+    <updated>2017-07-04T20:38:43+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/14991719231835.html</id>
+    <content type="html"><![CDATA[
+<h3 id="toc_0">UIView的封装</h3>
+
+<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
+* 目的：封装空间内部的细节，不让外界关心</p>
+
+<h3 id="toc_1">UIView的封装有两种方式</h3>
+
+<p>通过纯代码封装：<br/>
+1. 新建一个继承UIView的类<br/>
+2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
+3. 在initWithFrame:方法中添加子控件<br/>
+4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
+5. 提供一个模型属性，重写模型属性的set方法<br/>
+6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
+UIView的封装代码如下：</p>
+
+<pre><code> /**
+  *  CustomView.h文件
+  */
+
+ // 步骤1 新建一个继承UIView的类
+ #import &lt;UIKit/UIKit.h&gt;
+ @class CustomModel;
+ @interface CustomView : UIView
+ // 在这里为了方便，可以自行添加构造方法，方便使用
+ // 步骤5 提供一个`模型`属性，重写模型属性的set方法
+ @property (nonatomic, strong) CustomModel *model;
+ @end
+</code></pre>
+
+<pre><code>/**
+ *  CustomView.m文件
+ */
+ #import &quot;CustomView.h&quot;
+ #import &quot;CustomModel.h&quot;
+ @interface CustomView ()
+ // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
+ @property (nonatomic, weak) UIImageView *iconImageView;
+ @property (nonatomic, weak) UILabel *nameLabel;
+ @end
+
+ @implementation CustomView
+ // 步骤3 在initWithFrame:方法中添加子控件
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+     if (self = [super initWithFrame:frame]) {
+     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
+     UIImageView *iconImageView = [[UIImageView alloc] init];
+     self.iconImageView = iconImageView;
+     [self addSubview:iconImageView];
+
+     UILabel *nameLabel = [[UILabel alloc] init];
+     // 设置子控件的属性
+     nameLabel.textAlignment = NSTextAlignmentCenter;
+     nameLabel.font = [UIFont systemFontOfSize:10];
+     self.nameLabel = nameLabel;
+     [self addSubview:nameLabel];
+     }
+     return self;
+ }
+
+ // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
+ - (void)layoutSubviews
+ {
+     [super layoutSubviews];
+
+     CGFloat iconImageViewX = 0;
+     CGFloat iconImageViewY = 0;
+     CGFloat iconImageViewW = self.bounds.size.width;
+     CGFloat iconImageViewH = 80;
+     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
+
+     CGFloat nameLabelX = 0;
+     CGFloat nameLabelY = iconImageViewH;
+     CGFloat nameLabelW = iconImageViewW;
+     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
+     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
+ }
+
+ // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
+ - (void)setModel:(CustomModel *)model
+ {
+     _model = model;
+     self.iconImageView.image = [UIImage imageNamed:model.icon];
+     self.nameLabel.text = model.name;
+ }
+ @end
+</code></pre>
+
+<p>layoutSubviews在以下情况下会被调用：<br/>
+1. init初始化不会触发layoutSubviews<br/>
+2. addSubview会触发layoutSubviews<br/>
+3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
+4. 滚动一个UIScrollView会触发layoutSubviews<br/>
+5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
+6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
+
+<p>模型代码如下：</p>
+
+<pre><code> /**
+  *  CustomModel.h文件
+  */
+ #import &lt;Foundation/Foundation.h&gt;
+
+ @interface CustomModel : NSObject
+    /**
+     *  名字
+     */
+ @property (nonatomic, copy) NSString *name;
+    /**
+     *  图片
+     */
+ @property (nonatomic, copy) NSString *icon;
+
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
+
+ @end
+</code></pre>
+
+<pre><code> /**
+  *  CustomModel.m文件
+  */
+ #import &quot;CustomModel.h&quot;
+
+ @implementation CustomModel
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
+ {
+     return [[self alloc] initWithName:name icon:icon];
+ }
+
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
+ {
+     if (self = [super init]) {
+         self.name = name;
+         self.icon = icon;
+     }
+     return self;
+ }
+ @end
+</code></pre>
+
+<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
+
+<pre><code>// 创建自定义的View
+ CustomView *customView = [[CustomView alloc] init];
+// 设置数据
+ CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
+ customView.model = model;
+// 设置frame
+ customView.frame = CGRectMake(100, 100, 67, 100);
+// 添加子控件
+ [self.view addSubview:customView];
+</code></pre>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[UIButton]]></title>
@@ -65,6 +306,8 @@
 
 }
 </code></pre>
+
+<h3 id="toc_2">九宫格布局</h3>
 
 ]]></content>
   </entry>

@@ -50,107 +50,26 @@
         <div class="col-sm-8 blog-main">
 			
 					<div class="blog-post">
-			            <h2 class="blog-post-title">UILable</h2>
-			            <p class="blog-post-meta">2017/6/5 21:13 PM 
+			            <h2 class="blog-post-title">通过MWeb上传Blog</h2>
+			            <p class="blog-post-meta">2017/11/1 21:29 下午 
 				            &nbsp;posted in 
 							
-							    <a class='category' href='UI%20Basic.html'>UI Basic</a>&nbsp;
+							    <a class='category' href='Python.html'>Python</a>&nbsp;
 							 
 							 
 			            </p>
 			            <div class="content-responsive">
-			            <h3 id="toc_0">UILable常见属性</h3>
+			            <h6 id="toc_0">你所需要做的，仅仅是：</h6>
 
-<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
-* 显示文字</p>
+<ol>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
+</ol>
 
-<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
-* 显示字体</p>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
 
-<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
-* 文字颜色</p>
-
-<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
-* 对齐模式(左对齐，居中对齐， 右对齐)</p>
-
-<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
-*文字行数</p>
-
-<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
-* 换行模式</p>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UILabel *lable = [[UILabel alloc] init];
-    
-    lable.frame = CGRectMake(50, 300, 300, 200);
-    lable.backgroundColor = [UIColor redColor];
-    lable.text = @&quot;你这头猪&quot;;
-    lable.textAlignment = NSTextAlignmentCenter;
-    lable.font = [UIFont systemFontOfSize:20.f];
-    lable.font = [UIFont boldSystemFontOfSize:20.f];
-    lable.textColor = [UIColor purpleColor];
-    lable.shadowOffset = CGSizeMake(4, -10);
-    lable.shadowColor = [UIColor blueColor];
-    lable.lineBreakMode = NSLineBreakByClipping;
-    [self.view addSubview:lable];   
-}
-</code></pre>
-
-<h3 id="toc_1">UIImageView</h3>
-
-<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
-
-<h3 id="toc_2">毛玻璃效果</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.backgroundColor = [UIColor redColor];
-    imageView.frame = self.view.bounds;
-    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    
-    UIToolbar *toolBar = [[UIToolbar alloc] init];
-    toolBar.frame = imageView.bounds;
-    toolBar.barStyle = UIBarStyleBlack;
-    toolBar.alpha = 0.85;
-    [imageView addSubview:toolBar];
-    
-    [self.view addSubview:imageView];
-}
-</code></pre>
-
-<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UIImageView *imageView = [[UIImageView alloc] init];
-    //第一种方式
-    imageView.frame = CGRectMake(100, 100, 200, 200);
-    imageView.backgroundColor = [UIColor purpleColor];
-    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    //第二种方式
-    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
-    imageView.backgroundColor = [UIColor purpleColor];
-    imageView.image = image;
-    //第三种方式
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
-    imageView.center = CGPointMake(100, 300);
-    //第四种方式
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
-    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.image = image;
-    
-    [self.view addSubview:imageView];
-}
-</code></pre>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
 
 
 
@@ -193,7 +112,15 @@
             
             <ol class="list-unstyled">
 	      <li class="post">
-	        <a href="UI%20Basic.html">UI Basic&nbsp;(3)</a>
+	        <a href="UI%20Basic.html">UI Basic&nbsp;(4)</a>
+	        
+	        
+	        
+	      </li>
+	  
+            <ol class="list-unstyled">
+	      <li class="post">
+	        <a href="Python.html">Python&nbsp;(2)</a>
 	        
 	        
 	        
@@ -221,6 +148,24 @@
           <div class="sidebar-module">
             <h4>Recent Posts</h4>
             
+	  
+	      
+		      
+		        <a href="15096259430881.html">python中的__name__和__main__</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="15095429404216.html">通过MWeb上传Blog</a><br />
+		      
+	     
+	  
+	      
+		      
+		        <a href="14991719231835.html">自定义控件</a><br />
+		      
+	     
 	  
 	      
 		      
@@ -265,22 +210,10 @@
 	     
 	  
 	      
-		      
-		        <a href="14878614535108.html">nil和NULL</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14848362414368.html">类、对象和方法</a><br />
-		      
-	     
 	  
 	      
-		      
-		        <a href="14848334530232.html">Objective-C 编程</a><br />
-		      
-	     
 	  
 	      
 	  
@@ -312,7 +245,7 @@ Theme by <a target="_blank" href="http://getbootstrap.com">Bootstrap</a>、<a ta
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="asset/js/ie10-viewport-bug-workaround.js"></script>
     <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
-<script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
 
   </body>
 </html>
