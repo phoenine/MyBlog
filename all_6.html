@@ -1,456 +1,506 @@
-
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html class="no-js" lang="en">
   <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
-    <title> 
-	  
-  	Ascetic in the deadlock
-  	
-  	</title>
-    <link href="asset/css/bootstrap.min.css" rel="stylesheet">
-    <link href="asset/css/style.css" rel="stylesheet">
-    <script src="asset/js/jquery.min.js"></script>
-    <script src="asset/js/bootstrap.min.js"></script>
-    <script src="asset/js/docs.js"></script>
-    <script src="asset/highlightjs/highlight.pack.js"></script>
-	<link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
-	<script>hljs.initHighlightingOnLoad();</script>
-    <!--[if lt IE 9]>
-      <script src="asset/js/html5shiv.min.js"></script>
-    <![endif]-->
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
   </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
 
-  <body>
 
-    <div class="blog-masthead">
-      <div class="container">
-        <nav class="blog-nav">
-          <a class="blog-nav-item" id="menu-index" href="index.html">Home</a>
-          <a class="blog-nav-item" id="menu-help" href="help.html">Documentation</a>
-          <a class="blog-nav-item" id="menu-blog" href="all.html">Blog</a>
-          <a class="blog-nav-item" id="menu-about" href="about.html">About</a>
-          <a class="blog-nav-item" style="float:right;" href="http://zh.mweb.im">中文</a>
-        </nav>
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+	$(function(){
+		$('#menu_item_index').addClass('is_active');
+	});
+</script>
+<div class="row">
+	<div class="large-8 medium-8 columns">
+		<div class="markdown-body home-categories">
+		
+			<div class="article">
+                <a class="clearlink" href="14848362414368.html">
+                
+                  <h1>类、对象和方法</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h2 id="toc_0">对象在内存中式如何存储的</h2>
+
+<h4 id="toc_1">内存中的五大区域：</h4>
+
+<ol>
+<li>堆： 程序员手动申请的字节空间： malloc calloc</li>
+<li>栈： 存储局部变量</li>
+<li>BSS段： 存储未被初始化的全部变量 静态变量</li>
+<li>数据段(常量区)： 存储已被初始化的全局 静态变量，常量</li>
+<li>代码段： 存储程序的代码</li>
+</ol>
+
+<h4 id="toc_2">类加载</h4>
+
+<ol>
+<li>在创建对象的时候， 肯定是需要访问类的</li>
+<li>声明一个类的指针变量也会访问类的</li>
+<li>在程序运行期间，当某个类第一次被访问的时候，会将这个类存储到内存中的代码段区域，这个过程叫做类加载。</li>
+<li>直到程序结束的时候才会被释放。</li>
+</ol>
+
+<h4 id="toc_3">对象在内存中的存储</h4>
+
+<p>假设写在函数当中：<br/>
+Person *p1 = [Person new];</p>
+
+<ol>
+<li>Person * p1 : 会在栈内存中申请一块空间，在栈内存中声明一个Person类型的指针变量p1(指针变量只能存储地址);</li>
+<li>[Person new]: 真正在内存中创建对象的其实是这段代码;</li>
+<li><p>new做的事情：</p></li>
+</ol>
+
+<ul>
+<li>     在堆内存中申请一块合适大小的空间;</li>
+<li>     在这个空间根据类的模板创建对象;</li>
+<li>     类模板中定义了什么属性，就把这些属性依次声明在对象之中</li>
+<li>     对象中还有另一个属性，叫做isa，这是一个指针，指向对象所属的类在代码段中的地址。</li>
+<li>     初始化对象的属性：
+    如果属性的类型是基本数据类型，那么就赋值0；<br/>
+    如果属性的类型是C语言的指针类型，那么就赋值为NULL；<br/>
+    如果属性的类型是OC的类指针类型，那么就赋值为nil</li>
+</ul>
+
+<p><img src="media/14848362414368/14876872482687.jpg" alt=""/></p>
+
+<ul>
+<li>     返回对象的地址</li>
+</ul>
+
+<p><img src="media/14848362414368/14876857739160.jpg" alt=""/></p>
+
+<p>代码中的检测：<br/>
+<img src="media/14848362414368/14876858990226.jpg" alt=""/></p>
+
+<h4 id="toc_4">注意</h4>
+
+<p>对象里面只有属性，没有方法(自己类的属性 + isa)；</p>
+
+<p>如何访问对象的属性？</p>
+
+<ul>
+<li>  指针名-&gt;属性名；</li>
+<li>  根据指针 找到指针指向的对象 再找到对象中的属性来访问；</li>
+</ul>
+
+<p>如何调用方法？</p>
+
+<ul>
+<li>  先根据指针名找到对象，对象发现要调用方法，在根据对象的isa指针找到类，然后调用类里面的方法；</li>
+</ul>
+
+<h4 id="toc_5">问题</h4>
+
+<p>为什么不把方法存储在对象之中？  </p>
+
+<ul>
+<li>因为每一个对象的方法的代码实现都是一样的，没有必要为每一个对象都保存一个方法。
+<img src="media/14848362414368/14876867543683.jpg" alt=""/></li>
+</ul>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/1/19 22:30 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
+                <a class="clearlink" href="14848334530232.html">
+                
+                  <h1>Objective-C 编程</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<blockquote>
+<p>断断续续学习了好久的OC，一直没有提高，现在才完完全全信服了好记性不如烂笔头，今天开始坚持好好记录自己的学习过程，争取今年能上线一个自己满意的App，加油！</p>
+</blockquote>
+
+<h3 id="toc_0">1.最简单的一个例子</h3>
+
+<pre><code>1. #import &lt;Foundation/Foundation.h&gt;
+2. int main(int argc, const char *argv[])
+3. {
+4.     @autoreleasepool{
+5.         NSLog(@&quot;Programming is fun!&quot;);
+6.     }
+7.     return 0;
+8. }
+</code></pre>
+
+<ul>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Objective C中，大小写是区分的；
+</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 编程时要养成插入注释的习惯；
+</li>
+</ul>
+
+<h3 id="toc_1">2.程序解释</h3>
+
+<p>第1行：程序告诉编译器找到并处理名为Foundation.h的文件；<br/>
+第2行：指定程序的名称为main<br/>
+问题：<br/>
+<code>int argc, const char *argv[]</code>如何理解？<br/>
+第4行：自动释放池；它的机制是：它使得应用在创建新对象时，系统能够有效地管理应用所使用的内存。<br/>
+第5行：指定要调用名为NSLog的<strong>函数</strong><br/>
+此处的@符号在位于一对双引号的字符串前面，这称为<strong>常量NSString对象</strong><br/>
+第7行：表示要终止main的执行并返回一个状态值0；</p>
+
+<h3 id="toc_2">3.练习</h3>
+
+<h4 id="toc_3">第2题：</h4>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+int main (int argc, const char * argv[])
+{
+    @autoreleasepool {
+        NSLog(@&quot;In Objective-C, lowercase letters are significant.\nmain is where program execution begins.\nOpen and closed braces enclose program statements in a routine.\nAll program statements must be terminated by a semicolon.&quot;);
+    }
+    return 0;
+}
+</code></pre>
+
+<h4 id="toc_4">第3题：</h4>
+
+<pre><code>返回:
+Testing...
+....1
+...2
+..3
+</code></pre>
+
+<h4 id="toc_5">第4题：</h4>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+int main (int argc, const char * argv[])
+{
+    @autoreleasepool{
+        result = 87 - 15;
+        NSLog(@&quot;The result is %i&quot;, result);
+    }
+    return 0;
+}
+</code></pre>
+
+<h4 id="toc_6">第5题：</h4>
+
+<pre><code>1. INT 改为int；
+2. sum计算缺少；号；
+3. NSLog要用“”号；
+4. sum前缺少，号；
+</code></pre>
+
+<h4 id="toc_7">第6题：</h4>
+
+<p><code>输出结果为：95</code></p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/1/19 21:44 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+              
+
+
+			<div class="row">
+			  <div class="large-6 columns">
+			  <p class="text-left" style="padding-top:25px;">
+			   <a href="all_5.html">&laquo; Prev Page</a>  
+			  </p>
+			  </div>
+			  <div class="large-6 columns">
+			<p class="text-right" style="padding-top:25px;">
+			 <a href="all_7.html">&raquo; Next Page</a> 
+			</p>
+			  </div>
+			</div>
+		</div>
+	</div><!-- large 8 -->
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15137747318292.html">Python格式化输出与format函数</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15096259430881.html">python中的__name__和__main__</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15095429404216.html">通过MWeb上传Blog</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="14991719231835.html">自定义控件</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="14976187081535.html">UIButton</a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
       </div>
     </div>
 
-        <div class="container" id="content-wrap">
+  
+    
 
-      <script type="text/javascript">
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
       $(function(){
-      	$('#menu-blog').addClass('active');
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
       });
-      </script>
-      <div class="row">
+     
+    </script>
 
-        <div class="col-sm-8 blog-main">
-			
-					<div class="blog-post">
-			            <h2 class="blog-post-title">Block</h2>
-			            <p class="blog-post-meta">2017/5/17 20:35 下午 
-				            &nbsp;posted in 
-							
-							    <a class='category' href='Objective-C.html'>Objective-C</a>&nbsp;
-							 
-							 
-			            </p>
-			            <div class="content-responsive">
-			            <ul>
-<li>Block是一个数据类型；</li>
-</ul>
-
-<hr/>
-
-<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
-
-<hr/>
-
-<blockquote>
-<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
-</blockquote>
-
-<h3 id="toc_0">如何声明一个block变量</h3>
-
-<pre><code>void (^myBlock1)();
-int (^myBlock2)();
-int (^myBlock3)(int num1, int num2);
-</code></pre>
-
-<h3 id="toc_1">block变量的初始化</h3>
-
-<pre><code>void (^myBlock1)() = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-
-int (^myBlock2)() = ^int(){
-    int num1 = 10 + 20;
-    return num1;
-};
-
-int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<blockquote>
-<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
-</blockquote>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-int main(int argc, const char * argv[]) {
     
-    void (^myBlock1)();
-    myBlock1 = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-    myBlock1();
-    
-    int (^myBlock2)() = ^int(){
-        int num1 = 10 + 20;
-        return num1;
-    };
-    int sum = myBlock2();
-    NSLog(@&quot;sum = %d&quot;, sum);
-    
-    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-        int num3 = num1 + num2;
-        return num3;
-    };
-    
-    int res = myblock3(10, 100);
-    NSLog(@&quot;res = %d&quot;, res);
-    
-    
-    return 0;
-}
-</code></pre>
-
-<h3 id="toc_2">block的简写</h3>
-
-<ol>
-<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
-</ol>
-
-<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
-void (^myBlock1)() = ^(){
-        NSLog(@&quot;test&quot;);
-    };
-</code></pre>
-
-<ol>
-<li>如果代码段没有参数，代码段的（）也可以省略：</li>
-</ol>
-
-<pre><code>int (^myBlock2)() = ^int{
-    int num1 = 10 + 20;
-    return num1;
-};
-</code></pre>
-
-<ol>
-<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
-</ol>
-
-<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<ol>
-<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
-</ol>
-
-<ul>
-<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
-<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
-</ul>
-
-<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-    
-int result = myBlock4(20, 30);
-NSLog(@&quot;result is %d&quot;, result);
-</code></pre>
-
-<h3 id="toc_3">简化block的定义</h3>
-
-<ol>
-<li>typedef: 将block定义为一个短类型。</li>
-</ol>
-
-<pre><code>typedef void (^NewType)();
-NewType block1 = ^void(){
-    NSLog(@&quot;Hello&quot;);
-};
-block1();
-</code></pre>
-
-<ul>
-<li>block内部可以取外部的局部变量和全局变量的值</li>
-<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
-<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
-</ul>
-
-<h3 id="toc_4">block作为函数的参数</h3>
-
-<ol>
-<li>可以在函数中声明一个指定格式的block：</li>
-</ol>
-
-<pre><code>void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>使用typedef简化定义：</li>
-</ol>
-
-<pre><code>typedef void (^NewBlock) ();
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>如何调用：</li>
-</ol>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-typedef void (^NewBlock) ();
-
-void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-int main(int argc, const char * argv[]) {
-
-    NewBlock type = ^{
-        NSLog(@&quot;hahahah&quot;);
-    };
-    
-    test_2(type);
-    
-    test_2(^{
-        NSLog(@&quot;hahahah&quot;);
-    });
-    
-    return 0;
-}
-</code></pre>
-
-<p>在这个状态下直接敲回车：<br/>
-<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
-可以转换成：<br/>
-<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
-然后直接补充代码即可：<br/>
-<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
-
-<blockquote>
-<p>将block作为函数的参数可以实现什么效果？</p>
-</blockquote>
-
-<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
-</code></pre>
 
 
-
-						
-			           </div>
-			          </div><!-- /.blog-post -->
-			  
-
-
-          <nav>
-            <ul class="pager">
-            
-            	<li class=""><a href="all_5.html"><span aria-hidden="true">&larr;</span> Newer</a></li>
-            
-
-				<li class=""><a href="archives.html">Archives</a></li>
-
-			
-			<li class=""><a href="all_7.html">Older <span aria-hidden="true">&rarr;</span></a></li>
-			
-            </ul>
-          </nav>
-
-        </div><!-- /.blog-main -->
-
-       <!-- slider start -->
-
-  		<div class="col-sm-3 col-sm-offset-1 blog-sidebar">
-          
-
-          <div class="sidebar-module">
-            <h4>About</h4>
-            <p><a target="_blank" href="atom.xml">RSS</a></p>
-            <p><a href="help.html">MWeb Documentation</a></p>
-            
-
-          </div>
-          <div class="sidebar-module">
-            <h4>Categories</h4>
-            
-            <ol class="list-unstyled">
-	      <li class="post">
-	        <a href="UI%20Basic.html">UI Basic&nbsp;(4)</a>
-	        
-	        
-	        
-	      </li>
-	  
-            <ol class="list-unstyled">
-	      <li class="post">
-	        <a href="Python.html">Python&nbsp;(2)</a>
-	        
-	        
-	        
-	      </li>
-	  
-            <ol class="list-unstyled">
-	      <li class="post">
-	        <a href="Bootstrap.html">Bootstrap&nbsp;(3)</a>
-	        
-	        
-	        
-	      </li>
-	  
-            <ol class="list-unstyled">
-	      <li class="post">
-	        <a href="Objective-C.html">Objective-C&nbsp;(7)</a>
-	        
-	        
-	        
-	      </li>
-	   
-            </ol>
-          </div>
-
-          <div class="sidebar-module">
-            <h4>Recent Posts</h4>
-            
-	  
-	      
-		      
-		        <a href="15096259430881.html">python中的__name__和__main__</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="15095429404216.html">通过MWeb上传Blog</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14991719231835.html">自定义控件</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14976187081535.html">UIButton</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14966683926548.html">UILable</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14965374170472.html">UIView</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14950245211652.html">Block</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14896702983964.html">继承与多态</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14885942470746.html">类方法与对象方法</a><br />
-		      
-	     
-	  
-	      
-		      
-		        <a href="14879879409983.html">对象与方法</a><br />
-		      
-	     
-	  
-	      
-	  
-	      
-	  
-	      
-	  
-	      
-	  
-	      
-	  
-	      
-	   
-
-          </div>
-         
-        </div><!-- /.blog-sidebar -->
-
-
-      </div><!-- /.row -->
-
-    </div><!-- /.container -->
-
-  <footer class="blog-footer">
-      <p>Copyright &copy; 2015
-Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a> &nbsp;&nbsp; 
-Theme by <a target="_blank" href="http://getbootstrap.com">Bootstrap</a>、<a target="_blank" href="https://twitter.com/mdo">@mdo</a>
-&nbsp;&nbsp; host on <a target="_blank" href="https://coding.net/">Coding.net Pages</a>.</p>
-      <p>
-        <a href="#">Back to top</a>
-      </p>
-    </footer>
-
-
-    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-    <script src="asset/js/ie10-viewport-bug-workaround.js"></script>
-    <script src="asset/chart/all-min.js"></script><script type="text/javascript">$(function(){    var mwebii=0;    var mwebChartEleId = 'mweb-chart-ele-';    $('pre>code').each(function(){        mwebii++;        var eleiid = mwebChartEleId+mwebii;        if($(this).hasClass('language-sequence')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = Diagram.parse($(this).text());            diagram.drawSVG(eleiid,{theme: 'simple'});        }else if($(this).hasClass('language-flow')){            var ele = $(this).addClass('nohighlight').parent();            $('<div id="'+eleiid+'"></div>').insertAfter(ele);            ele.hide();            var diagram = flowchart.parse($(this).text());            diagram.drawSVG(eleiid);        }    });});</script>
-<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><script type="text/x-mathjax-config">MathJax.Hub.Config({TeX: { equationNumbers: { autoNumber: "AMS" } }});</script>
 
   </body>
 </html>

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Ascetic in the deadlock
+  Python格式化输出与format函数 - Ascetic in the deadlock
   
   </title>
   
@@ -96,176 +96,201 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="14841396902336.html">
-                
-                  <h1>导航条navbar</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<ol>
-<li>navbar有<strong>背景色</strong></li>
-<li>navbar可以是<strong>纯链接</strong>，也可以是<strong>表单</strong></li>
-<li>navbar可以是表单和导航一起结合</li>
-</ol>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python格式化输出与format函数</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2017/12/20 20:58 PM</span>
 
-<p>LESS版本：对应源文件navbar.less<br/>
-Sass版本：对应元文件navbar.scss</p>
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
 
-<h2 id="toc_0">基本导航条</h2>
+            
+          </span>
 
-<p>基本导航条分为两个步骤：<br/>
-1. 制作导航的列表（<code>&lt;ul class=“navbar”&gt;</code>）基础上添上类名“navbar-nav”<br/>
-2. 列表外部添加一个容器（div），使用类名“navbar”和“navbar-default”</p>
+        </div>
+      </div><!-- article -->
 
-<p>“.navbar”样式主要功能：<br/>
-* 设置左右padding<br/>
-* 圆角</p>
+      <div class="article-content">
+      <p>本文主要整理和汇总python一系列的格式化输出方式：</p>
 
-<p>导航条的颜色是通过“.navbar-default”来控制，颜色和其他样式是通过配合父容器“navbar-default”来一起实现。</p>
+<p><strong>打印整数</strong></p>
 
-<h2 id="toc_1">为导航条增加标题</h2>
+<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
 
-<ol>
-<li>navbar-header</li>
-<li>navbar-brand</li>
-</ol>
-
-<h2 id="toc_2">带表单的导航条</h2>
-
-<p>在navbar容器中放置一个带有navbar-form类名的表单。</p>
-
-<pre><code>&lt;form action=&quot;##&quot; class=&quot;navbar-form navbar-left&quot; rol=&quot;search&quot;&gt;
-    &lt;div class=&quot;form-group&quot;&gt;
-        &lt;input type=&quot;text&quot; class=&quot;form-control&quot; placeholder=&quot;请输入关键词&quot; /&gt;
-    &lt;/div&gt;
-    &lt;button type=&quot;submit&quot; class=&quot;btn btn-default&quot;&gt;搜索&lt;/button&gt;
-&lt;/form&gt;
+&gt;&gt;&gt; I&#39;m number 20  
 </code></pre>
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/1/11 21:1 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
+<p><strong>打印浮点数(默认)</strong></p>
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="14834488859095.html">
-                
-                  <h1>Bootstrap Study_1</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h2 id="toc_0">What is Bootstrap</h2>
+<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
 
-<ul>
-<li>Free front-end framework </li>
-<li>Includes HTML and CSS based design templates for typography, forms, buttons, tables, navigation, modals and many other.</li>
-</ul>
-
-<h3 id="toc_1">Containers</h3>
-
-<ul>
-<li>The <em>.container</em> class provides a responsive fixed width container</li>
-<li>The <em>.container-fluid</em> class provides a full width container, spanning the entire width of the viewport</li>
-</ul>
-
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-  &lt;title&gt;Bootstrap Example&lt;/title&gt;
-  &lt;meta charset=&quot;utf-8&quot;&gt;
-  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
-  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css&quot;&gt;
-  &lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;
-  &lt;script src=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-
-&lt;div class=&quot;container&quot;&gt;
-  &lt;h1&gt;My First Bootstrap Page&lt;/h1&gt;
-  &lt;p&gt;This is some text.&lt;/p&gt; 
-&lt;/div&gt;
-
-&lt;/body&gt;
-&lt;/html&gt;
+&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
 </code></pre>
 
-<h3 id="toc_2">Grid classes</h3>
+<p><strong>打印浮点数(指定位数)</strong></p>
 
-<p>The Bootstrap grid system has four classes:<br/>
-* xs (for phones)<br/>
-* sm (for tablets)<br/>
-* md (for desktops)<br/>
-* lg (for larger desktops)</p>
+<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/1/3 21:8 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
+&gt;&gt;&gt; His height is 1.73 m 
+</code></pre>
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
+<p><strong>打印字符串</strong></p>
+
+<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
+
+&gt;&gt;&gt; My name is terry 
+</code></pre>
+
+<p><strong>打印指定占位符宽度</strong></p>
+
+<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
+
+&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
+</code></pre>
+
+<p><strong>打印指定占位符(左对齐)</strong></p>
+
+<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
+
+&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
+</code></pre>
+
+<p><strong>打印指定占位符(前导0)</strong></p>
+
+<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
+
+&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
+</code></pre>
+
+<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
+用法主要包含以下几类：</p>
+
+<p><strong>通过位置</strong><br/>
+字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
+
+<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
+
+&gt;&gt;&gt; aaa,bbb,aaa  
+</code></pre>
+
+<p><strong>通过关键字参数</strong></p>
+
+<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
+
+&gt;&gt;&gt; Terry,18  
+</code></pre>
+
+<p><strong>通过对象属性</strong></p>
+
+<pre><code class="language-python">class Person:
+    def __init__(self,name,age):
+        self.name = name
+        self.age = age
+
+    def __str__(self):
+        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
+
+print str(Person(&#39;Terry&#39;,18))
+
+&gt;&gt;&gt; This guy is Terry,he is 18 old.
+</code></pre>
+
+<p><strong>通过下标</strong></p>
+
+<pre><code class="language-python">person = [&#39;Terry&#39;,18]
+print(&#39;{0[0]},{0[1]}&#39;.format(person))
+
+&gt;&gt;&gt; Terry,18
+</code></pre>
+
+<p><strong>通过格式</strong><br/>
+如上面的前导0：</p>
+
+<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
+
+&gt;&gt;&gt; 00000189
+&gt;&gt;&gt;      189
+&gt;&gt;&gt; aaaaa189
+</code></pre>
+
+<p>以及浮点数：</p>
+
+<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
+
+&gt;&gt;&gt; 321.33
+</code></pre>
+
+<p><strong>其他类型</strong><br/>
+主要就是二进制b、十进制d、八进制o、十六进制x:</p>
+
+<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
+print(&#39;{:d}&#39;.format(46))
+print(&#39;{:o}&#39;.format(46))
+print(&#39;{:x}&#39;.format(46))
+
+&gt;&gt;&gt; 101110
+&gt;&gt;&gt; 46
+&gt;&gt;&gt; 56
+&gt;&gt;&gt; 2e
+</code></pre>
+
+<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
+
+<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
+
+&gt;&gt;&gt; 99,988,844,333
+</code></pre>
 
 
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   <a href="all_6.html">&laquo; Prev Page</a>  
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			 <a href="all_8.html">&raquo; Next Page</a> 
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15096259430881.html" 
+          title="Next Post: python中的__name__和__main__">python中的__name__和__main__ &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">
