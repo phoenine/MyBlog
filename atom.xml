@@ -4,14 +4,13 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2017-11-02T20:52:31+08:00</updated>
+  <updated>2017-12-20T20:36:38+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
-  <generator uri="http://www.coderforart.com/">CoderForArt</generator>
-
+  <generator uri="http://www.mweb.im/">MWeb</generator>
   
   <entry>
     <title type="html"><![CDATA[python中的__name__和__main__]]></title>
