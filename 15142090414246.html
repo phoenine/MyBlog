@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  自定义控件 - Ascetic in the deadlock
+  Python学习之整数比较 - Ascetic in the deadlock
   
   </title>
   
@@ -107,14 +107,14 @@
       <div class="markdown-body article-wrap">
        <div class="article">
           
-          <h1>自定义控件</h1>
+          <h1>Python学习之整数比较</h1>
      
         <div class="read-more clearfix">
-          <span class="date">2017/7/4 20:38 PM</span>
+          <span class="date">2017/12/25 21:37 PM</span>
 
           <span>posted in&nbsp;</span> 
           
-              <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
            
          
           <span class="comments">
@@ -127,160 +127,73 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <h3 id="toc_0">UIView的封装</h3>
+      <p>最近学习python，发现整数比较时一个有趣的现象：</p>
 
-<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
-* 目的：封装空间内部的细节，不让外界关心</p>
-
-<h3 id="toc_1">UIView的封装有两种方式</h3>
-
-<p>通过纯代码封装：<br/>
-1. 新建一个继承UIView的类<br/>
-2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
-3. 在initWithFrame:方法中添加子控件<br/>
-4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
-5. 提供一个模型属性，重写模型属性的set方法<br/>
-6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
-UIView的封装代码如下：</p>
-
-<pre><code> /**
-  *  CustomView.h文件
-  */
-
- // 步骤1 新建一个继承UIView的类
- #import &lt;UIKit/UIKit.h&gt;
- @class CustomModel;
- @interface CustomView : UIView
- // 在这里为了方便，可以自行添加构造方法，方便使用
- // 步骤5 提供一个`模型`属性，重写模型属性的set方法
- @property (nonatomic, strong) CustomModel *model;
- @end
+<pre><code class="language-python">a = 256
+b = 256
+print id(a)
+print id(b)
+print(a == b)
+print(a is b)
+print(id(a) == id(b))
+print(id(a) is id(b))
+c = 257
+d = 257
+print id(c)
+print id(d)
+print(c == d)
+print(c is d)
+print(id(c) == id(d))
+print(id(c) is id(d))
 </code></pre>
 
-<pre><code>/**
- *  CustomView.m文件
- */
- #import &quot;CustomView.h&quot;
- #import &quot;CustomModel.h&quot;
- @interface CustomView ()
- // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
- @property (nonatomic, weak) UIImageView *iconImageView;
- @property (nonatomic, weak) UILabel *nameLabel;
- @end
+<p>在pycharm中运行的结果是：</p>
 
- @implementation CustomView
- // 步骤3 在initWithFrame:方法中添加子控件
- - (instancetype)initWithFrame:(CGRect)frame
- {
-     if (self = [super initWithFrame:frame]) {
-     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
-     UIImageView *iconImageView = [[UIImageView alloc] init];
-     self.iconImageView = iconImageView;
-     [self addSubview:iconImageView];
-
-     UILabel *nameLabel = [[UILabel alloc] init];
-     // 设置子控件的属性
-     nameLabel.textAlignment = NSTextAlignmentCenter;
-     nameLabel.font = [UIFont systemFontOfSize:10];
-     self.nameLabel = nameLabel;
-     [self addSubview:nameLabel];
-     }
-     return self;
- }
-
- // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
- - (void)layoutSubviews
- {
-     [super layoutSubviews];
-
-     CGFloat iconImageViewX = 0;
-     CGFloat iconImageViewY = 0;
-     CGFloat iconImageViewW = self.bounds.size.width;
-     CGFloat iconImageViewH = 80;
-     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
-
-     CGFloat nameLabelX = 0;
-     CGFloat nameLabelY = iconImageViewH;
-     CGFloat nameLabelW = iconImageViewW;
-     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
-     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
- }
-
- // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
- - (void)setModel:(CustomModel *)model
- {
-     _model = model;
-     self.iconImageView.image = [UIImage imageNamed:model.icon];
-     self.nameLabel.text = model.name;
- }
- @end
+<pre><code>32019104
+32019104
+True
+True
+True
+False
+40550424
+40550424
+True
+True
+True
+False
 </code></pre>
 
-<p>layoutSubviews在以下情况下会被调用：<br/>
-1. init初始化不会触发layoutSubviews<br/>
-2. addSubview会触发layoutSubviews<br/>
-3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
-4. 滚动一个UIScrollView会触发layoutSubviews<br/>
-5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
-6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
+<p>而在Python IDE中运行：</p>
 
-<p>模型代码如下：</p>
-
-<pre><code> /**
-  *  CustomModel.h文件
-  */
- #import &lt;Foundation/Foundation.h&gt;
-
- @interface CustomModel : NSObject
-    /**
-     *  名字
-     */
- @property (nonatomic, copy) NSString *name;
-    /**
-     *  图片
-     */
- @property (nonatomic, copy) NSString *icon;
-
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
-
- @end
+<pre><code class="language-python">&gt;&gt;&gt; a = 256
+&gt;&gt;&gt; b = 256
+&gt;&gt;&gt; a == b
+True
+&gt;&gt;&gt; a is b
+True
+&gt;&gt;&gt; id(a)
+32346576L
+&gt;&gt;&gt; id(b)
+32346576L
+&gt;&gt;&gt; c = 257
+&gt;&gt;&gt; d = 257
+&gt;&gt;&gt; c == d
+True
+&gt;&gt;&gt; c is d
+False
+&gt;&gt;&gt; id(c)
+39891736L
+&gt;&gt;&gt; id(d)
+39891712L
 </code></pre>
 
-<pre><code> /**
-  *  CustomModel.m文件
-  */
- #import &quot;CustomModel.h&quot;
+<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
+在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
+- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
+- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
 
- @implementation CustomModel
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
- {
-     return [[self alloc] initWithName:name icon:icon];
- }
-
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
- {
-     if (self = [super init]) {
-         self.name = name;
-         self.icon = icon;
-     }
-     return self;
- }
- @end
-</code></pre>
-
-<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
-
-<pre><code>// 创建自定义的View
- CustomView *customView = [[CustomView alloc] init];
-// 设置数据
- CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
- customView.model = model;
-// 设置frame
- customView.frame = CGRectMake(100, 100, 67, 100);
-// 添加子控件
- [self.view addSubview:customView];
-</code></pre>
+<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？<br/>
+<strong>问题一：256和257，差别在哪里？</strong></p>
 
 
     
@@ -291,16 +204,13 @@ UIView的封装代码如下：</p>
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
       
-          <a href="15095429404216.html" 
-          title="Previous Post: 通过MWeb上传Blog">&laquo; 通过MWeb上传Blog</a>
-      
         </p>
         </div>
         <div class="large-6 columns">
       <p class="text-right" style="padding:15px 0px;">
       
-          <a  href="14976187081535.html" 
-          title="Next Post: UIButton">UIButton &raquo;</a>
+          <a  href="15142078830298.html" 
+          title="Next Post: Auto Migrate Tool">Auto Migrate Tool &raquo;</a>
       
       </p>
         </div>

@@ -4,13 +4,175 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2017-12-20T22:40:20+08:00</updated>
+  <updated>2017-12-25T21:41:08+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
   <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[Python学习之整数比较]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15142090414246.html"/>
+    <updated>2017-12-25T21:37:21+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15142090414246.html</id>
+    <content type="html"><![CDATA[
+<p>最近学习python，发现整数比较时一个有趣的现象：</p>
+
+<pre><code class="language-python">a = 256
+b = 256
+print id(a)
+print id(b)
+print(a == b)
+print(a is b)
+print(id(a) == id(b))
+print(id(a) is id(b))
+c = 257
+d = 257
+print id(c)
+print id(d)
+print(c == d)
+print(c is d)
+print(id(c) == id(d))
+print(id(c) is id(d))
+</code></pre>
+
+<p>在pycharm中运行的结果是：</p>
+
+<pre><code>32019104
+32019104
+True
+True
+True
+False
+40550424
+40550424
+True
+True
+True
+False
+</code></pre>
+
+<p>而在Python IDE中运行：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = 256
+&gt;&gt;&gt; b = 256
+&gt;&gt;&gt; a == b
+True
+&gt;&gt;&gt; a is b
+True
+&gt;&gt;&gt; id(a)
+32346576L
+&gt;&gt;&gt; id(b)
+32346576L
+&gt;&gt;&gt; c = 257
+&gt;&gt;&gt; d = 257
+&gt;&gt;&gt; c == d
+True
+&gt;&gt;&gt; c is d
+False
+&gt;&gt;&gt; id(c)
+39891736L
+&gt;&gt;&gt; id(d)
+39891712L
+</code></pre>
+
+<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
+在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
+- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
+- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
+
+<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？<br/>
+<strong>问题一：256和257，差别在哪里？</strong></p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Auto Migrate Tool]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15142078830298.html"/>
+    <updated>2017-12-25T21:18:03+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15142078830298.html</id>
+    <content type="html"><![CDATA[
+<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
+
+<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OPTIMAL_COMPUTER=&#39;&#39;
+INIT_USED=8.0
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                OPTIMAL_COMPUTER=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                OPTIMAL_COMPUTER=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
+UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
+if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+    echo &quot;Still migrating, please wait...&quot;
+    sleep 5
+fi
+echo__green &quot;Live migration is successfully.&quot;  
+</code></pre>
+
+<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
+
+<ul>
+<li><p>通过bc</p>
+
+<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
+
+<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
+</code></pre></li>
+<li><p>通过dc<br/>
+可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
+<li><p>expr<br/>
+expr竟然也可以？先保存下来，下次再试试：</p>
+
+<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
+echo $b is bigger
+else
+echo $a is bigger
+fi
+</code></pre></li>
+</ul>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Python格式化输出与format函数]]></title>

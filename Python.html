@@ -78,6 +78,8 @@
         
             <li><a href="UI%20Basic.html">UI Basic</a></li>
         
+            <li><a href="Linux.html">Linux</a></li>
+        
             <li><a href="Python.html">Python</a></li>
         
             <li><a href="Bootstrap.html">Bootstrap</a></li>
@@ -104,6 +106,105 @@
 	<div class="large-8 medium-8 columns">
 		<div class="markdown-body home-categories">
 		
+			<div class="article">
+                <a class="clearlink" href="15142090414246.html">
+                
+                  <h1>Python学习之整数比较</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>最近学习python，发现整数比较时一个有趣的现象：</p>
+
+<pre><code class="language-python">a = 256
+b = 256
+print id(a)
+print id(b)
+print(a == b)
+print(a is b)
+print(id(a) == id(b))
+print(id(a) is id(b))
+c = 257
+d = 257
+print id(c)
+print id(d)
+print(c == d)
+print(c is d)
+print(id(c) == id(d))
+print(id(c) is id(d))
+</code></pre>
+
+<p>在pycharm中运行的结果是：</p>
+
+<pre><code>32019104
+32019104
+True
+True
+True
+False
+40550424
+40550424
+True
+True
+True
+False
+</code></pre>
+
+<p>而在Python IDE中运行：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = 256
+&gt;&gt;&gt; b = 256
+&gt;&gt;&gt; a == b
+True
+&gt;&gt;&gt; a is b
+True
+&gt;&gt;&gt; id(a)
+32346576L
+&gt;&gt;&gt; id(b)
+32346576L
+&gt;&gt;&gt; c = 257
+&gt;&gt;&gt; d = 257
+&gt;&gt;&gt; c == d
+True
+&gt;&gt;&gt; c is d
+False
+&gt;&gt;&gt; id(c)
+39891736L
+&gt;&gt;&gt; id(d)
+39891712L
+</code></pre>
+
+<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
+在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
+- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
+- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
+
+<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？<br/>
+<strong>问题一：256和257，差别在哪里？</strong></p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/12/25 21:37 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
 			<div class="article">
                 <a class="clearlink" href="15137747318292.html">
                 
@@ -267,84 +368,6 @@ print(&#39;{:x}&#39;.format(46))
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15096259430881.html">
-                
-                  <h1>python中的__name__和__main__</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
-python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
-
-<ol>
-<li>当代码被执行时，__name__的值为 ‘__main__’</li>
-<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
-</ol>
-
-<p>举个栗子：<br/>
-在test_1.py中写入如下代码：</p>
-
-<pre><code>print &quot;I&#39;m the first...&quot;
-
-def test():
-    print &quot;I&#39;m the second...&quot;
-
-print __name__
-if __name__ == &quot;__main__&quot;:
-    test()
-    print &quot;I&#39;m the third...&quot;
-else:
-    print &quot;I&#39;m the last...&quot;
-</code></pre>
-
-<p>直接执行test_1.py，会有如下结果：</p>
-
-<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
-I&#39;m the first...
-__main__
-I&#39;m the second...
-I&#39;m the third...
-</code></pre>
-
-<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
-而作为调用来执行时：<br/>
-<code>from test_1 import test</code><br/>
-会有如下结果：</p>
-
-<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
-I&#39;m the first...
-test_1
-I&#39;m the last...
-</code></pre>
-
-<p>此时__name__的值为test_1，即模块的名字 。 <br/>
-其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/11/2 20:32 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -401,6 +424,8 @@ I&#39;m the last...
         
             <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
         
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
             <a href="Python.html"><strong>Python</strong></a>
         
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
@@ -422,6 +447,18 @@ I&#39;m the last...
 	      
 		      
 			      <li class="post">
+			        <a href="15142090414246.html">Python学习之整数比较</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15142078830298.html">Auto Migrate Tool</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15137747318292.html">Python格式化输出与format函数</a>
 			      </li>
 		     
@@ -439,16 +476,8 @@ I&#39;m the last...
 		     
 		  
 		      
-			      <li class="post">
-			        <a href="14991719231835.html">自定义控件</a>
-			      </li>
-		     
 		  
 		      
-			      <li class="post">
-			        <a href="14976187081535.html">UIButton</a>
-			      </li>
-		     
 		  
 		      
 		  

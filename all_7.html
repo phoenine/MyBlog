@@ -78,6 +78,8 @@
         
             <li><a href="UI%20Basic.html">UI Basic</a></li>
         
+            <li><a href="Linux.html">Linux</a></li>
+        
             <li><a href="Python.html">Python</a></li>
         
             <li><a href="Bootstrap.html">Bootstrap</a></li>
@@ -105,52 +107,92 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14841396902336.html">
+                <a class="clearlink" href="14848362414368.html">
                 
-                  <h1>导航条navbar</h1>
+                  <h1>类、对象和方法</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<ol>
-<li>navbar有<strong>背景色</strong></li>
-<li>navbar可以是<strong>纯链接</strong>，也可以是<strong>表单</strong></li>
-<li>navbar可以是表单和导航一起结合</li>
-</ol>
+                        	<h2 id="toc_0">对象在内存中式如何存储的</h2>
 
-<p>LESS版本：对应源文件navbar.less<br/>
-Sass版本：对应元文件navbar.scss</p>
-
-<h2 id="toc_0">基本导航条</h2>
-
-<p>基本导航条分为两个步骤：<br/>
-1. 制作导航的列表（<code>&lt;ul class=“navbar”&gt;</code>）基础上添上类名“navbar-nav”<br/>
-2. 列表外部添加一个容器（div），使用类名“navbar”和“navbar-default”</p>
-
-<p>“.navbar”样式主要功能：<br/>
-* 设置左右padding<br/>
-* 圆角</p>
-
-<p>导航条的颜色是通过“.navbar-default”来控制，颜色和其他样式是通过配合父容器“navbar-default”来一起实现。</p>
-
-<h2 id="toc_1">为导航条增加标题</h2>
+<h4 id="toc_1">内存中的五大区域：</h4>
 
 <ol>
-<li>navbar-header</li>
-<li>navbar-brand</li>
+<li>堆： 程序员手动申请的字节空间： malloc calloc</li>
+<li>栈： 存储局部变量</li>
+<li>BSS段： 存储未被初始化的全部变量 静态变量</li>
+<li>数据段(常量区)： 存储已被初始化的全局 静态变量，常量</li>
+<li>代码段： 存储程序的代码</li>
 </ol>
 
-<h2 id="toc_2">带表单的导航条</h2>
+<h4 id="toc_2">类加载</h4>
 
-<p>在navbar容器中放置一个带有navbar-form类名的表单。</p>
+<ol>
+<li>在创建对象的时候， 肯定是需要访问类的</li>
+<li>声明一个类的指针变量也会访问类的</li>
+<li>在程序运行期间，当某个类第一次被访问的时候，会将这个类存储到内存中的代码段区域，这个过程叫做类加载。</li>
+<li>直到程序结束的时候才会被释放。</li>
+</ol>
 
-<pre><code>&lt;form action=&quot;##&quot; class=&quot;navbar-form navbar-left&quot; rol=&quot;search&quot;&gt;
-    &lt;div class=&quot;form-group&quot;&gt;
-        &lt;input type=&quot;text&quot; class=&quot;form-control&quot; placeholder=&quot;请输入关键词&quot; /&gt;
-    &lt;/div&gt;
-    &lt;button type=&quot;submit&quot; class=&quot;btn btn-default&quot;&gt;搜索&lt;/button&gt;
-&lt;/form&gt;
-</code></pre>
+<h4 id="toc_3">对象在内存中的存储</h4>
+
+<p>假设写在函数当中：<br/>
+Person *p1 = [Person new];</p>
+
+<ol>
+<li>Person * p1 : 会在栈内存中申请一块空间，在栈内存中声明一个Person类型的指针变量p1(指针变量只能存储地址);</li>
+<li>[Person new]: 真正在内存中创建对象的其实是这段代码;</li>
+<li><p>new做的事情：</p></li>
+</ol>
+
+<ul>
+<li>     在堆内存中申请一块合适大小的空间;</li>
+<li>     在这个空间根据类的模板创建对象;</li>
+<li>     类模板中定义了什么属性，就把这些属性依次声明在对象之中</li>
+<li>     对象中还有另一个属性，叫做isa，这是一个指针，指向对象所属的类在代码段中的地址。</li>
+<li>     初始化对象的属性：
+    如果属性的类型是基本数据类型，那么就赋值0；<br/>
+    如果属性的类型是C语言的指针类型，那么就赋值为NULL；<br/>
+    如果属性的类型是OC的类指针类型，那么就赋值为nil</li>
+</ul>
+
+<p><img src="media/14848362414368/14876872482687.jpg" alt=""/></p>
+
+<ul>
+<li>     返回对象的地址</li>
+</ul>
+
+<p><img src="media/14848362414368/14876857739160.jpg" alt=""/></p>
+
+<p>代码中的检测：<br/>
+<img src="media/14848362414368/14876858990226.jpg" alt=""/></p>
+
+<h4 id="toc_4">注意</h4>
+
+<p>对象里面只有属性，没有方法(自己类的属性 + isa)；</p>
+
+<p>如何访问对象的属性？</p>
+
+<ul>
+<li>  指针名-&gt;属性名；</li>
+<li>  根据指针 找到指针指向的对象 再找到对象中的属性来访问；</li>
+</ul>
+
+<p>如何调用方法？</p>
+
+<ul>
+<li>  先根据指针名找到对象，对象发现要调用方法，在根据对象的isa指针找到类，然后调用类里面的方法；</li>
+</ul>
+
+<h4 id="toc_5">问题</h4>
+
+<p>为什么不把方法存储在对象之中？  </p>
+
+<ul>
+<li>因为每一个对象的方法的代码实现都是一样的，没有必要为每一个对象都保存一个方法。
+<img src="media/14848362414368/14876867543683.jpg" alt=""/></li>
+</ul>
 
                         
                       </div>
@@ -159,10 +201,10 @@ Sass版本：对应元文件navbar.scss</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/1/11 21:1 PM</span>
+                    <span class="date">2017/1/19 22:30 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -176,55 +218,94 @@ Sass版本：对应元文件navbar.scss</p>
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14834488859095.html">
+                <a class="clearlink" href="14848334530232.html">
                 
-                  <h1>Bootstrap Study_1</h1>
+                  <h1>Objective-C 编程</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h2 id="toc_0">What is Bootstrap</h2>
+                        	<blockquote>
+<p>断断续续学习了好久的OC，一直没有提高，现在才完完全全信服了好记性不如烂笔头，今天开始坚持好好记录自己的学习过程，争取今年能上线一个自己满意的App，加油！</p>
+</blockquote>
 
-<ul>
-<li>Free front-end framework </li>
-<li>Includes HTML and CSS based design templates for typography, forms, buttons, tables, navigation, modals and many other.</li>
-</ul>
+<h3 id="toc_0">1.最简单的一个例子</h3>
 
-<h3 id="toc_1">Containers</h3>
-
-<ul>
-<li>The <em>.container</em> class provides a responsive fixed width container</li>
-<li>The <em>.container-fluid</em> class provides a full width container, spanning the entire width of the viewport</li>
-</ul>
-
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-  &lt;title&gt;Bootstrap Example&lt;/title&gt;
-  &lt;meta charset=&quot;utf-8&quot;&gt;
-  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
-  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css&quot;&gt;
-  &lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;
-  &lt;script src=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
-&lt;/head&gt;
-&lt;body&gt;
-
-&lt;div class=&quot;container&quot;&gt;
-  &lt;h1&gt;My First Bootstrap Page&lt;/h1&gt;
-  &lt;p&gt;This is some text.&lt;/p&gt; 
-&lt;/div&gt;
-
-&lt;/body&gt;
-&lt;/html&gt;
+<pre><code>1. #import &lt;Foundation/Foundation.h&gt;
+2. int main(int argc, const char *argv[])
+3. {
+4.     @autoreleasepool{
+5.         NSLog(@&quot;Programming is fun!&quot;);
+6.     }
+7.     return 0;
+8. }
 </code></pre>
 
-<h3 id="toc_2">Grid classes</h3>
+<ul>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Objective C中，大小写是区分的；
+</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 编程时要养成插入注释的习惯；
+</li>
+</ul>
 
-<p>The Bootstrap grid system has four classes:<br/>
-* xs (for phones)<br/>
-* sm (for tablets)<br/>
-* md (for desktops)<br/>
-* lg (for larger desktops)</p>
+<h3 id="toc_1">2.程序解释</h3>
+
+<p>第1行：程序告诉编译器找到并处理名为Foundation.h的文件；<br/>
+第2行：指定程序的名称为main<br/>
+问题：<br/>
+<code>int argc, const char *argv[]</code>如何理解？<br/>
+第4行：自动释放池；它的机制是：它使得应用在创建新对象时，系统能够有效地管理应用所使用的内存。<br/>
+第5行：指定要调用名为NSLog的<strong>函数</strong><br/>
+此处的@符号在位于一对双引号的字符串前面，这称为<strong>常量NSString对象</strong><br/>
+第7行：表示要终止main的执行并返回一个状态值0；</p>
+
+<h3 id="toc_2">3.练习</h3>
+
+<h4 id="toc_3">第2题：</h4>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+int main (int argc, const char * argv[])
+{
+    @autoreleasepool {
+        NSLog(@&quot;In Objective-C, lowercase letters are significant.\nmain is where program execution begins.\nOpen and closed braces enclose program statements in a routine.\nAll program statements must be terminated by a semicolon.&quot;);
+    }
+    return 0;
+}
+</code></pre>
+
+<h4 id="toc_4">第3题：</h4>
+
+<pre><code>返回:
+Testing...
+....1
+...2
+..3
+</code></pre>
+
+<h4 id="toc_5">第4题：</h4>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+int main (int argc, const char * argv[])
+{
+    @autoreleasepool{
+        result = 87 - 15;
+        NSLog(@&quot;The result is %i&quot;, result);
+    }
+    return 0;
+}
+</code></pre>
+
+<h4 id="toc_6">第5题：</h4>
+
+<pre><code>1. INT 改为int；
+2. sum计算缺少；号；
+3. NSLog要用“”号；
+4. sum前缺少，号；
+</code></pre>
+
+<h4 id="toc_7">第6题：</h4>
+
+<p><code>输出结果为：95</code></p>
 
                         
                       </div>
@@ -233,10 +314,10 @@ Sass版本：对应元文件navbar.scss</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/1/3 21:8 PM</span>
+                    <span class="date">2017/1/19 21:44 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -305,6 +386,8 @@ Sass版本：对应元文件navbar.scss</p>
         
             <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
         
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
             <a href="Python.html"><strong>Python</strong></a>
         
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
@@ -326,6 +409,18 @@ Sass版本：对应元文件navbar.scss</p>
 	      
 		      
 			      <li class="post">
+			        <a href="15142090414246.html">Python学习之整数比较</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15142078830298.html">Auto Migrate Tool</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15137747318292.html">Python格式化输出与format函数</a>
 			      </li>
 		     
@@ -343,16 +438,8 @@ Sass版本：对应元文件navbar.scss</p>
 		     
 		  
 		      
-			      <li class="post">
-			        <a href="14991719231835.html">自定义控件</a>
-			      </li>
-		     
 		  
 		      
-			      <li class="post">
-			        <a href="14976187081535.html">UIButton</a>
-			      </li>
-		     
 		  
 		      
 		  

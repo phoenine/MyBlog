@@ -78,6 +78,8 @@
         
             <li><a href="UI%20Basic.html">UI Basic</a></li>
         
+            <li><a href="Linux.html">Linux</a></li>
+        
             <li><a href="Python.html">Python</a></li>
         
             <li><a href="Bootstrap.html">Bootstrap</a></li>
@@ -105,144 +107,80 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15137747318292.html">
+                <a class="clearlink" href="15142090414246.html">
                 
-                  <h1>Python格式化输出与format函数</h1>
+                  <h1>Python学习之整数比较</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
+                        	<p>最近学习python，发现整数比较时一个有趣的现象：</p>
 
-<p><strong>打印整数</strong></p>
-
-<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
-
-&gt;&gt;&gt; I&#39;m number 20  
+<pre><code class="language-python">a = 256
+b = 256
+print id(a)
+print id(b)
+print(a == b)
+print(a is b)
+print(id(a) == id(b))
+print(id(a) is id(b))
+c = 257
+d = 257
+print id(c)
+print id(d)
+print(c == d)
+print(c is d)
+print(id(c) == id(d))
+print(id(c) is id(d))
 </code></pre>
 
-<p><strong>打印浮点数(默认)</strong></p>
+<p>在pycharm中运行的结果是：</p>
 
-<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
-
-&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
+<pre><code>32019104
+32019104
+True
+True
+True
+False
+40550424
+40550424
+True
+True
+True
+False
 </code></pre>
 
-<p><strong>打印浮点数(指定位数)</strong></p>
+<p>而在Python IDE中运行：</p>
 
-<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
-
-&gt;&gt;&gt; His height is 1.73 m 
+<pre><code class="language-python">&gt;&gt;&gt; a = 256
+&gt;&gt;&gt; b = 256
+&gt;&gt;&gt; a == b
+True
+&gt;&gt;&gt; a is b
+True
+&gt;&gt;&gt; id(a)
+32346576L
+&gt;&gt;&gt; id(b)
+32346576L
+&gt;&gt;&gt; c = 257
+&gt;&gt;&gt; d = 257
+&gt;&gt;&gt; c == d
+True
+&gt;&gt;&gt; c is d
+False
+&gt;&gt;&gt; id(c)
+39891736L
+&gt;&gt;&gt; id(d)
+39891712L
 </code></pre>
 
-<p><strong>打印字符串</strong></p>
+<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
+在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
+- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
+- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
 
-<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
-
-&gt;&gt;&gt; My name is terry 
-</code></pre>
-
-<p><strong>打印指定占位符宽度</strong></p>
-
-<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
-
-&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
-</code></pre>
-
-<p><strong>打印指定占位符(左对齐)</strong></p>
-
-<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
-
-&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
-</code></pre>
-
-<p><strong>打印指定占位符(前导0)</strong></p>
-
-<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
-
-&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
-</code></pre>
-
-<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
-用法主要包含以下几类：</p>
-
-<p><strong>通过位置</strong><br/>
-字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
-
-<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
-
-&gt;&gt;&gt; aaa,bbb,aaa  
-</code></pre>
-
-<p><strong>通过关键字参数</strong></p>
-
-<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
-
-&gt;&gt;&gt; Terry,18  
-</code></pre>
-
-<p><strong>通过对象属性</strong></p>
-
-<pre><code class="language-python">class Person:
-    def __init__(self,name,age):
-        self.name = name
-        self.age = age
-
-    def __str__(self):
-        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
-
-print str(Person(&#39;Terry&#39;,18))
-
-&gt;&gt;&gt; This guy is Terry,he is 18 old.
-</code></pre>
-
-<p><strong>通过下标</strong></p>
-
-<pre><code class="language-python">person = [&#39;Terry&#39;,18]
-print(&#39;{0[0]},{0[1]}&#39;.format(person))
-
-&gt;&gt;&gt; Terry,18
-</code></pre>
-
-<p><strong>通过格式</strong><br/>
-如上面的前导0：</p>
-
-<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
-
-&gt;&gt;&gt; 00000189
-&gt;&gt;&gt;      189
-&gt;&gt;&gt; aaaaa189
-</code></pre>
-
-<p>以及浮点数：</p>
-
-<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
-
-&gt;&gt;&gt; 321.33
-</code></pre>
-
-<p><strong>其他类型</strong><br/>
-主要就是二进制b、十进制d、八进制o、十六进制x:</p>
-
-<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
-print(&#39;{:d}&#39;.format(46))
-print(&#39;{:o}&#39;.format(46))
-print(&#39;{:x}&#39;.format(46))
-
-&gt;&gt;&gt; 101110
-&gt;&gt;&gt; 46
-&gt;&gt;&gt; 56
-&gt;&gt;&gt; 2e
-</code></pre>
-
-<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
-
-<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
-
-&gt;&gt;&gt; 99,988,844,333
-</code></pre>
+<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？<br/>
+<strong>问题一：256和257，差别在哪里？</strong></p>
 
                         
                       </div>
@@ -251,7 +189,7 @@ print(&#39;{:x}&#39;.format(46))
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/20 20:58 PM</span>
+                    <span class="date">2017/12/25 21:37 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -268,59 +206,88 @@ print(&#39;{:x}&#39;.format(46))
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15096259430881.html">
+                <a class="clearlink" href="15142078830298.html">
                 
-                  <h1>python中的__name__和__main__</h1>
+                  <h1>Auto Migrate Tool</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
-python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
+                        	<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
 
-<ol>
-<li>当代码被执行时，__name__的值为 ‘__main__’</li>
-<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
-</ol>
+<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
 
-<p>举个栗子：<br/>
-在test_1.py中写入如下代码：</p>
-
-<pre><code>print &quot;I&#39;m the first...&quot;
-
-def test():
-    print &quot;I&#39;m the second...&quot;
-
-print __name__
-if __name__ == &quot;__main__&quot;:
-    test()
-    print &quot;I&#39;m the third...&quot;
-else:
-    print &quot;I&#39;m the last...&quot;
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OPTIMAL_COMPUTER=&#39;&#39;
+INIT_USED=8.0
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                OPTIMAL_COMPUTER=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                OPTIMAL_COMPUTER=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
+UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
+if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+    echo &quot;Still migrating, please wait...&quot;
+    sleep 5
+fi
+echo__green &quot;Live migration is successfully.&quot;  
 </code></pre>
 
-<p>直接执行test_1.py，会有如下结果：</p>
+<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
 
-<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
-I&#39;m the first...
-__main__
-I&#39;m the second...
-I&#39;m the third...
-</code></pre>
+<ul>
+<li><p>通过bc</p>
 
-<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
-而作为调用来执行时：<br/>
-<code>from test_1 import test</code><br/>
-会有如下结果：</p>
+<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
 
-<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
-I&#39;m the first...
-test_1
-I&#39;m the last...
-</code></pre>
+<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
+</code></pre></li>
+<li><p>通过dc<br/>
+可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
+<li><p>expr<br/>
+expr竟然也可以？先保存下来，下次再试试：</p>
 
-<p>此时__name__的值为test_1，即模块的名字 。 <br/>
-其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
+<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
+echo $b is bigger
+else
+echo $a is bigger
+fi
+</code></pre></li>
+</ul>
 
                         
                       </div>
@@ -329,10 +296,10 @@ I&#39;m the last...
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/11/2 20:32 PM</span>
+                    <span class="date">2017/12/25 21:18 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -401,6 +368,8 @@ I&#39;m the last...
         
             <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
         
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
             <a href="Python.html"><strong>Python</strong></a>
         
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
@@ -422,6 +391,18 @@ I&#39;m the last...
 	      
 		      
 			      <li class="post">
+			        <a href="15142090414246.html">Python学习之整数比较</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15142078830298.html">Auto Migrate Tool</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15137747318292.html">Python格式化输出与format函数</a>
 			      </li>
 		     
@@ -439,16 +420,8 @@ I&#39;m the last...
 		     
 		  
 		      
-			      <li class="post">
-			        <a href="14991719231835.html">自定义控件</a>
-			      </li>
-		     
 		  
 		      
-			      <li class="post">
-			        <a href="14976187081535.html">UIButton</a>
-			      </li>
-		     
 		  
 		      
 		  
