@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  类、对象和方法 - Ascetic in the deadlock
+  Python - Ascetic in the deadlock
   
   </title>
   
@@ -98,152 +98,152 @@
        
 
  <script type="text/javascript">
-  $(function(){
-    $('#menu_item_index').addClass('is_active');
-  });
+	$(function(){
+		$('#menu_item_index').addClass('is_active');
+	});
 </script>
 <div class="row">
-  <div class="large-8 medium-8 columns">
-      <div class="markdown-body article-wrap">
-       <div class="article">
-          
-          <h1>类、对象和方法</h1>
-     
-        <div class="read-more clearfix">
-          <span class="date">2017/1/19 22:30 PM</span>
-
-          <span>posted in&nbsp;</span> 
-          
-              <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
-           
-         
-          <span class="comments">
-            
-
-            
-          </span>
-
-        </div>
-      </div><!-- article -->
-
-      <div class="article-content">
-      <h2 id="toc_0">对象在内存中式如何存储的</h2>
-
-<h4 id="toc_1">内存中的五大区域：</h4>
+	<div class="large-8 medium-8 columns">
+		<div class="markdown-body home-categories">
+		
+			<div class="article">
+                <a class="clearlink" href="15096259430881.html">
+                
+                  <h1>python中的__name__和__main__</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
+python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
 
 <ol>
-<li>堆： 程序员手动申请的字节空间： malloc calloc</li>
-<li>栈： 存储局部变量</li>
-<li>BSS段： 存储未被初始化的全部变量 静态变量</li>
-<li>数据段(常量区)： 存储已被初始化的全局 静态变量，常量</li>
-<li>代码段： 存储程序的代码</li>
+<li>当代码被执行时，__name__的值为 ‘__main__’</li>
+<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
 </ol>
 
-<h4 id="toc_2">类加载</h4>
+<p>举个栗子：<br/>
+在test_1.py中写入如下代码：</p>
+
+<pre><code>print &quot;I&#39;m the first...&quot;
+
+def test():
+    print &quot;I&#39;m the second...&quot;
+
+print __name__
+if __name__ == &quot;__main__&quot;:
+    test()
+    print &quot;I&#39;m the third...&quot;
+else:
+    print &quot;I&#39;m the last...&quot;
+</code></pre>
+
+<p>直接执行test_1.py，会有如下结果：</p>
+
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
+I&#39;m the first...
+__main__
+I&#39;m the second...
+I&#39;m the third...
+</code></pre>
+
+<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
+而作为调用来执行时：<br/>
+<code>from test_1 import test</code><br/>
+会有如下结果：</p>
+
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
+I&#39;m the first...
+test_1
+I&#39;m the last...
+</code></pre>
+
+<p>此时__name__的值为test_1，即模块的名字 。 <br/>
+其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/11/2 20:32 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
+                <a class="clearlink" href="15095429404216.html">
+                
+                  <h1>通过MWeb上传Blog</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
 
 <ol>
-<li>在创建对象的时候， 肯定是需要访问类的</li>
-<li>声明一个类的指针变量也会访问类的</li>
-<li>在程序运行期间，当某个类第一次被访问的时候，会将这个类存储到内存中的代码段区域，这个过程叫做类加载。</li>
-<li>直到程序结束的时候才会被释放。</li>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
 </ol>
 
-<h4 id="toc_3">对象在内存中的存储</h4>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
 
-<p>假设写在函数当中：<br/>
-Person *p1 = [Person new];</p>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
 
-<ol>
-<li>Person * p1 : 会在栈内存中申请一块空间，在栈内存中声明一个Person类型的指针变量p1(指针变量只能存储地址);</li>
-<li>[Person new]: 真正在内存中创建对象的其实是这段代码;</li>
-<li><p>new做的事情：</p></li>
-</ol>
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/11/1 21:29 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
 
-<ul>
-<li>     在堆内存中申请一块合适大小的空间;</li>
-<li>     在这个空间根据类的模板创建对象;</li>
-<li>     类模板中定义了什么属性，就把这些属性依次声明在对象之中</li>
-<li>     对象中还有另一个属性，叫做isa，这是一个指针，指向对象所属的类在代码段中的地址。</li>
-<li>     初始化对象的属性：
-    如果属性的类型是基本数据类型，那么就赋值0；<br/>
-    如果属性的类型是C语言的指针类型，那么就赋值为NULL；<br/>
-    如果属性的类型是OC的类指针类型，那么就赋值为nil</li>
-</ul>
-
-<p><img src="media/14848362414368/14876872482687.jpg" alt=""/></p>
-
-<ul>
-<li>     返回对象的地址</li>
-</ul>
-
-<p><img src="media/14848362414368/14876857739160.jpg" alt=""/></p>
-
-<p>代码中的检测：<br/>
-<img src="media/14848362414368/14876858990226.jpg" alt=""/></p>
-
-<h4 id="toc_4">注意</h4>
-
-<p>对象里面只有属性，没有方法(自己类的属性 + isa)；</p>
-
-<p>如何访问对象的属性？</p>
-
-<ul>
-<li>  指针名-&gt;属性名；</li>
-<li>  根据指针 找到指针指向的对象 再找到对象中的属性来访问；</li>
-</ul>
-
-<p>如何调用方法？</p>
-
-<ul>
-<li>  先根据指针名找到对象，对象发现要调用方法，在根据对象的isa指针找到类，然后调用类里面的方法；</li>
-</ul>
-
-<h4 id="toc_5">问题</h4>
-
-<p>为什么不把方法存储在对象之中？  </p>
-
-<ul>
-<li>因为每一个对象的方法的代码实现都是一样的，没有必要为每一个对象都保存一个方法。
-<img src="media/14848362414368/14876867543683.jpg" alt=""/></li>
-</ul>
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+              
 
 
-    
-
-      </div>
-
-      <div class="row">
-        <div class="large-6 columns">
-        <p class="text-left" style="padding:15px 0px;">
-      
-          <a href="14878614535108.html" 
-          title="Previous Post: nil和NULL">&laquo; nil和NULL</a>
-      
-        </p>
-        </div>
-        <div class="large-6 columns">
-      <p class="text-right" style="padding:15px 0px;">
-      
-          <a  href="14848334530232.html" 
-          title="Next Post: Objective-C 编程">Objective-C 编程 &raquo;</a>
-      
-      </p>
-        </div>
-      </div>
-      <div class="comments-wrap">
-        <div class="share-comments">
-          
-
-          
-
-          
-        </div>
-      </div>
-    </div><!-- article-wrap -->
-  </div><!-- large 8 -->
-
-
-
+			<div class="row">
+			  <div class="large-6 columns">
+			  <p class="text-left" style="padding-top:25px;">
+			   <a href="Python_1.html">&laquo; Prev Page</a>  
+			  </p>
+			  </div>
+			  <div class="large-6 columns">
+			<p class="text-right" style="padding-top:25px;">
+			
+			</p>
+			  </div>
+			</div>
+		</div>
+	</div><!-- large 8 -->
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

@@ -107,37 +107,52 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14832356716225.html">
+                <a class="clearlink" href="14841396902336.html">
                 
-                  <h1>Bootstrap Basic</h1>
+                  <h1>导航条navbar</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h2 id="toc_0">基本的HTML模板</h2>
+                        	<ol>
+<li>navbar有<strong>背景色</strong></li>
+<li>navbar可以是<strong>纯链接</strong>，也可以是<strong>表单</strong></li>
+<li>navbar可以是表单和导航一起结合</li>
+</ol>
 
-<ul>
-<li>bootstrap模板为使IE6、7、8兼容， 需要引用下面的代码：</li>
-</ul>
+<p>LESS版本：对应源文件navbar.less<br/>
+Sass版本：对应元文件navbar.scss</p>
 
-<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js&quot;&gt;&lt;/script&gt;
+<h2 id="toc_0">基本导航条</h2>
+
+<p>基本导航条分为两个步骤：<br/>
+1. 制作导航的列表（<code>&lt;ul class=“navbar”&gt;</code>）基础上添上类名“navbar-nav”<br/>
+2. 列表外部添加一个容器（div），使用类名“navbar”和“navbar-default”</p>
+
+<p>“.navbar”样式主要功能：<br/>
+* 设置左右padding<br/>
+* 圆角</p>
+
+<p>导航条的颜色是通过“.navbar-default”来控制，颜色和其他样式是通过配合父容器“navbar-default”来一起实现。</p>
+
+<h2 id="toc_1">为导航条增加标题</h2>
+
+<ol>
+<li>navbar-header</li>
+<li>navbar-brand</li>
+</ol>
+
+<h2 id="toc_2">带表单的导航条</h2>
+
+<p>在navbar容器中放置一个带有navbar-form类名的表单。</p>
+
+<pre><code>&lt;form action=&quot;##&quot; class=&quot;navbar-form navbar-left&quot; rol=&quot;search&quot;&gt;
+    &lt;div class=&quot;form-group&quot;&gt;
+        &lt;input type=&quot;text&quot; class=&quot;form-control&quot; placeholder=&quot;请输入关键词&quot; /&gt;
+    &lt;/div&gt;
+    &lt;button type=&quot;submit&quot; class=&quot;btn btn-default&quot;&gt;搜索&lt;/button&gt;
+&lt;/form&gt;
 </code></pre>
-
-<ul>
-<li>为使IE6、7、8兼容css3样式，需要引用下面的代码：</li>
-</ul>
-
-<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;
-</code></pre>
-
-<ul>
-<li>如果要使用Bootstrap的js插件，需要先调入jquery</li>
-</ul>
-
-<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;
-</code></pre>
-
-<h2 id="toc_1">全局样式</h2>
 
                         
                       </div>
@@ -146,7 +161,81 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/1/1 9:54 AM</span>
+                    <span class="date">2017/1/11 21:1 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
+                <a class="clearlink" href="14834488859095.html">
+                
+                  <h1>Bootstrap Study_1</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h2 id="toc_0">What is Bootstrap</h2>
+
+<ul>
+<li>Free front-end framework </li>
+<li>Includes HTML and CSS based design templates for typography, forms, buttons, tables, navigation, modals and many other.</li>
+</ul>
+
+<h3 id="toc_1">Containers</h3>
+
+<ul>
+<li>The <em>.container</em> class provides a responsive fixed width container</li>
+<li>The <em>.container-fluid</em> class provides a full width container, spanning the entire width of the viewport</li>
+</ul>
+
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;title&gt;Bootstrap Example&lt;/title&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css&quot;&gt;
+  &lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+
+&lt;div class=&quot;container&quot;&gt;
+  &lt;h1&gt;My First Bootstrap Page&lt;/h1&gt;
+  &lt;p&gt;This is some text.&lt;/p&gt; 
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</code></pre>
+
+<h3 id="toc_2">Grid classes</h3>
+
+<p>The Bootstrap grid system has four classes:<br/>
+* xs (for phones)<br/>
+* sm (for tablets)<br/>
+* md (for desktops)<br/>
+* lg (for larger desktops)</p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/1/3 21:8 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
@@ -173,7 +262,7 @@
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			
+			 <a href="all_10.html">&raquo; Next Page</a> 
 			</p>
 			  </div>
 			</div>
@@ -241,6 +330,18 @@
 	      
 		      
 			      <li class="post">
+			        <a href="15142967450536.html">Pyhton变量变换原理</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15142936231027.html">Python Unittest与Mock</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15142090414246.html">Python学习之整数比较</a>
 			      </li>
 		     
@@ -258,16 +359,6 @@
 		     
 		  
 		      
-			      <li class="post">
-			        <a href="15096259430881.html">python中的__name__和__main__</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15095429404216.html">通过MWeb上传Blog</a>
-			      </li>
-		     
 		  
 		      
 		  
