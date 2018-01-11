@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Python格式化输出与format函数 - Ascetic in the deadlock
+  Python - Ascetic in the deadlock
   
   </title>
   
@@ -98,204 +98,74 @@
        
 
  <script type="text/javascript">
-  $(function(){
-    $('#menu_item_index').addClass('is_active');
-  });
+	$(function(){
+		$('#menu_item_index').addClass('is_active');
+	});
 </script>
 <div class="row">
-  <div class="large-8 medium-8 columns">
-      <div class="markdown-body article-wrap">
-       <div class="article">
-          
-          <h1>Python格式化输出与format函数</h1>
-     
-        <div class="read-more clearfix">
-          <span class="date">2017/12/20 20:58 PM</span>
+	<div class="large-8 medium-8 columns">
+		<div class="markdown-body home-categories">
+		
+			<div class="article">
+                <a class="clearlink" href="15095429404216.html">
+                
+                  <h1>通过MWeb上传Blog</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
 
-          <span>posted in&nbsp;</span> 
-          
-              <span class="posted-in"><a href='Python.html'>Python</a></span>
-           
-         
-          <span class="comments">
-            
+<ol>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
+</ol>
 
-            
-          </span>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
 
-        </div>
-      </div><!-- article -->
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
 
-      <div class="article-content">
-      <p>本文主要整理和汇总python一系列的格式化输出方式：</p>
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/11/1 21:29 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
 
-<p><strong>打印整数</strong></p>
-
-<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
-
-&gt;&gt;&gt; I&#39;m number 20  
-</code></pre>
-
-<p><strong>打印浮点数(默认)</strong></p>
-
-<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
-
-&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
-</code></pre>
-
-<p><strong>打印浮点数(指定位数)</strong></p>
-
-<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
-
-&gt;&gt;&gt; His height is 1.73 m 
-</code></pre>
-
-<p><strong>打印字符串</strong></p>
-
-<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
-
-&gt;&gt;&gt; My name is terry 
-</code></pre>
-
-<p><strong>打印指定占位符宽度</strong></p>
-
-<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
-
-&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
-</code></pre>
-
-<p><strong>打印指定占位符(左对齐)</strong></p>
-
-<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
-
-&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
-</code></pre>
-
-<p><strong>打印指定占位符(前导0)</strong></p>
-
-<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
-
-&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
-</code></pre>
-
-<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
-用法主要包含以下几类：</p>
-
-<p><strong>通过位置</strong><br/>
-字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
-
-<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
-
-&gt;&gt;&gt; aaa,bbb,aaa  
-</code></pre>
-
-<p><strong>通过关键字参数</strong></p>
-
-<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
-
-&gt;&gt;&gt; Terry,18  
-</code></pre>
-
-<p><strong>通过对象属性</strong></p>
-
-<pre><code class="language-python">class Person:
-    def __init__(self,name,age):
-        self.name = name
-        self.age = age
-
-    def __str__(self):
-        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
-
-print str(Person(&#39;Terry&#39;,18))
-
-&gt;&gt;&gt; This guy is Terry,he is 18 old.
-</code></pre>
-
-<p><strong>通过下标</strong></p>
-
-<pre><code class="language-python">person = [&#39;Terry&#39;,18]
-print(&#39;{0[0]},{0[1]}&#39;.format(person))
-
-&gt;&gt;&gt; Terry,18
-</code></pre>
-
-<p><strong>通过格式</strong><br/>
-如上面的前导0：</p>
-
-<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
-
-&gt;&gt;&gt; 00000189
-&gt;&gt;&gt;      189
-&gt;&gt;&gt; aaaaa189
-</code></pre>
-
-<p>以及浮点数：</p>
-
-<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
-
-&gt;&gt;&gt; 321.33
-</code></pre>
-
-<p><strong>其他类型</strong><br/>
-主要就是二进制b、十进制d、八进制o、十六进制x:</p>
-
-<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
-print(&#39;{:d}&#39;.format(46))
-print(&#39;{:o}&#39;.format(46))
-print(&#39;{:x}&#39;.format(46))
-
-&gt;&gt;&gt; 101110
-&gt;&gt;&gt; 46
-&gt;&gt;&gt; 56
-&gt;&gt;&gt; 2e
-</code></pre>
-
-<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
-
-<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
-
-&gt;&gt;&gt; 99,988,844,333
-</code></pre>
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+              
 
 
-    
-
-      </div>
-
-      <div class="row">
-        <div class="large-6 columns">
-        <p class="text-left" style="padding:15px 0px;">
-      
-          <a href="15142078830298.html" 
-          title="Previous Post: Auto Migrate Tool">&laquo; Auto Migrate Tool</a>
-      
-        </p>
-        </div>
-        <div class="large-6 columns">
-      <p class="text-right" style="padding:15px 0px;">
-      
-          <a  href="15096259430881.html" 
-          title="Next Post: python中的__name__和__main__">python中的__name__和__main__ &raquo;</a>
-      
-      </p>
-        </div>
-      </div>
-      <div class="comments-wrap">
-        <div class="share-comments">
-          
-
-          
-
-          
-        </div>
-      </div>
-    </div><!-- article-wrap -->
-  </div><!-- large 8 -->
-
-
-
+			<div class="row">
+			  <div class="large-6 columns">
+			  <p class="text-left" style="padding-top:25px;">
+			   <a href="Python_2.html">&laquo; Prev Page</a>  
+			  </p>
+			  </div>
+			  <div class="large-6 columns">
+			<p class="text-right" style="padding-top:25px;">
+			
+			</p>
+			  </div>
+			</div>
+		</div>
+	</div><!-- large 8 -->
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

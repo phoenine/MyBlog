@@ -107,6 +107,61 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="15142936231027.html">
+                
+                  <h1>Python Unittest与Mock</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p><strong>unittest</strong><br/>
+python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
+python unittest的框架如下： <br/>
+<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
+基本使用方法如下：</p>
+
+<ol>
+<li>import unittest module</li>
+<li>定义一个继承自unittest.TestCase的测试用例类。</li>
+<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
+<li>定义测试用例，名字需要以test开头。</li>
+<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
+<li>调用unittest.main()启动测试</li>
+<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
+</ol>
+
+<p>这里举个简单的例子说明：<br/>
+<img src="media/15142936231027/15142939572020.png" alt=""/></p>
+
+<p>常用的断言：<br/>
+<img src="media/15142936231027/15142939778044.png" alt=""/></p>
+
+<p><strong>Mock</strong></p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/12/26 21:7 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="15142090414246.html">
                 
                   <h1>Python学习之整数比较</h1>
@@ -234,113 +289,6 @@ static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15142078830298.html">
-                
-                  <h1>Auto Migrate Tool</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
-
-<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
-function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
-function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
-function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
-
-COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
-UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
-OPTIMAL_COMPUTER=&#39;&#39;
-INIT_USED=8.0
-for COMPUTER in $COMPUTER_LIST
-    do
-        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
-        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
-            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
-            OPTIMAL_COMPUTER=$COMPUTER
-            break
-        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
-            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
-            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$CPUS_USED
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            fi
-        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
-            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
-            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
-            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
-            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
-            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$USED_RATE
-                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            else
-                continue
-            fi
-        else
-            echo__red &quot;This computer node is full.&quot;
-        fi
-    done
-echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
-echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
-nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
-UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
-if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-    echo &quot;Still migrating, please wait...&quot;
-    sleep 5
-fi
-echo__green &quot;Live migration is successfully.&quot;  
-</code></pre>
-
-<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
-
-<ul>
-<li><p>通过bc</p>
-
-<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
-
-<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
-</code></pre></li>
-<li><p>通过dc<br/>
-可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
-<li><p>expr<br/>
-expr竟然也可以？先保存下来，下次再试试：</p>
-
-<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
-echo $b is bigger
-else
-echo $a is bigger
-fi
-</code></pre></li>
-</ul>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/12/25 21:18 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -420,6 +368,12 @@ fi
 	      
 		      
 			      <li class="post">
+			        <a href="15156751072902.html">Python对象的浅拷贝与深拷贝</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15142967450536.html">Pyhton变量变换原理</a>
 			      </li>
 		     
@@ -439,12 +393,6 @@ fi
 		      
 			      <li class="post">
 			        <a href="15142078830298.html">Auto Migrate Tool</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15137747318292.html">Python格式化输出与format函数</a>
 			      </li>
 		     
 		  

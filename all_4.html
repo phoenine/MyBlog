@@ -107,6 +107,192 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="14991719231835.html">
+                
+                  <h1>自定义控件</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h3 id="toc_0">UIView的封装</h3>
+
+<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
+* 目的：封装空间内部的细节，不让外界关心</p>
+
+<h3 id="toc_1">UIView的封装有两种方式</h3>
+
+<p>通过纯代码封装：<br/>
+1. 新建一个继承UIView的类<br/>
+2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
+3. 在initWithFrame:方法中添加子控件<br/>
+4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
+5. 提供一个模型属性，重写模型属性的set方法<br/>
+6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
+UIView的封装代码如下：</p>
+
+<pre><code> /**
+  *  CustomView.h文件
+  */
+
+ // 步骤1 新建一个继承UIView的类
+ #import &lt;UIKit/UIKit.h&gt;
+ @class CustomModel;
+ @interface CustomView : UIView
+ // 在这里为了方便，可以自行添加构造方法，方便使用
+ // 步骤5 提供一个`模型`属性，重写模型属性的set方法
+ @property (nonatomic, strong) CustomModel *model;
+ @end
+</code></pre>
+
+<pre><code>/**
+ *  CustomView.m文件
+ */
+ #import &quot;CustomView.h&quot;
+ #import &quot;CustomModel.h&quot;
+ @interface CustomView ()
+ // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
+ @property (nonatomic, weak) UIImageView *iconImageView;
+ @property (nonatomic, weak) UILabel *nameLabel;
+ @end
+
+ @implementation CustomView
+ // 步骤3 在initWithFrame:方法中添加子控件
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+     if (self = [super initWithFrame:frame]) {
+     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
+     UIImageView *iconImageView = [[UIImageView alloc] init];
+     self.iconImageView = iconImageView;
+     [self addSubview:iconImageView];
+
+     UILabel *nameLabel = [[UILabel alloc] init];
+     // 设置子控件的属性
+     nameLabel.textAlignment = NSTextAlignmentCenter;
+     nameLabel.font = [UIFont systemFontOfSize:10];
+     self.nameLabel = nameLabel;
+     [self addSubview:nameLabel];
+     }
+     return self;
+ }
+
+ // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
+ - (void)layoutSubviews
+ {
+     [super layoutSubviews];
+
+     CGFloat iconImageViewX = 0;
+     CGFloat iconImageViewY = 0;
+     CGFloat iconImageViewW = self.bounds.size.width;
+     CGFloat iconImageViewH = 80;
+     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
+
+     CGFloat nameLabelX = 0;
+     CGFloat nameLabelY = iconImageViewH;
+     CGFloat nameLabelW = iconImageViewW;
+     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
+     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
+ }
+
+ // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
+ - (void)setModel:(CustomModel *)model
+ {
+     _model = model;
+     self.iconImageView.image = [UIImage imageNamed:model.icon];
+     self.nameLabel.text = model.name;
+ }
+ @end
+</code></pre>
+
+<p>layoutSubviews在以下情况下会被调用：<br/>
+1. init初始化不会触发layoutSubviews<br/>
+2. addSubview会触发layoutSubviews<br/>
+3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
+4. 滚动一个UIScrollView会触发layoutSubviews<br/>
+5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
+6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
+
+<p>模型代码如下：</p>
+
+<pre><code> /**
+  *  CustomModel.h文件
+  */
+ #import &lt;Foundation/Foundation.h&gt;
+
+ @interface CustomModel : NSObject
+    /**
+     *  名字
+     */
+ @property (nonatomic, copy) NSString *name;
+    /**
+     *  图片
+     */
+ @property (nonatomic, copy) NSString *icon;
+
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
+
+ @end
+</code></pre>
+
+<pre><code> /**
+  *  CustomModel.m文件
+  */
+ #import &quot;CustomModel.h&quot;
+
+ @implementation CustomModel
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
+ {
+     return [[self alloc] initWithName:name icon:icon];
+ }
+
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
+ {
+     if (self = [super init]) {
+         self.name = name;
+         self.icon = icon;
+     }
+     return self;
+ }
+ @end
+</code></pre>
+
+<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
+
+<pre><code>// 创建自定义的View
+ CustomView *customView = [[CustomView alloc] init];
+// 设置数据
+ CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
+ customView.model = model;
+// 设置frame
+ customView.frame = CGRectMake(100, 100, 67, 100);
+// 添加子控件
+ [self.view addSubview:customView];
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/7/4 20:38 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="14976187081535.html">
                 
                   <h1>UIButton</h1>
@@ -171,130 +357,6 @@
                   <div class="more-left left">
                   
                     <span class="date">2017/6/16 21:11 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="14966683926548.html">
-                
-                  <h1>UILable</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h3 id="toc_0">UILable常见属性</h3>
-
-<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
-* 显示文字</p>
-
-<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
-* 显示字体</p>
-
-<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
-* 文字颜色</p>
-
-<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
-* 对齐模式(左对齐，居中对齐， 右对齐)</p>
-
-<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
-*文字行数</p>
-
-<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
-* 换行模式</p>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UILabel *lable = [[UILabel alloc] init];
-    
-    lable.frame = CGRectMake(50, 300, 300, 200);
-    lable.backgroundColor = [UIColor redColor];
-    lable.text = @&quot;你这头猪&quot;;
-    lable.textAlignment = NSTextAlignmentCenter;
-    lable.font = [UIFont systemFontOfSize:20.f];
-    lable.font = [UIFont boldSystemFontOfSize:20.f];
-    lable.textColor = [UIColor purpleColor];
-    lable.shadowOffset = CGSizeMake(4, -10);
-    lable.shadowColor = [UIColor blueColor];
-    lable.lineBreakMode = NSLineBreakByClipping;
-    [self.view addSubview:lable];   
-}
-</code></pre>
-
-<h3 id="toc_1">UIImageView</h3>
-
-<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
-
-<h3 id="toc_2">毛玻璃效果</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.backgroundColor = [UIColor redColor];
-    imageView.frame = self.view.bounds;
-    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    
-    UIToolbar *toolBar = [[UIToolbar alloc] init];
-    toolBar.frame = imageView.bounds;
-    toolBar.barStyle = UIBarStyleBlack;
-    toolBar.alpha = 0.85;
-    [imageView addSubview:toolBar];
-    
-    [self.view addSubview:imageView];
-}
-</code></pre>
-
-<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UIImageView *imageView = [[UIImageView alloc] init];
-    //第一种方式
-    imageView.frame = CGRectMake(100, 100, 200, 200);
-    imageView.backgroundColor = [UIColor purpleColor];
-    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    //第二种方式
-    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
-    imageView.backgroundColor = [UIColor purpleColor];
-    imageView.image = image;
-    //第三种方式
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
-    imageView.center = CGPointMake(100, 300);
-    //第四种方式
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
-    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.image = image;
-    
-    [self.view addSubview:imageView];
-}
-</code></pre>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/6/5 21:13 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
@@ -389,6 +451,12 @@
 	      
 		      
 			      <li class="post">
+			        <a href="15156751072902.html">Python对象的浅拷贝与深拷贝</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15142967450536.html">Pyhton变量变换原理</a>
 			      </li>
 		     
@@ -408,12 +476,6 @@
 		      
 			      <li class="post">
 			        <a href="15142078830298.html">Auto Migrate Tool</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15137747318292.html">Python格式化输出与format函数</a>
 			      </li>
 		     
 		  
