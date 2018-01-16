@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Ascetic in the deadlock
+  Auto Install Stack(v2.0) - Ascetic in the deadlock
   
   </title>
   
@@ -98,23 +98,36 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="15161073656469.html">
-                
-                  <h1>Auto Install Stack(v2.0)</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>更新了脚本：</p>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Auto Install Stack(v2.0)</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/1/16 20:56 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <p>更新了脚本：</p>
 
 <pre><code class="language-sh">#!/bin/bash
 
@@ -376,340 +389,40 @@ esac
 exit 0
 </code></pre>
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/1/16 20:56 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="15161072350728.html">
-                
-                  <h1>Auto Install Stack</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>自动安装脚本：</p>
+    
 
-<pre><code class="language-sh">#!/bin/bash
+      </div>
 
-##############################################################################
-# Use script like this:
-# ./auto_install_stack.sh ${num}
-#            run 1  --- will re-install stack with default image.
-#            run 2  --- will re-install stack with specified image(install new stack with same yaml file).
-#            run 3  --- will re-install stack with specified image and yaml parameter(first use this scripts).
-##############################################################################
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15161072350728.html" 
+          title="Next Post: Auto Install Stack">Auto Install Stack &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
 
-set +x
+          
 
-function echo_color(){
-    case $1 in
-        &quot;red&quot;)
-            echo -e &quot;\033[31m $2 \033[0m&quot; ;;
-        &quot;red-shining&quot;)
-            echo -e &quot;\033[31m \033[05m $2 \033[0m&quot; ;;
-        &quot;yellow&quot;)
-            echo -e &quot;\033[33m $2 \033[0m&quot; ;;
-        &quot;blue&quot;)
-            echo -e &quot;\033[34m $2 \033[0m&quot; ;;
-        &quot;blue-shining&quot;)
-            echo -e &quot;\033[34m \033[05m $2 \033[0m&quot; ;;
-        &quot;purple&quot;)
-            echo -e &quot;\033[35m $2 \033[0m&quot; ;;
-        &quot;green&quot;)
-            echo -e &quot;\033[32m $2 \033[0m&quot; ;;
-        &quot;*&quot;)
-            echo -e &quot;\033[37m $2 \033[0m&quot; ;;
-    esac
-}
-
-current_dir=`pwd`
-num=`echo ${current_dir##*/} | tr -cd &quot;[0-9]&quot;`
-if [ ${current_dir##*/} != &quot;hranuser${num}&quot; ]
-then
-    echo_color red &quot; === Error: Current directory must be end with &#39;/hranuser&#39; ===&quot;
-    exit -1
-fi
-local_dir=&quot;rcp-heat&quot;
-stack_type=&quot;net&quot;
-if [ ! -d &quot;${local_dir}&quot; ]
-then
-    mkdir -p ${local_dir}
-fi
-
-function _create_image()
-{
-    RCP_IMAGE_URL=$1
-    IMAGE_FILE=${RCP_IMAGE_URL##*/}
-    echo_color blue &quot; === Begin to download RCP image to ${local_dir}/${IMAGE_FILE} === &quot;
-    wget -O ${local_dir}/${IMAGE_FILE} ${RCP_IMAGE_URL}
-    if [ $? -ne 0 ]
-    then
-        set +x
-        echo_color red &quot; === Download image unsuceessfully, please check your image name is right === &quot;
-        exit -1
-    fi
-    echo_color blue &quot; === Download image suceessfully ==== &quot;
-    echo_color blue &quot; === Begin to create image === &quot;
-    nova image-delete ${IMAGE_FILE}
-    glance image-create --name=${IMAGE_FILE} --container-format=bare --visibility=private --disk-format=qcow2 --file=${local_dir}/${IMAGE_FILE}
-    glance_status=`nova image-show ${IMAGE_FILE} | grep status | awk &#39;{print $4}&#39;`
-    if [ &quot;ACTIVE&quot; != &quot;${glance_status}&quot; ]
-    then
-        echo_color blue-shining &quot; === Waiting for image active... ==== &quot;
-        sleep 5
-    fi
-    echo_color blue &quot; === Create image suceessfully ==== &quot;
-    sleep 3
-}
-
-function _download_yaml()
-{
-    TEMPLATE_FILE=${RCP_TEMPLATE_URL##*/}
-    echo_color blue &quot; === Downloading RCP template to ${local_dir}/${TEMPLATE_FILE} === &quot;
-    wget -O ${local_dir}/${TEMPLATE_FILE} ${RCP_TEMPLATE_URL}
-    if [ $? -ne 0 ]
-    then
-        set +x
-        echo_color red &quot; === Download template unsuceessfully, please check your template file is right === &quot;
-        exit -1
-    fi
-    echo_color blue &quot; === Download template suceessfully ==== &quot;
-    ls -l ${local_dir}
-    tar -xzvf ${local_dir}/${TEMPLATE_FILE} -C ${local_dir}
-    rm -f ${local_dir}/${TEMPLATE_FILE}
-}
-
-function _uninstall_old_stack()
-{
-    echo_color blue &quot; === Begin to uninstall existed stack === &quot;
-    ### === used for N34 === ###
-    STACK_UUID=`heat stack-list | awk &#39;{print $2}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-    ### === used for touchdown === ###
-    # STACK_UUID=`heat stack-list | grep touchdown | awk &#39;{print $2}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-    if [ -n &quot;${STACK_UUID}&quot; ]
-    then    
-        heat stack-delete ${STACK_UUID}
-        while ((1))
-        do
-            set +x
-            STACK_STATUS=`heat stack-list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-            if [ -n &quot;${STACK_STATUS}&quot; ]
-            then
-                sleep 10
-                echo_color blue &quot; === Deleting old stack, please wait... === &quot;
-            else
-                break
-            fi
-        done
-    fi
-    echo_color blue &quot; === Uninstall existed stack successfully === &quot;
-}
-
-function _mod_env_file_part()
-{
-    echo_color blue &quot; === Begin to modify env file... === &quot;
-    RCP_IMAGE_URL=$REPLY
-    IMAGE_FILE=${RCP_IMAGE_URL##*/}
-    rcp_heat_file=&quot;rcp-heat/net/rcp-heat.env&quot;
-    sed -i &quot;s/image: .*/image: ${IMAGE_FILE}/g&quot; ${rcp_heat_file}
-    echo_color blue &quot; === Modify successfully. === &quot;
-}
-
-function _mod_env_file_full()
-{
-    echo_color blue &quot; === Begin to modify env file... === &quot;
-    IMAGE_FILE=${RCP_IMAGE_URL##*/}
-    key_name=&quot;default_key&quot;
-    cluster_id=&quot;RCP-1234&quot;
-    hostname_prefix=&quot;abc&quot;
-    cp=&quot;rcp_medium_v2&quot;
-    ei=&quot;rcp_xlarge_v2&quot;
-    mn=&quot;rcp_large_v2&quot;
-    up=&quot;rcp_xlarge_v2&quot;
-    uvm=&quot;rcp_medium_v2&quot;
-    time_zone=&quot;Asia/Shanghai&quot;
-    ### use oam uuid
-    #oam_network=&quot;`nova network-list | grep -w &quot;vnfoam &quot; | awk &#39;{print $2}&#39;`&quot;
-    ### use oam name
-    oam_network=&quot;vnfoam&quot;
-    ntp_servers=&quot;10.39.12.252&quot;
-    dns_forwarders=&quot;10.56.126.31&quot;
-    vif_models=&quot;avp&quot;
-    vif_models_2=&quot;virtio&quot;
-    _nokadmin=&quot;Nokia123&quot;
-    _nokfsoperator=&quot;RCP_owner&quot;
-    root=&quot;root&quot;
-    ext0=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==1&#39;`&quot;
-    ext1=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==2&#39;`&quot;
-    ext2=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==3&#39;`&quot;
-    number_of_uvm_nodes=&quot;0&quot;
-    rcp_heat_file=&quot;rcp-heat/net/rcp-heat.env&quot;
-    sed -i &quot;s/image: .*/image: ${IMAGE_FILE}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/key_name: .*/key_name: ${key_name}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/cluster_id: .*/cluster_id: ${cluster_id}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/hostname_prefix: .*/hostname_prefix: ${hostname_prefix}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ cp: .*/ cp: ${cp}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ ei: .*/ ei: ${ei}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ mn: .*/ mn: ${mn}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ up: .*/ up: ${up}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/uvm: .*/uvm: ${uvm}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s#time-zone: .*#time-zone: ${time_zone}#g&quot; ${rcp_heat_file}
-    sed -i &quot;s/oam_network: .*/oam_network: ${oam_network}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ntp_servers: .*/ntp_servers: ${ntp_servers}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/dns_forwarders: .*/dns_forwarders: ${dns_forwarders}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/_nokadmin: .*/_nokadmin: ${_nokadmin}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/_nokfsoperator: .*/_nokfsoperator: ${_nokfsoperator}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/root: .*/root: ${root}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ext0: .*/ext0: ${ext0}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ext1: .*/ext1: ${ext1}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ext2: .*/ext2: ${ext2}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ external: .*/ external: ${vif_models}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ internal: .*/ internal: ${vif_models_2}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/ oam: .*/ oam: ${vif_models}/g&quot; ${rcp_heat_file}
-    sed -i &quot;s/number_of_uvm_nodes: .*/number_of_uvm_nodes: ${number_of_uvm_nodes}/g&quot; ${rcp_heat_file}
-    nova keypair-add ${key_name}
-    echo_color blue &quot; === Modify successfully. === &quot;
-}
-
-function _launch_stack()
-{
-    echo_color blue &quot; === Begin to launch stack === &quot;
-    heat stack-create -e ${local_dir}/${stack_type}/rcp-heat.env -f ${local_dir}/${stack_type}/rcp-heat.yaml touchdown_auto
-    while ((1))
-    do
-        set +x
-        STACK_STATUS=`heat stack-list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-        if [ &quot;CREATE_COMPLETE&quot; != &quot;${STACK_STATUS}&quot; ]
-        then
-            sleep 30
-            echo_color blue &quot; === Installing, please wait... === &quot;
-        else
-            break
-        fi
-    done
-    oam=`nova list | grep vnfoam | awk &#39;{print $14}&#39;`
-    echo_color blue &quot; === Launch stack successfully, ${oam} === \033[05m ${oam} &quot;
-}
-
-function reinstall_stack_1()
-{
-    _uninstall_old_stack
-    _launch_stack
-}
-
-function reinstall_stack_2()
-{
-    _create_image $REPLY
-    _uninstall_old_stack
-    _mod_env_file_part
-    _launch_stack
-    rm -f ${local_dir}/${IMAGE_FILE}
-}
-
-function reinstall_stack_3()
-{
-    _download_yaml
-    _mod_env_file_full
-    _create_image ${RCP_IMAGE_URL}
-    _uninstall_old_stack
-    _launch_stack
-    rm -f ${local_dir}/${IMAGE_FILE}
-}
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
 
 
-case &quot;$1&quot; in
-    1)
-      echo &quot;Begin to re-install stack.....&quot;
-      reinstall_stack_1
-      echo &quot;Script completes!!!!!&quot;
-      exit 1
-      ;;
-    2)
-      read -p &quot;Please input specified image url: &quot;
-      echo &quot;Begin to re-install stack with image ${REPLY##*/}.....&quot;
-      reinstall_stack_2
-      echo &quot;Script completes!!!!!&quot;
-      exit 1
-      ;;
-    3)
-      read -p &quot;Please input specified image url: &quot; RCP_IMAGE_URL
-      read -p &quot;Please input specified yaml url: &quot; RCP_TEMPLATE_URL
-      echo &quot;Begin to re-install stack with image ${RCP_IMAGE_URL##*/} and yaml ${RCP_TEMPLATE_URL##*/}.....&quot;
-      reinstall_stack_3
-      echo &quot;Script completes!!!!!&quot;
-      exit 1
-      ;;
-    *)
-      echo &quot;Usage:
-            run 1  --- will re-install stack with default image.
-            run 2  --- will re-install stack with specified image.
-            run 3  --- will re-install stack with specified image and yaml parameter.&quot;
-      exit 1
-      ;;
-esac
-exit 0
-</code></pre>
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/1/16 20:53 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
-
-
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			 <a href="all_1.html">&raquo; Next Page</a> 
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

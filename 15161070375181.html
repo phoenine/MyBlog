@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  UIButton - Ascetic in the deadlock
+  Auto Migrate Tools(v2.0) - Ascetic in the deadlock
   
   </title>
   
@@ -107,14 +107,14 @@
       <div class="markdown-body article-wrap">
        <div class="article">
           
-          <h1>UIButton</h1>
+          <h1>Auto Migrate Tools(v2.0)</h1>
      
         <div class="read-more clearfix">
-          <span class="date">2017/6/16 21:11 PM</span>
+          <span class="date">2018/1/16 20:50 PM</span>
 
           <span>posted in&nbsp;</span> 
           
-              <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+              <span class="posted-in"><a href='Linux.html'>Linux</a></span>
            
          
           <span class="comments">
@@ -127,54 +127,115 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <h3 id="toc_0">UIButton的状态</h3>
+      <p>更新了下脚本：<br/>
+还是有些问题：<br/>
+1. 如果有其他Project的node怎么处理？<br/>
+2. 如果有自己的其他node怎么处理？</p>
 
-<ul>
-<li><p>normal(普通状态)</p>
+<pre><code class="language-sh">#!/bin/bash
 
-<ul>
-<li>默认情况（DEFAULT）</li>
-<li>对应的枚举常量： UIControlStateNormal</li>
-</ul></li>
-<li><p>highlighted (高亮状态)</p>
+function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
 
-<ul>
-<li>按钮被按下去的时候</li>
-<li>对应的枚举常量： UIControlStateHighlighted</li>
-</ul></li>
-<li><p>disabled (失效状态)</p>
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+UE_NODE_LIST=`nova list | grep ei | awk &#39;{print $4}&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OTHER_NODE_LIST=`nova list --fields name | grep -v ei | awk &#39;NR&gt;2&#39; | awk &#39;{print $4}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+OPTIMAL_COMPUTE=&#39;&#39;
+INFERIOR_COMPUTE=&#39;&#39;
+INIT_USED=8.0
 
-<ul>
-<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
-<li>对应的枚举变量： UIControlStateDisabled</li>
-</ul></li>
-</ul>
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+    echo &quot;===========Finally the chosen computer is : 1. $OPTIMAL_COMPUTER  2. $INFERIOR_COMPUTE.==============&quot;
 
-<h3 id="toc_1">UIButton代码应用</h3>
+for INSTANCE_NAME in $OTHER_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All UE instance are not stand alone.&quot;
 
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.frame = CGRectMake(100, 300, 200, 100);
-    button.backgroundColor = [UIColor redColor];
-    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
-    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
-    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
-    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
-    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
+for INSTANCE_NAME in $UE_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All other instance are not stand alone.&quot;
 
-    [self.view addSubview:button];
-    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
-}
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+if [[ -z &quot;$OPTIMAL_COMPUTER&quot; ]];then
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $OPTIMAL_COMPUTER
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done
+else
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $INFERIOR_COMPUTE
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done   
+fi
 
--(IBAction)clickButton:(UIButton *)button {
-    button.enabled = NO;
-
-}
+echo__green &quot;Live migration is successfully.&quot;
 </code></pre>
-
-<h3 id="toc_2">九宫格布局</h3>
 
 
     
@@ -185,16 +246,16 @@
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
       
-          <a href="14991719231835.html" 
-          title="Previous Post: 自定义控件">&laquo; 自定义控件</a>
+          <a href="15161072350728.html" 
+          title="Previous Post: Auto Install Stack">&laquo; Auto Install Stack</a>
       
         </p>
         </div>
         <div class="large-6 columns">
       <p class="text-right" style="padding:15px 0px;">
       
-          <a  href="14966683926548.html" 
-          title="Next Post: UILable">UILable &raquo;</a>
+          <a  href="15156751072902.html" 
+          title="Next Post: Python对象的浅拷贝与深拷贝">Python对象的浅拷贝与深拷贝 &raquo;</a>
       
       </p>
         </div>

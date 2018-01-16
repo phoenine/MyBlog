@@ -107,88 +107,274 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15142078830298.html">
+                <a class="clearlink" href="15161073656469.html">
                 
-                  <h1>Auto Migrate Tool</h1>
+                  <h1>Auto Install Stack(v2.0)</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
+                        	<p>更新了脚本：</p>
 
-<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
-function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
-function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
-function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+<pre><code class="language-sh">#!/bin/bash
 
-COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
-UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
-OPTIMAL_COMPUTER=&#39;&#39;
-INIT_USED=8.0
-for COMPUTER in $COMPUTER_LIST
+##############################################################################
+# Use script like this:
+# ./auto_install_stack.sh ${num}
+#            run 1  --- will re-install stack with default image.
+#            run 2  --- will re-install stack with specified image(install new stack with same yaml file).
+#            run 3  --- will re-install stack with specified image and yaml parameter(first use this scripts).
+##############################################################################
+
+set -x
+
+function echo__blue()            { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()             { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()           { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()          { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+function echo__red_shining()     { echo -e &quot;\033[31m \033[05m $2 \033[0m&quot;;}
+function echo__blue_shining()    { echo -e &quot;\033[34m \033[05m $2 \033[0m&quot;;}
+
+CURRENT_DIR=`pwd`
+LOCAL_DIR=&quot;rcp-heat&quot;
+STACK_TYPE=&quot;net&quot;
+NUM=`echo ${CURRENT_DIR##*/} | tr -cd &quot;[0-9]&quot;`
+
+if [ ${CURRENT_DIR##*/} != &quot;hranuser$NUM&quot; ];then
+    echo__red &quot;======= Error: Current directory must be end with &#39;/hranuser&#39; ======&quot;
+    exit -1
+fi
+
+if [ ! -d &quot;$LOCAL_DIR&quot; ];then
+    mkdir -p $LOCAL_DIR
+fi
+
+function _create_image()
+{
+    IMAGE_FILE=`echo ${RCP_IMAGE_URL##*/} | cut -d &quot;.&quot; -f 1,2`
+    IMAGE_EXIST=`glance image-list | grep $IMAGE_FILE | wc -l`
+    if [ $IMAGE_EXIST -ne 0 ];then
+        IMAGE_UUID=`glance image-list | grep $IMAGE_FILE | awk &#39;{print $2}&#39;`
+        glance image-delete $IMAGE_UUID
+        sleep 3
+    fi
+    echo__blue &quot;====== Begin to download RCP image to $LOCAL_DIR ======&quot;
+    wget -O $LOCAL_DIR/${RCP_IMAGE_URL##*/} $RCP_IMAGE_URL
+    if [ $? -ne 0 ];then
+        echo__red &quot;====== Download image unsuceessfully, please check your image name is right ======&quot;
+        exit -1
+    fi
+    echo__blue &quot;====== Download image suceessfully ======&quot;    
+    echo__blue &quot;====== Begin to create image ======&quot;
+    glance image-create --name=$IMAGE_FILE --container-format=bare --visibility=private --disk-format=qcow2 --file=$LOCAL_DIR/${RCP_IMAGE_URL##*/}
+    IMAGE_UUID=`glance image-list | grep $IMAGE_FILE | awk &#39;{print $2}&#39;`
+    while ((1))
     do
-        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
-        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
-            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
-            OPTIMAL_COMPUTER=$COMPUTER
-            break
-        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
-            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
-            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$CPUS_USED
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            fi
-        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
-            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
-            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
-            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
-            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
-            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$USED_RATE
-                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            else
-                continue
-            fi
+        GLANCE_STATUS=`glance image-show $IMAGE_UUID | grep status | awk &#39;{print $4}&#39;`
+        if [ &quot;active&quot; != &quot;$GLANCE_STATUS&quot; ];then
+            echo__blue &quot;====== Waiting for image active... ======&quot;
+            sleep 5
         else
-            echo__red &quot;This computer node is full.&quot;
+            break
         fi
     done
-echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
-echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
-nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
-UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
-if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-    echo &quot;Still migrating, please wait...&quot;
-    sleep 5
-fi
-echo__green &quot;Live migration is successfully.&quot;  
+    echo__blue &quot;====== Create image suceessfully ======&quot;
+    sleep 3
+}
+
+function _download_yaml()
+{
+    TEMPLATE_FILE=${RCP_TEMPLATE_URL##*/}
+    echo__blue &quot;====== Downloading RCP template to $LOCAL_DIR/$TEMPLATE_FILE ======&quot;
+    wget -O $LOCAL_DIR/$TEMPLATE_FILE $RCP_TEMPLATE_URL
+    if [ $? -ne 0 ]
+    then
+        echo__red &quot;====== Download template unsuceessfully, please check your template file is right ======&quot;
+        exit -1
+    fi
+    echo__blue &quot;====== Download template suceessfully ======&quot;
+    ls -l $LOCAL_DIR
+    tar -xzvf $LOCAL_DIR/$TEMPLATE_FILE -C $LOCAL_DIR
+    rm -f $LOCAL_DIR/$TEMPLATE_FILE
+}
+
+function _uninstall_old_stack()
+{
+    echo__blue &quot;====== Begin to uninstall existed stack ======&quot;
+    STACK_UUID=`openstack stack list | awk &#39;{print $2}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    ### === used for Multi-stack === ###
+    # STACK_UUID=`openstack stack list | grep touchdown | awk &#39;{print $2}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    if [ -n &quot;$STACK_UUID&quot; ];then
+        /usr/bin/expect &lt;&lt; EOF
+        set time 10
+        spawn openstack stack delete ${STACK_UUID}
+        expect &quot;*y/N*&quot;
+        send &quot;y\r&quot;
+        expect eof
+EOF
+    fi
+    while ((1))
+    do
+        STACK_STATUS=`openstack stack list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+        if [ -n &quot;${STACK_STATUS}&quot; ];then
+            sleep 10
+            echo__blue &quot;====== Deleting old stack, please wait... ======&quot;
+        else
+            break
+        fi
+    done
+    echo__blue &quot; === Uninstall existed stack successfully === &quot;
+}
+
+function _mod_env_file_part()
+{
+    echo__blue &quot;====== Begin to modify env file... ======&quot;
+    image=`echo ${REPLY##*/} | cut -d &quot;.&quot; -f 1,2`
+    RCP_HEAT_FILE=&quot;rcp-heat/$STACK_TYPE/rcp-heat.env&quot;
+    sed -i &quot;s/image: .*/image: $image/g&quot; $RCP_HEAT_FILE
+    echo__blue &quot;====== Modify successfully ======&quot;
+}
+
+function _mod_env_file_full()
+{
+    echo__blue &quot;====== Begin to modify env file... ======&quot;  
+    availability_zone=&quot;nova&quot;
+    cluster_id=&quot;RCP-1234&quot;
+    dns_forwarders=&quot;10.56.126.31&quot;
+    config_drive=&quot;false&quot;
+    ext0=&quot;`neutron net-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==1&#39;`&quot;
+    ext1=&quot;`neutron net-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==2&#39;`&quot;
+    ext2=&quot;`neutron net-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==3&#39;`&quot;
+    cp=&quot;rcp_medium_v2&quot;
+    ei=&quot;rcp_xlarge_v2&quot;
+    mn=&quot;rcp_large_v2&quot;
+    up=&quot;rcp_xlarge_v2&quot;
+    uvm=&quot;rcp_medium_v2&quot;
+    hostname_prefix=&quot;abc&quot;
+    image=`echo ${RCP_IMAGE_URL##*/} | cut -d &quot;.&quot; -f 1,2`
+    key_name=`nova keypair-list | awk &#39;NR&gt;2&#39; | awk &#39;{print $2}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    if [ -z &quot;$key_name&quot; ];then
+        nova keypair-add default_key
+        key_name=`nova keypair-list | awk &#39;NR&gt;2&#39; | awk &#39;{print $2}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    fi
+    ntp_servers=&quot;10.39.12.252&quot;
+    number_of_uvm_nodes=&quot;0&quot;
+    ### use oam uuid
+    #oam_network=&quot;`nova network-list | grep -w &quot;vnfoam &quot; | awk &#39;{print $2}&#39;`&quot;
+    ### use oam name
+    oam_network=&quot;vnfoam&quot;
+    _nokadmin=&quot;Nokia123&quot;
+    _nokfsoperator=&quot;RCP_owner&quot;
+    root=&quot;root&quot;
+    time_zone=&quot;Asia/Shanghai&quot;    
+    vif_models=&quot;avp&quot;
+    vif_models_2=&quot;virtio&quot;  
+    rcp_heat_file=&quot;rcp-heat/$STACK_TYPE/rcp-heat.env&quot;
+    sed -i &quot;s/availability_zone: .*/availability_zone: $availability_zone/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/cluster_id: .*/cluster_id: $cluster_id/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/dns_forwarders: .*/dns_forwarders: $dns_forwarders/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/config_drive: .*/config_drive: $config_drive/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext0: .*/ext0: $ext0/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext1: .*/ext1: $ext1/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext2: .*/ext2: $ext2/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ cp: .*/ cp: $cp/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ ei: .*/ ei: $ei/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ mn: .*/ mn: $mn/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ up: .*/ up: $up/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/uvm: .*/uvm: $uvm/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/hostname_prefix: .*/hostname_prefix: $hostname_prefix/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/image: .*/image: $image/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/key_name: .*/key_name: $key_name/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ntp_servers: .*/ntp_servers: $ntp_servers/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/number_of_uvm_nodes: .*/number_of_uvm_nodes: $number_of_uvm_nodes/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/oam_network: .*/oam_network: $oam_network/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/_nokadmin: .*/_nokadmin: $_nokadmin/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/_nokfsoperator: .*/_nokfsoperator: $_nokfsoperator/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/root: .*/root: $root/g&quot; ${rcp_heat_file}
+    sed -i &quot;s#time-zone: .*#time-zone: $time_zone#g&quot; ${rcp_heat_file}
+    sed -i &quot;s/uvm_image: .*/uvm_image: $image/g&quot; ${rcp_heat_file}  
+    sed -i &quot;s/ external: .*/ external: $vif_models/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ internal: .*/ internal: $vif_models_2/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ oam: .*/ oam: $vif_models/g&quot; ${rcp_heat_file}   
+    echo__blue &quot;====== Modify successfully ======&quot;
+}
+
+function _launch_stack()
+{
+    echo__blue &quot;====== Begin to launch stack ======&quot;
+    openstack stack create -f yaml -e $LOCAL_DIR/$STACK_TYPE/rcp-heat.env -t $LOCAL_DIR/$STACK_TYPE/rcp-heat.yaml ${CURRENT_DIR##*/}_auto
+    while ((1))
+    do
+        STACK_STATUS=`openstack stack list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+        if [ &quot;CREATE_COMPLETE&quot; != &quot;${STACK_STATUS}&quot; ];then
+            sleep 30
+            echo__blue &quot;====== Installing, please wait... ======&quot;
+        else
+            break
+        fi
+    done
+    oam=`nova list | grep vnfoam | awk &#39;{print $13}&#39;`
+    echo__blue_shining &quot;====== Launch stack successfully, ${oam} DONE ====== \033[05m ${oam}&quot;
+}
+
+function reinstall_stack_1()
+{
+    _uninstall_old_stack
+    _launch_stack
+}
+
+function reinstall_stack_2()
+{
+    _create_image $REPLY
+    _uninstall_old_stack
+    _mod_env_file_part
+    _launch_stack
+    rm -f $LOCAL_DIR/${REPLY##*/}
+}
+
+function reinstall_stack_3()
+{
+    _download_yaml
+    _mod_env_file_full
+    _create_image ${RCP_IMAGE_URL}
+    _uninstall_old_stack
+    _launch_stack
+    rm -f $LOCAL_DIR/${RCP_IMAGE_URL##*/}
+}
+
+
+case &quot;$1&quot; in
+    1)
+      echo &quot;Begin to re-install stack.....&quot;
+      reinstall_stack_1
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    2)
+      read -p &quot;Please input specified image url: &quot;
+      echo &quot;Begin to re-install stack with image ${REPLY##*/}.....&quot;
+      reinstall_stack_2
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    3)
+      read -p &quot;Please input specified image url: &quot; RCP_IMAGE_URL
+      read -p &quot;Please input specified yaml url: &quot; RCP_TEMPLATE_URL
+      echo &quot;Begin to re-install stack with image ${RCP_IMAGE_URL##*/} and yaml ${RCP_TEMPLATE_URL##*/}.....&quot;
+      reinstall_stack_3
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    *)
+      echo &quot;Usage:
+            run 1  --- will re-install stack with default image.
+            run 2  --- will re-install stack with specified image.
+            run 3  --- will re-install stack with specified image and yaml parameter.&quot;
+      exit 1
+      ;;
+esac
+exit 0
 </code></pre>
-
-<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
-
-<ul>
-<li><p>通过bc</p>
-
-<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
-
-<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
-</code></pre></li>
-<li><p>通过dc<br/>
-可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
-<li><p>expr<br/>
-expr竟然也可以？先保存下来，下次再试试：</p>
-
-<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
-echo $b is bigger
-else
-echo $a is bigger
-fi
-</code></pre></li>
-</ul>
 
                         
                       </div>
@@ -197,7 +383,301 @@ fi
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/25 21:18 PM</span>
+                    <span class="date">2018/1/16 20:56 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
+                <a class="clearlink" href="15161072350728.html">
+                
+                  <h1>Auto Install Stack</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>自动安装脚本：</p>
+
+<pre><code class="language-sh">#!/bin/bash
+
+##############################################################################
+# Use script like this:
+# ./auto_install_stack.sh ${num}
+#            run 1  --- will re-install stack with default image.
+#            run 2  --- will re-install stack with specified image(install new stack with same yaml file).
+#            run 3  --- will re-install stack with specified image and yaml parameter(first use this scripts).
+##############################################################################
+
+set +x
+
+function echo_color(){
+    case $1 in
+        &quot;red&quot;)
+            echo -e &quot;\033[31m $2 \033[0m&quot; ;;
+        &quot;red-shining&quot;)
+            echo -e &quot;\033[31m \033[05m $2 \033[0m&quot; ;;
+        &quot;yellow&quot;)
+            echo -e &quot;\033[33m $2 \033[0m&quot; ;;
+        &quot;blue&quot;)
+            echo -e &quot;\033[34m $2 \033[0m&quot; ;;
+        &quot;blue-shining&quot;)
+            echo -e &quot;\033[34m \033[05m $2 \033[0m&quot; ;;
+        &quot;purple&quot;)
+            echo -e &quot;\033[35m $2 \033[0m&quot; ;;
+        &quot;green&quot;)
+            echo -e &quot;\033[32m $2 \033[0m&quot; ;;
+        &quot;*&quot;)
+            echo -e &quot;\033[37m $2 \033[0m&quot; ;;
+    esac
+}
+
+current_dir=`pwd`
+num=`echo ${current_dir##*/} | tr -cd &quot;[0-9]&quot;`
+if [ ${current_dir##*/} != &quot;hranuser${num}&quot; ]
+then
+    echo_color red &quot; === Error: Current directory must be end with &#39;/hranuser&#39; ===&quot;
+    exit -1
+fi
+local_dir=&quot;rcp-heat&quot;
+stack_type=&quot;net&quot;
+if [ ! -d &quot;${local_dir}&quot; ]
+then
+    mkdir -p ${local_dir}
+fi
+
+function _create_image()
+{
+    RCP_IMAGE_URL=$1
+    IMAGE_FILE=${RCP_IMAGE_URL##*/}
+    echo_color blue &quot; === Begin to download RCP image to ${local_dir}/${IMAGE_FILE} === &quot;
+    wget -O ${local_dir}/${IMAGE_FILE} ${RCP_IMAGE_URL}
+    if [ $? -ne 0 ]
+    then
+        set +x
+        echo_color red &quot; === Download image unsuceessfully, please check your image name is right === &quot;
+        exit -1
+    fi
+    echo_color blue &quot; === Download image suceessfully ==== &quot;
+    echo_color blue &quot; === Begin to create image === &quot;
+    nova image-delete ${IMAGE_FILE}
+    glance image-create --name=${IMAGE_FILE} --container-format=bare --visibility=private --disk-format=qcow2 --file=${local_dir}/${IMAGE_FILE}
+    glance_status=`nova image-show ${IMAGE_FILE} | grep status | awk &#39;{print $4}&#39;`
+    if [ &quot;ACTIVE&quot; != &quot;${glance_status}&quot; ]
+    then
+        echo_color blue-shining &quot; === Waiting for image active... ==== &quot;
+        sleep 5
+    fi
+    echo_color blue &quot; === Create image suceessfully ==== &quot;
+    sleep 3
+}
+
+function _download_yaml()
+{
+    TEMPLATE_FILE=${RCP_TEMPLATE_URL##*/}
+    echo_color blue &quot; === Downloading RCP template to ${local_dir}/${TEMPLATE_FILE} === &quot;
+    wget -O ${local_dir}/${TEMPLATE_FILE} ${RCP_TEMPLATE_URL}
+    if [ $? -ne 0 ]
+    then
+        set +x
+        echo_color red &quot; === Download template unsuceessfully, please check your template file is right === &quot;
+        exit -1
+    fi
+    echo_color blue &quot; === Download template suceessfully ==== &quot;
+    ls -l ${local_dir}
+    tar -xzvf ${local_dir}/${TEMPLATE_FILE} -C ${local_dir}
+    rm -f ${local_dir}/${TEMPLATE_FILE}
+}
+
+function _uninstall_old_stack()
+{
+    echo_color blue &quot; === Begin to uninstall existed stack === &quot;
+    ### === used for N34 === ###
+    STACK_UUID=`heat stack-list | awk &#39;{print $2}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    ### === used for touchdown === ###
+    # STACK_UUID=`heat stack-list | grep touchdown | awk &#39;{print $2}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    if [ -n &quot;${STACK_UUID}&quot; ]
+    then    
+        heat stack-delete ${STACK_UUID}
+        while ((1))
+        do
+            set +x
+            STACK_STATUS=`heat stack-list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+            if [ -n &quot;${STACK_STATUS}&quot; ]
+            then
+                sleep 10
+                echo_color blue &quot; === Deleting old stack, please wait... === &quot;
+            else
+                break
+            fi
+        done
+    fi
+    echo_color blue &quot; === Uninstall existed stack successfully === &quot;
+}
+
+function _mod_env_file_part()
+{
+    echo_color blue &quot; === Begin to modify env file... === &quot;
+    RCP_IMAGE_URL=$REPLY
+    IMAGE_FILE=${RCP_IMAGE_URL##*/}
+    rcp_heat_file=&quot;rcp-heat/net/rcp-heat.env&quot;
+    sed -i &quot;s/image: .*/image: ${IMAGE_FILE}/g&quot; ${rcp_heat_file}
+    echo_color blue &quot; === Modify successfully. === &quot;
+}
+
+function _mod_env_file_full()
+{
+    echo_color blue &quot; === Begin to modify env file... === &quot;
+    IMAGE_FILE=${RCP_IMAGE_URL##*/}
+    key_name=&quot;default_key&quot;
+    cluster_id=&quot;RCP-1234&quot;
+    hostname_prefix=&quot;abc&quot;
+    cp=&quot;rcp_medium_v2&quot;
+    ei=&quot;rcp_xlarge_v2&quot;
+    mn=&quot;rcp_large_v2&quot;
+    up=&quot;rcp_xlarge_v2&quot;
+    uvm=&quot;rcp_medium_v2&quot;
+    time_zone=&quot;Asia/Shanghai&quot;
+    ### use oam uuid
+    #oam_network=&quot;`nova network-list | grep -w &quot;vnfoam &quot; | awk &#39;{print $2}&#39;`&quot;
+    ### use oam name
+    oam_network=&quot;vnfoam&quot;
+    ntp_servers=&quot;10.39.12.252&quot;
+    dns_forwarders=&quot;10.56.126.31&quot;
+    vif_models=&quot;avp&quot;
+    vif_models_2=&quot;virtio&quot;
+    _nokadmin=&quot;Nokia123&quot;
+    _nokfsoperator=&quot;RCP_owner&quot;
+    root=&quot;root&quot;
+    ext0=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==1&#39;`&quot;
+    ext1=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==2&#39;`&quot;
+    ext2=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==3&#39;`&quot;
+    number_of_uvm_nodes=&quot;0&quot;
+    rcp_heat_file=&quot;rcp-heat/net/rcp-heat.env&quot;
+    sed -i &quot;s/image: .*/image: ${IMAGE_FILE}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/key_name: .*/key_name: ${key_name}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/cluster_id: .*/cluster_id: ${cluster_id}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/hostname_prefix: .*/hostname_prefix: ${hostname_prefix}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ cp: .*/ cp: ${cp}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ ei: .*/ ei: ${ei}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ mn: .*/ mn: ${mn}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ up: .*/ up: ${up}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/uvm: .*/uvm: ${uvm}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s#time-zone: .*#time-zone: ${time_zone}#g&quot; ${rcp_heat_file}
+    sed -i &quot;s/oam_network: .*/oam_network: ${oam_network}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ntp_servers: .*/ntp_servers: ${ntp_servers}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/dns_forwarders: .*/dns_forwarders: ${dns_forwarders}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/_nokadmin: .*/_nokadmin: ${_nokadmin}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/_nokfsoperator: .*/_nokfsoperator: ${_nokfsoperator}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/root: .*/root: ${root}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext0: .*/ext0: ${ext0}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext1: .*/ext1: ${ext1}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext2: .*/ext2: ${ext2}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ external: .*/ external: ${vif_models}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ internal: .*/ internal: ${vif_models_2}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ oam: .*/ oam: ${vif_models}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/number_of_uvm_nodes: .*/number_of_uvm_nodes: ${number_of_uvm_nodes}/g&quot; ${rcp_heat_file}
+    nova keypair-add ${key_name}
+    echo_color blue &quot; === Modify successfully. === &quot;
+}
+
+function _launch_stack()
+{
+    echo_color blue &quot; === Begin to launch stack === &quot;
+    heat stack-create -e ${local_dir}/${stack_type}/rcp-heat.env -f ${local_dir}/${stack_type}/rcp-heat.yaml touchdown_auto
+    while ((1))
+    do
+        set +x
+        STACK_STATUS=`heat stack-list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+        if [ &quot;CREATE_COMPLETE&quot; != &quot;${STACK_STATUS}&quot; ]
+        then
+            sleep 30
+            echo_color blue &quot; === Installing, please wait... === &quot;
+        else
+            break
+        fi
+    done
+    oam=`nova list | grep vnfoam | awk &#39;{print $14}&#39;`
+    echo_color blue &quot; === Launch stack successfully, ${oam} === \033[05m ${oam} &quot;
+}
+
+function reinstall_stack_1()
+{
+    _uninstall_old_stack
+    _launch_stack
+}
+
+function reinstall_stack_2()
+{
+    _create_image $REPLY
+    _uninstall_old_stack
+    _mod_env_file_part
+    _launch_stack
+    rm -f ${local_dir}/${IMAGE_FILE}
+}
+
+function reinstall_stack_3()
+{
+    _download_yaml
+    _mod_env_file_full
+    _create_image ${RCP_IMAGE_URL}
+    _uninstall_old_stack
+    _launch_stack
+    rm -f ${local_dir}/${IMAGE_FILE}
+}
+
+
+case &quot;$1&quot; in
+    1)
+      echo &quot;Begin to re-install stack.....&quot;
+      reinstall_stack_1
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    2)
+      read -p &quot;Please input specified image url: &quot;
+      echo &quot;Begin to re-install stack with image ${REPLY##*/}.....&quot;
+      reinstall_stack_2
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    3)
+      read -p &quot;Please input specified image url: &quot; RCP_IMAGE_URL
+      read -p &quot;Please input specified yaml url: &quot; RCP_TEMPLATE_URL
+      echo &quot;Begin to re-install stack with image ${RCP_IMAGE_URL##*/} and yaml ${RCP_TEMPLATE_URL##*/}.....&quot;
+      reinstall_stack_3
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    *)
+      echo &quot;Usage:
+            run 1  --- will re-install stack with default image.
+            run 2  --- will re-install stack with specified image.
+            run 3  --- will re-install stack with specified image and yaml parameter.&quot;
+      exit 1
+      ;;
+esac
+exit 0
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/1/16 20:53 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
@@ -224,7 +704,7 @@ fi
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			
+			 <a href="Linux_1.html">&raquo; Next Page</a> 
 			</p>
 			  </div>
 			</div>
@@ -292,6 +772,24 @@ fi
 	      
 		      
 			      <li class="post">
+			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15161072350728.html">Auto Install Stack</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15161070375181.html">Auto Migrate Tools(v2.0)</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15156751072902.html">Python对象的浅拷贝与深拷贝</a>
 			      </li>
 		     
@@ -299,24 +797,6 @@ fi
 		      
 			      <li class="post">
 			        <a href="15142967450536.html">Pyhton变量变换原理</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142936231027.html">Python Unittest与Mock</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142090414246.html">Python学习之整数比较</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142078830298.html">Auto Migrate Tool</a>
 			      </li>
 		     
 		  

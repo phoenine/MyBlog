@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Ascetic in the deadlock
+  Linux - Ascetic in the deadlock
   
   </title>
   
@@ -107,109 +107,122 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15142090414246.html">
+                <a class="clearlink" href="15161070375181.html">
                 
-                  <h1>Python学习之整数比较</h1>
+                  <h1>Auto Migrate Tools(v2.0)</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>最近学习python，发现整数比较时一个有趣的现象：</p>
+                        	<p>更新了下脚本：<br/>
+还是有些问题：<br/>
+1. 如果有其他Project的node怎么处理？<br/>
+2. 如果有自己的其他node怎么处理？</p>
 
-<pre><code class="language-python">a = 256
-b = 256
-print id(a)
-print id(b)
-print(a == b)
-print(a is b)
-print(id(a) == id(b))
-print(id(a) is id(b))
-c = 257
-d = 257
-print id(c)
-print id(d)
-print(c == d)
-print(c is d)
-print(id(c) == id(d))
-print(id(c) is id(d))
+<pre><code class="language-sh">#!/bin/bash
+
+function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+UE_NODE_LIST=`nova list | grep ei | awk &#39;{print $4}&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OTHER_NODE_LIST=`nova list --fields name | grep -v ei | awk &#39;NR&gt;2&#39; | awk &#39;{print $4}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+OPTIMAL_COMPUTE=&#39;&#39;
+INFERIOR_COMPUTE=&#39;&#39;
+INIT_USED=8.0
+
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+    echo &quot;===========Finally the chosen computer is : 1. $OPTIMAL_COMPUTER  2. $INFERIOR_COMPUTE.==============&quot;
+
+for INSTANCE_NAME in $OTHER_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All UE instance are not stand alone.&quot;
+
+for INSTANCE_NAME in $UE_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All other instance are not stand alone.&quot;
+
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+if [[ -z &quot;$OPTIMAL_COMPUTER&quot; ]];then
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $OPTIMAL_COMPUTER
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done
+else
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $INFERIOR_COMPUTE
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done   
+fi
+
+echo__green &quot;Live migration is successfully.&quot;
 </code></pre>
-
-<p>在pycharm中运行的结果是：</p>
-
-<pre><code>32019104
-32019104
-True
-True
-True
-False
-40550424
-40550424
-True
-True
-True
-False
-</code></pre>
-
-<p>而在Python IDE中运行：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a = 256
-&gt;&gt;&gt; b = 256
-&gt;&gt;&gt; a == b
-True
-&gt;&gt;&gt; a is b
-True
-&gt;&gt;&gt; id(a)
-32346576L
-&gt;&gt;&gt; id(b)
-32346576L
-&gt;&gt;&gt; c = 257
-&gt;&gt;&gt; d = 257
-&gt;&gt;&gt; c == d
-True
-&gt;&gt;&gt; c is d
-False
-&gt;&gt;&gt; id(c)
-39891736L
-&gt;&gt;&gt; id(d)
-39891712L
-</code></pre>
-
-<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
-在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
-- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
-- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
-
-<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？</p>
-
-<p><strong>问题一：256和257，差别在哪里？</strong></p>
-
-<p>出于对性能的考虑，Python内部做了很多的优化工作，对于整数对象，Python把一些频繁使用的整数对象缓存起来，保存到一个叫small_ints的链表中，在Python的整个生命周期内，任何需要引用这些整数对象的地方，都不再重新创建新的对象，而是直接引用缓存中的对象。Python把这些可能频繁使用的整数对象规定在范围[-5, 256)之间的小对象放在small_ints中，注意左闭右开。但凡是需要用些小整数时，就从这里面取，不再去临时创建新的对象。因为257不再小整数范围内，因此尽管a和b的值是一样，但是他们在Python内部却是以两个独立的对象存在的，各自为政，互不干涉。</p>
-
-<p>源码位置：<code>Include/intobject.h | Objects/intobject.c</code></p>
-
-<p><strong>小整数对象池：</strong><br/>
-小整数对象池就是一个<strong>PyIntObject指针数组</strong></p>
-
-<pre><code class="language-C">#ifndef NSMALLPOSINTS
-#define NSMALLPOSINTS 257
-#endif
-#ifndef NSMALLNEGINTS
-#define NSMALLNEGINTS 5
-#endif
-#if NSMALLNEGINTS + NSMALLPOSINTS &gt; 0
-/* References to small integers are saved in this array so that they can be shared. The integers that are saved are those in the range -NSMALLNEGINTS (inclusive) to NSMALLPOSINTS (not inclusive).*/
-static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
-#endif
-</code></pre>
-
-<p>其结构如下：<br/>
-<img src="media/15142090414246/15142908389467.png" alt=""/></p>
-
-<p><strong>问题二：都是257，is结局为啥不一样？</strong></p>
-
-<p>其实答案就是如此简单：</p>
-
-<p>对于Python而言，存储好的脚本文件（Script file）和在Console中的交互式（interactive）命令，执行方式不同。对于脚本文件，解释器将其当作整个代码块执行，而对于交互性命令行中的每一条命令，解释器将其当作单独的代码块执行。而Python在执行同一个代码块的初始化对象的命令时，会检查是否其值是否已经存在，如果存在，会将其重用（这句话不够严谨，后面会详谈）。所以在给出的例子中，文件执行时（同一个代码块）会把a、b两个变量指向同一个对象；而在命令行执行时，a、b赋值语句分别被当作两个代码块执行，所以会得到两个不同的对象，因而is判断返回False。</p>
 
                         
                       </div>
@@ -218,10 +231,10 @@ static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/25 21:37 PM</span>
+                    <span class="date">2018/1/16 20:50 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -347,12 +360,12 @@ fi
 			<div class="row">
 			  <div class="large-6 columns">
 			  <p class="text-left" style="padding-top:25px;">
-			   <a href="all_2.html">&laquo; Prev Page</a>  
+			   <a href="Linux.html">&laquo; Prev Page</a>  
 			  </p>
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			 <a href="all_4.html">&raquo; Next Page</a> 
+			
 			</p>
 			  </div>
 			</div>

@@ -107,53 +107,127 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14885942470746.html">
+                <a class="clearlink" href="14965374170472.html">
                 
-                  <h1>类方法与对象方法</h1>
+                  <h1>UIView</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">对象方法</h4>
+                        	<h3 id="toc_0">UIView常见属性</h3>
+
+<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
+* 获取自己的父控件对象</p>
+
+<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
+* 获取自己的子控件对象</p>
+
+<p><code>@property(nonatomic) NSInteger tag;</code><br/>
+* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
+
+<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
+* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
+
+<p><code>@property(nonatomic) CGRect frame;</code><br/>
+* 控件矩形框在父控件中的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGRect bounds;</code><br/>
+* 控件矩形框的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGPoint center;</code><br/>
+* 控件重点的位置</p>
+
+<pre><code>#import &quot;ViewController.h&quot;
+
+@interface ViewController ()
+
+@property(weak, nonatomic) UILabel *lable;
+
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UILabel *lable = [[UILabel alloc] init];
+    lable.frame = CGRectMake(200, 100, 100, 60);
+    lable.backgroundColor = [UIColor redColor];
+    [self.view addSubview:lable];
+    self.lable = lable;
+}
+
+- (IBAction)bounds {
+    self.lable.bounds = CGRectMake(0, 0, 200, 40);
+}
+
+- (IBAction)center {
+    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
+}
+@end
+
+</code></pre>
+
+<h3 id="toc_1">常见的方法</h3>
+
+<pre><code>-(void)loadView{
+    [super loadView];
+}
+
+-(void)viewDidLoad{
+    [super viewDidLoad];
+} 
+
+-(void)didReceiveMemoryWarning{
+    [super didReceiveMemoryWarning];
+}
+</code></pre>
+
+<h5 id="toc_2">viewDidLoad</h5>
 
 <ul>
-<li>调用：如果想要调用对象方法就必须先创建对象，通过对象名来调用</li>
-<li>声明：使用‘-’号</li>
+<li>系统调用</li>
+<li>controller的View加载完毕的时候调用</li>
+<li>控件的初始化，数据的初始化(懒加载)</li>
 </ul>
 
-<h4 id="toc_1">类方法</h4>
+<h5 id="toc_3">didReceiveMemoryWarning</h5>
 
 <ul>
-<li>调用：类方法的调用不依赖于对象，如果要调用类方法，不需要去创建对象，直接通过类名来调用。</li>
-<li>声明：使用‘+’号</li>
-<li>在类方法中不能直接访问属性</li>
-<li>属性是在对象创建的时候，跟随着对象一起创建在对象之中</li>
-<li>类第一次被访问的时候，会做类加载，是把类的带啊存储在代码段</li>
-<li>节约空间，提高效率</li>
-<li>如果方法不需要直接访问属性，也不需要直接调用其他的对象方法，则可以定义为类方法</li>
+<li>系统调用</li>
+<li>当控制器接受到内存警告调用</li>
+<li>去除一些不必要的内存，去除耗时的内存</li>
 </ul>
 
-<h4 id="toc_2">类方法规范</h4>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+//    NSLog(@&quot;%@&quot;, self.greenView.superview);
+//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
+//    NSLog(@&quot;%@&quot;, self.view.subviews);
+    UISwitch *sw = [[UISwitch alloc] init];
+    [sw setHighlighted:true];
+    [self.view addSubview:sw];
+    [sw removeFromSuperview];
+}
+</code></pre>
+
+<h5 id="toc_4">addSubview</h5>
 
 <ul>
-<li>如果写一个类，可以为这个类提供一个和类同名的类方法；</li>
+<li>添加一个子控件
+##### removeFromSuperview</li>
+<li>从父控件中移除
+##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
+<li>根据一个tag找出对应的控件</li>
+<li>不推荐使用tag
+
+<ul>
+<li>tag的效率差</li>
+<li>tag容易乱</li>
+</ul></li>
 </ul>
-
-<h4 id="toc_3">NSString最常用的类方法</h4>
-
-<p>instanceType 作为返回值 代表返回的是当前类的对象<br/>
-<img src="media/14885942470746/14888085422135.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888090342021.jpg" alt=""/></p>
-
-<h4 id="toc_4">NSString最常用的对象方法</h4>
-
-<p><img src="media/14885942470746/14888092424014.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888094300096.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888095451151.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888099962376.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888102494936.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892006938627.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892007099870.jpg" alt=""/></p>
 
                         
                       </div>
@@ -162,10 +236,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/3/4 10:24 AM</span>
+                    <span class="date">2017/6/4 8:50 AM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -179,42 +253,229 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14879879409983.html">
+                <a class="clearlink" href="14950245211652.html">
                 
-                  <h1>对象与方法</h1>
+                  <h1>Block</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">分组导航标记</h4>
-
-<p>标记：<br/>
-<code># pragma mark XXXX</code><br/>
-分割线：<br/>
-<code># pragma mark -</code></p>
-
-<h4 id="toc_1">类的本质</h4>
-
-<ul>
-<li>类的本质是我们自定义的一个<strong>数据类型</strong></li>
-<li>类可以作为方法的参数:<code>- (void) test : (Dog *)Dog;</code></li>
-<li>一个target钟的类无法直接在另外一个target钟访问；</li>
-<li>类的属性代表这个类所拥有的东西；</li>
-<li>类的方法代表该类所具备的行为和功能；</li>
+                        	<ul>
+<li>Block是一个数据类型；</li>
 </ul>
 
-<h4 id="toc_2">对象作为类的属性</h4>
+<hr/>
 
-<p><img src="media/14879879409983/14880765155478.jpg" alt=""/></p>
+<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
+
+<hr/>
+
+<blockquote>
+<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
+</blockquote>
+
+<h3 id="toc_0">如何声明一个block变量</h3>
+
+<pre><code>void (^myBlock1)();
+int (^myBlock2)();
+int (^myBlock3)(int num1, int num2);
+</code></pre>
+
+<h3 id="toc_1">block变量的初始化</h3>
+
+<pre><code>void (^myBlock1)() = ^void(){
+        NSLog(@&quot;test&quot;);
+    };
+
+int (^myBlock2)() = ^int(){
+    int num1 = 10 + 20;
+    return num1;
+};
+
+int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
+    int num3 = num1 + num2;
+    return num3;
+};
+</code></pre>
+
+<blockquote>
+<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
+</blockquote>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+int main(int argc, const char * argv[]) {
+    
+    void (^myBlock1)();
+    myBlock1 = ^void(){
+        NSLog(@&quot;test&quot;);
+    };
+    myBlock1();
+    
+    int (^myBlock2)() = ^int(){
+        int num1 = 10 + 20;
+        return num1;
+    };
+    int sum = myBlock2();
+    NSLog(@&quot;sum = %d&quot;, sum);
+    
+    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
+        int num3 = num1 + num2;
+        return num3;
+    };
+    
+    int res = myblock3(10, 100);
+    NSLog(@&quot;res = %d&quot;, res);
+    
+    
+    return 0;
+}
+</code></pre>
+
+<h3 id="toc_2">block的简写</h3>
+
+<ol>
+<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
+</ol>
+
+<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
+void (^myBlock1)() = ^(){
+        NSLog(@&quot;test&quot;);
+    };
+</code></pre>
+
+<ol>
+<li>如果代码段没有参数，代码段的（）也可以省略：</li>
+</ol>
+
+<pre><code>int (^myBlock2)() = ^int{
+    int num1 = 10 + 20;
+    return num1;
+};
+</code></pre>
+
+<ol>
+<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
+</ol>
+
+<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
+    int num3 = num1 + num2;
+    return num3;
+};
+</code></pre>
+
+<ol>
+<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
+</ol>
 
 <ul>
-<li>属性的本质是变量；</li>
-<li>在创建对象的时候，对象中的属性是按照类模板中个规定所创建出来的；</li>
-<li>注意_dog是指针变量；如果对象的属性是另一个类的对象，这个属性仅仅是一个指针变量，并没有对象产生；
-<img src="media/14879879409983/14880768553779.jpg" alt=""/>
-<img src="media/14879879409983/14880772940474.jpg" alt=""/>
-如果要再方法中调用当前对象的另一个方法 <code>[self 方法名]</code></li>
+<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
+<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
 </ul>
+
+<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
+    int num3 = num1 + num2;
+    return num3;
+};
+    
+int result = myBlock4(20, 30);
+NSLog(@&quot;result is %d&quot;, result);
+</code></pre>
+
+<h3 id="toc_3">简化block的定义</h3>
+
+<ol>
+<li>typedef: 将block定义为一个短类型。</li>
+</ol>
+
+<pre><code>typedef void (^NewType)();
+NewType block1 = ^void(){
+    NSLog(@&quot;Hello&quot;);
+};
+block1();
+</code></pre>
+
+<ul>
+<li>block内部可以取外部的局部变量和全局变量的值</li>
+<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
+<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
+</ul>
+
+<h3 id="toc_4">block作为函数的参数</h3>
+
+<ol>
+<li>可以在函数中声明一个指定格式的block：</li>
+</ol>
+
+<pre><code>void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+</code></pre>
+
+<ol>
+<li>使用typedef简化定义：</li>
+</ol>
+
+<pre><code>typedef void (^NewBlock) ();
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+</code></pre>
+
+<ol>
+<li>如何调用：</li>
+</ol>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+typedef void (^NewBlock) ();
+
+void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+int main(int argc, const char * argv[]) {
+
+    NewBlock type = ^{
+        NSLog(@&quot;hahahah&quot;);
+    };
+    
+    test_2(type);
+    
+    test_2(^{
+        NSLog(@&quot;hahahah&quot;);
+    });
+    
+    return 0;
+}
+</code></pre>
+
+<p>在这个状态下直接敲回车：<br/>
+<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
+可以转换成：<br/>
+<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
+然后直接补充代码即可：<br/>
+<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
+
+<blockquote>
+<p>将block作为函数的参数可以实现什么效果？</p>
+</blockquote>
+
+<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
+</code></pre>
 
                         
                       </div>
@@ -223,7 +484,7 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/2/25 9:59 AM</span>
+                    <span class="date">2017/5/17 20:35 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
@@ -318,6 +579,24 @@
 	      
 		      
 			      <li class="post">
+			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15161072350728.html">Auto Install Stack</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15161070375181.html">Auto Migrate Tools(v2.0)</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15156751072902.html">Python对象的浅拷贝与深拷贝</a>
 			      </li>
 		     
@@ -325,24 +604,6 @@
 		      
 			      <li class="post">
 			        <a href="15142967450536.html">Pyhton变量变换原理</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142936231027.html">Python Unittest与Mock</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142090414246.html">Python学习之整数比较</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142078830298.html">Auto Migrate Tool</a>
 			      </li>
 		     
 		  
