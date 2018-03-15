@@ -107,144 +107,202 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15137747318292.html">
+                <a class="clearlink" href="15156751072902.html">
                 
-                  <h1>Python格式化输出与format函数</h1>
+                  <h1>Python对象的浅拷贝与深拷贝</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
+                        	<p>我们知道，对象赋值实际上是简单的对象引用。也就是说，当你创建了一个对象，然后把它赋值给另外一个变量的时候，Python并没有拷贝这个对象，而是拷贝了这个对象的引用。<br/>
+举例说明：</p>
 
-<p><strong>打印整数</strong></p>
-
-<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
-
-&gt;&gt;&gt; I&#39;m number 20  
+<pre><code class="language-python">x = 3.14
+y = x
 </code></pre>
 
-<p><strong>打印浮点数(默认)</strong></p>
+<p>语句<code>x = 3.14</code>创建了一个浮点型对象并将其引用赋值给x。<br/>
+x是第一个引用。<br/>
+语句<code>y = x</code>创建了一个指向同一对象的别名y，而事实上并没有为y创建一个新对象(该对象引用计数变成了2)。<br/>
+<img src="media/15156751072902/15156757071783.jpg" alt=""/></p>
 
-<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
+<h3 id="toc_0">对象赋值</h3>
 
-&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
+<p>直接看一段代码：</p>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = will
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
 </code></pre>
 
-<p><strong>打印浮点数(指定位数)</strong></p>
+<p>代码的输出为：<br/>
+<img src="media/15156751072902/15156770585054.png" alt=""/></p>
 
-<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
+<p>下面来分析一下这段代码：</p>
 
-&gt;&gt;&gt; His height is 1.73 m 
+<ul>
+<li>首先，创建了一个名为will的变量，这个变量指向一个list对象，从第一张图中可以看到所有对象的地址（每次运行，结果可能不同）</li>
+<li>然后，通过will变量对wilber变量进行赋值，那么wilber变量将指向will变量对应的对象（内存地址），也就是说&quot;wilber is will&quot;，&quot;wilber[i] is will[i]&quot;
+
+<ul>
+<li>可以理解为，Python中，对象的赋值都是进行对象引用（内存地址）传递</li>
+</ul></li>
+<li>第三张图中，由于will和wilber指向同一个对象，所以对will的任何修改都会体现在wilber上
+
+<ul>
+<li>这里需要注意的一点是，str是不可变类型，所以当修改的时候会替换旧的对象，产生一个新的地址39758496
+<img src="media/15156751072902/15156771227464.png" alt=""/></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_1">浅拷贝</h3>
+
+<p>下面就来看看浅拷贝的结果：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.copy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
 </code></pre>
 
-<p><strong>打印字符串</strong></p>
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156771638072.png" alt=""/><br/>
+分析一下这段代码：</p>
 
-<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
+<ul>
+<li>首先，依然使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的浅拷贝函数copy()，对will指向的对象进行浅拷贝，然后浅拷贝生成的新对象赋值给wilber变量
 
-&gt;&gt;&gt; My name is terry 
+<ul>
+<li>浅拷贝会创建一个新的对象，这个例子中&quot;wilber is not will&quot;</li>
+<li>但是，对于对象中的元素，浅拷贝就只会使用原始元素的引用（内存地址），也就是说&quot;wilber[i] is will[i]&quot;</li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，所以will的修改结果会相应的反应到wilber上
+<img src="media/15156751072902/15156771821899.png" alt=""/>
+总结一下，当我们使用下面的操作的时候，会产生浅拷贝的效果：</li>
+</ul></li>
+<li>使用切片[:]操作</li>
+<li>使用工厂函数（如list/dir/set）</li>
+<li>使用copy模块中的copy()函数
+例如：</li>
+</ul>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+willber = will[:]
+wiww = list(will)
 </code></pre>
 
-<p><strong>打印指定占位符宽度</strong></p>
+<h3 id="toc_2">深拷贝</h3>
 
-<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
+<p>最后来看看深拷贝：</p>
 
-&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.deepcopy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
 </code></pre>
 
-<p><strong>打印指定占位符(左对齐)</strong></p>
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156773634373.png" alt=""/></p>
 
-<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
+<p>分析一下这段代码：</p>
 
-&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
-</code></pre>
+<ul>
+<li>首先，同样使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的深拷贝函数deepcopy()，对will指向的对象进行深拷贝，然后深拷贝生成的新对象赋值给wilber变量
 
-<p><strong>打印指定占位符(前导0)</strong></p>
+<ul>
+<li>跟浅拷贝类似，深拷贝也会创建一个新的对象，这个例子中&quot;wilber is not will&quot; </li>
+<li>但是，对于对象中的元素，深拷贝都会重新生成一份（有特殊情况，下面会说明），而不是简单的使用原始元素的引用（内存地址）
 
-<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
+<ul>
+<li>例子中will的第三个元素指向39737304，而wilber的第三个元素是一个全新的对象39773088，也就是说，&quot;wilber[2] is not will[2]&quot;</li>
+</ul></li>
+</ul></li>
+<li>当对will进行修改的时候
 
-&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
-</code></pre>
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，但是由于&quot;wilber[2] is not will[2]&quot;，所以will的修改不会影响wilber
+<img src="media/15156751072902/15156773891985.png" alt=""/></li>
+</ul></li>
+</ul>
 
-<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
-用法主要包含以下几类：</p>
+<h3 id="toc_3">拷贝的特殊情况</h3>
 
-<p><strong>通过位置</strong><br/>
-字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
+<p>其实，对于拷贝有一些特殊情况：</p>
 
-<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
+<ul>
+<li>对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有拷贝这一说
 
-&gt;&gt;&gt; aaa,bbb,aaa  
-</code></pre>
+<ul>
+<li>也就是说，对于这些类型，&quot;obj is copy.copy(obj)&quot; 、&quot;obj is copy.deepcopy(obj)&quot;</li>
+</ul></li>
+<li>如果元祖变量只包含原子类型对象，则不能深拷贝，看下面的例子
+<img src="media/15156751072902/15156774222287.png" alt=""/></li>
+</ul>
 
-<p><strong>通过关键字参数</strong></p>
+<h3 id="toc_4">总结</h3>
 
-<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
+<p>本文介绍了对象的赋值和拷贝，以及它们之间的差异：<br/>
+* Python中对象的赋值都是进行对象引用（内存地址）传递<br/>
+* 使用copy.copy()，可以进行对象的浅拷贝，它复制了对象，但对于对象中的元素，依然使用原始的引用.<br/>
+* 如果需要复制一个容器对象，以及它里面的所有元素（包含元素的子元素），可以使用copy.deepcopy()进行深拷贝<br/>
+* 对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有被拷贝一说<br/>
+* 如果元祖变量只包含原子类型对象，则不能深拷贝.</p>
 
-&gt;&gt;&gt; Terry,18  
-</code></pre>
-
-<p><strong>通过对象属性</strong></p>
-
-<pre><code class="language-python">class Person:
-    def __init__(self,name,age):
-        self.name = name
-        self.age = age
-
-    def __str__(self):
-        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
-
-print str(Person(&#39;Terry&#39;,18))
-
-&gt;&gt;&gt; This guy is Terry,he is 18 old.
-</code></pre>
-
-<p><strong>通过下标</strong></p>
-
-<pre><code class="language-python">person = [&#39;Terry&#39;,18]
-print(&#39;{0[0]},{0[1]}&#39;.format(person))
-
-&gt;&gt;&gt; Terry,18
-</code></pre>
-
-<p><strong>通过格式</strong><br/>
-如上面的前导0：</p>
-
-<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
-
-&gt;&gt;&gt; 00000189
-&gt;&gt;&gt;      189
-&gt;&gt;&gt; aaaaa189
-</code></pre>
-
-<p>以及浮点数：</p>
-
-<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
-
-&gt;&gt;&gt; 321.33
-</code></pre>
-
-<p><strong>其他类型</strong><br/>
-主要就是二进制b、十进制d、八进制o、十六进制x:</p>
-
-<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
-print(&#39;{:d}&#39;.format(46))
-print(&#39;{:o}&#39;.format(46))
-print(&#39;{:x}&#39;.format(46))
-
-&gt;&gt;&gt; 101110
-&gt;&gt;&gt; 46
-&gt;&gt;&gt; 56
-&gt;&gt;&gt; 2e
-</code></pre>
-
-<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
-
-<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
-
-&gt;&gt;&gt; 99,988,844,333
-</code></pre>
+<p>文章引用：<br/>
+<a href=""></a><a href="https://www.cnblogs.com/wilber2013/p/4645353.html">https://www.cnblogs.com/wilber2013/p/4645353.html</a></p>
 
                         
                       </div>
@@ -253,7 +311,7 @@ print(&#39;{:x}&#39;.format(46))
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/20 20:58 PM</span>
+                    <span class="date">2018/1/11 20:51 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -270,59 +328,40 @@ print(&#39;{:x}&#39;.format(46))
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15096259430881.html">
+                <a class="clearlink" href="15142967450536.html">
                 
-                  <h1>python中的__name__和__main__</h1>
+                  <h1>Pyhton变量变换原理</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
-python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
+                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
 
-<ol>
-<li>当代码被执行时，__name__的值为 ‘__main__’</li>
-<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
-</ol>
-
-<p>举个栗子：<br/>
-在test_1.py中写入如下代码：</p>
-
-<pre><code>print &quot;I&#39;m the first...&quot;
-
-def test():
-    print &quot;I&#39;m the second...&quot;
-
-print __name__
-if __name__ == &quot;__main__&quot;:
-    test()
-    print &quot;I&#39;m the third...&quot;
-else:
-    print &quot;I&#39;m the last...&quot;
+<pre><code class="language-C">tmp = x;
+x = y;
+y = tmp;
 </code></pre>
 
-<p>直接执行test_1.py，会有如下结果：</p>
+<p>而在python中，则无需中间变量即可实现：</p>
 
-<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
-I&#39;m the first...
-__main__
-I&#39;m the second...
-I&#39;m the third...
+<pre><code class="language-python">x , y = y, x
 </code></pre>
 
-<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
-而作为调用来执行时：<br/>
-<code>from test_1 import test</code><br/>
-会有如下结果：</p>
+<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
+将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
 
-<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
-I&#39;m the first...
-test_1
-I&#39;m the last...
+<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
 </code></pre>
 
-<p>此时__name__的值为test_1，即模块的名字 。 <br/>
-其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
+<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
+
+<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
+</code></pre>
+
+<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
+接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
+运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
+<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
 
                         
                       </div>
@@ -331,7 +370,7 @@ I&#39;m the last...
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/11/2 20:32 PM</span>
+                    <span class="date">2017/12/26 21:59 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -426,31 +465,31 @@ I&#39;m the last...
 	      
 		      
 			      <li class="post">
+			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15161072350728.html">Auto Install Stack</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15161070375181.html">Auto Migrate Tools(v2.0)</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15156751072902.html">Python对象的浅拷贝与深拷贝</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15142967450536.html">Pyhton变量变换原理</a>
 			      </li>
 		     
 		  

@@ -1,0 +1,588 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Python 陷阱与缺陷列表 - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python 陷阱与缺陷列表</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/3/15 20:58 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=1
+&gt;&gt;&gt; def func():
+...     a+=1
+...     print a
+...
+&gt;&gt;&gt; func()
+Traceback (most recent call last):
+File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+File &quot;&lt;stdin&gt;&quot;, line 2, in func
+UnboundLocalError: local variable &#39;a&#39; referenced before assignment
+</code></pre>
+
+<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
+
+<p>对于“UnboundLocalError”,还有更高级的版本：</p>
+
+<pre><code class="language-python">import random
+ 
+def func(ok):
+    if ok:
+        a = random.random()
+    else:
+        import random
+        a = random.randint(1, 10)
+    return a
+ 
+func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
+</code></pre>
+
+<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
+
+<p>那么Python中哪些真正算得上陷阱呢？</p>
+
+<p><strong>第一：以mutable对象作为默认参数</strong></p>
+
+<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
+...     lst.append(1)
+...     return lst
+...
+&gt;&gt;&gt; f()
+[1]
+&gt;&gt;&gt; f()
+[1, 1]
+</code></pre>
+
+<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
+<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
+&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
+
+<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import time
+&gt;&gt;&gt; def report(when=time.time()):
+... return when
+...
+&gt;&gt;&gt; report()
+1500113234.487932
+&gt;&gt;&gt; report()
+1500113234.487932
+</code></pre>
+
+<p>python docoment 给出了标准的解决办法：<br/>
+<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
+...  if when is None:
+...  when = time.time()
+... return when
+...
+&gt;&gt;&gt; report()
+1500113446.746997
+&gt;&gt;&gt; report()
+1500113448.552873
+</code></pre>
+
+<p><strong>第二: x += y vs x = x + y</strong><br/>
+一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
+2 
+&gt;&gt;&gt; x=1;x = x+1;print x
+2
+&gt;&gt;&gt; x=[1];x+=[2];print x
+[1, 2]
+&gt;&gt;&gt; x=[1];x=x+[2];print x
+[1, 2]
+</code></pre>
+
+<p>呃，被光速打脸了？</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
+4357132800
+4357132728
+&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
+4357132800
+4357132800
+</code></pre>
+
+<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
+
+<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
+
+<pre><code class="language-python">import dis
+
+def foo(x, y):
+    x += y
+
+def foo2(x, y):
+    x = x + y
+
+print dis.dis(foo)
+print dis.dis(foo2)
+</code></pre>
+
+<p>输出结果如下：</p>
+
+<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 INPLACE_ADD         
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+
+77            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 BINARY_ADD          
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+</code></pre>
+
+<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
+更多内容可以参考：<br/>
+<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
+
+<p><strong>第三，神奇的小括号–()</strong><br/>
+小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;tuple&#39;&gt;
+&gt;&gt;&gt; type(())
+&lt;type &#39;tuple&#39;&gt;
+</code></pre>
+
+<p>但如果只有一个元素呢</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p><strong>第四：生成一个元素是列表的列表</strong><br/>
+这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
+很简单嘛：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
+&gt;&gt;&gt; a
+[[], [], [], [], [], [], [], [], [], []]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a[0] 
+[10]
+</code></pre>
+
+<p>看起来很不错，简单明了，but</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a[1]
+[10]
+&gt;&gt;&gt; a
+[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
+</code></pre>
+
+<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a
+[[10], [], [], [], [], [], [], [], [], []]
+</code></pre>
+
+<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
+列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
+... for idx, elem in enumerate(lst):
+... if elem % 3 == 0:
+... del lst[idx]
+</code></pre>
+
+<p>测试一下，</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 4, 5]
+</code></pre>
+
+<p>好像没什么错，不过这只是运气好</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 6, 5, 4]
+</code></pre>
+
+<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
+如果逻辑比较简单，使用list comprehension是不错的注意<br/>
+&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
+修改方法很简单：</p>
+
+<pre><code class="language-python">def mod_list(lst):
+    new_lst = []
+    for elem in lst:
+        if elem % 3 != 0:
+            new_lst.append(elem)
+    return new_lst
+
+lst = [1, 2, 3, 4, 5, 6]
+s = mod_list(lst)
+print s
+
+lst = [1, 2, 3, 6, 5, 4]
+s = mod_list(lst)
+print s
+</code></pre>
+
+<p><strong>第六，闭包与lambda</strong><br/>
+这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+...  return [lambda x:i*x for i in range(5)]
+...
+&gt;&gt;&gt; for multiplier in create_multipliers():
+... print multiplier(2)
+...
+</code></pre>
+
+<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
+
+<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
+解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+... return [lambda x, i = i:i*x for i in range(5)]
+...
+</code></pre>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15211176555242.html" 
+          title="Next Post: 高效的 itertools 模块">高效的 itertools 模块 &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>

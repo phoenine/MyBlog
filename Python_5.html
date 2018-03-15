@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  UILable - Ascetic in the deadlock
+  Python - Ascetic in the deadlock
   
   </title>
   
@@ -98,165 +98,74 @@
        
 
  <script type="text/javascript">
-  $(function(){
-    $('#menu_item_index').addClass('is_active');
-  });
+	$(function(){
+		$('#menu_item_index').addClass('is_active');
+	});
 </script>
 <div class="row">
-  <div class="large-8 medium-8 columns">
-      <div class="markdown-body article-wrap">
-       <div class="article">
-          
-          <h1>UILable</h1>
-     
-        <div class="read-more clearfix">
-          <span class="date">2017/6/5 21:13 PM</span>
+	<div class="large-8 medium-8 columns">
+		<div class="markdown-body home-categories">
+		
+			<div class="article">
+                <a class="clearlink" href="15095429404216.html">
+                
+                  <h1>通过MWeb上传Blog</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
 
-          <span>posted in&nbsp;</span> 
-          
-              <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
-           
-         
-          <span class="comments">
-            
+<ol>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
+</ol>
 
-            
-          </span>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
 
-        </div>
-      </div><!-- article -->
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
 
-      <div class="article-content">
-      <h3 id="toc_0">UILable常见属性</h3>
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/11/1 21:29 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
 
-<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
-* 显示文字</p>
-
-<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
-* 显示字体</p>
-
-<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
-* 文字颜色</p>
-
-<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
-* 对齐模式(左对齐，居中对齐， 右对齐)</p>
-
-<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
-*文字行数</p>
-
-<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
-* 换行模式</p>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UILabel *lable = [[UILabel alloc] init];
-    
-    lable.frame = CGRectMake(50, 300, 300, 200);
-    lable.backgroundColor = [UIColor redColor];
-    lable.text = @&quot;你这头猪&quot;;
-    lable.textAlignment = NSTextAlignmentCenter;
-    lable.font = [UIFont systemFontOfSize:20.f];
-    lable.font = [UIFont boldSystemFontOfSize:20.f];
-    lable.textColor = [UIColor purpleColor];
-    lable.shadowOffset = CGSizeMake(4, -10);
-    lable.shadowColor = [UIColor blueColor];
-    lable.lineBreakMode = NSLineBreakByClipping;
-    [self.view addSubview:lable];   
-}
-</code></pre>
-
-<h3 id="toc_1">UIImageView</h3>
-
-<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
-
-<h3 id="toc_2">毛玻璃效果</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    UIImageView *imageView = [[UIImageView alloc] init];
-    imageView.backgroundColor = [UIColor redColor];
-    imageView.frame = self.view.bounds;
-    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    
-    UIToolbar *toolBar = [[UIToolbar alloc] init];
-    toolBar.frame = imageView.bounds;
-    toolBar.barStyle = UIBarStyleBlack;
-    toolBar.alpha = 0.85;
-    [imageView addSubview:toolBar];
-    
-    [self.view addSubview:imageView];
-}
-</code></pre>
-
-<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UIImageView *imageView = [[UIImageView alloc] init];
-    //第一种方式
-    imageView.frame = CGRectMake(100, 100, 200, 200);
-    imageView.backgroundColor = [UIColor purpleColor];
-    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.contentMode = UIViewContentModeScaleAspectFill;
-    //第二种方式
-    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
-    imageView.backgroundColor = [UIColor purpleColor];
-    imageView.image = image;
-    //第三种方式
-    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
-    imageView.center = CGPointMake(100, 300);
-    //第四种方式
-    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
-    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
-    imageView.image = image;
-    
-    [self.view addSubview:imageView];
-}
-</code></pre>
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+              
 
 
-    
-
-      </div>
-
-      <div class="row">
-        <div class="large-6 columns">
-        <p class="text-left" style="padding:15px 0px;">
-      
-          <a href="14976187081535.html" 
-          title="Previous Post: UIButton">&laquo; UIButton</a>
-      
-        </p>
-        </div>
-        <div class="large-6 columns">
-      <p class="text-right" style="padding:15px 0px;">
-      
-          <a  href="14965374170472.html" 
-          title="Next Post: UIView">UIView &raquo;</a>
-      
-      </p>
-        </div>
-      </div>
-      <div class="comments-wrap">
-        <div class="share-comments">
-          
-
-          
-
-          
-        </div>
-      </div>
-    </div><!-- article-wrap -->
-  </div><!-- large 8 -->
-
-
-
+			<div class="row">
+			  <div class="large-6 columns">
+			  <p class="text-left" style="padding-top:25px;">
+			   <a href="Python_4.html">&laquo; Prev Page</a>  
+			  </p>
+			  </div>
+			  <div class="large-6 columns">
+			<p class="text-right" style="padding-top:25px;">
+			
+			</p>
+			  </div>
+			</div>
+		</div>
+	</div><!-- large 8 -->
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">
