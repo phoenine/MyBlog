@@ -1,0 +1,692 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Python - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+	$(function(){
+		$('#menu_item_index').addClass('is_active');
+	});
+</script>
+<div class="row">
+	<div class="large-8 medium-8 columns">
+		<div class="markdown-body home-categories">
+		
+			<div class="article">
+                <a class="clearlink" href="15198200217202.html">
+                
+                  <h1>Python 字典的内部实现</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>python中字典是通过键索引的，因此，字典也可视作彼此关联的两个数组。下面我们尝试向字典中添加3个键/值（key/value）对：</p>
+
+<pre><code class="language-python">d = {&#39;a&#39;:1, &#39;b&#39;:2}
+d[&#39;c&#39;] = 3
+print d
+</code></pre>
+
+<p>输出：<code>{&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}</code><br/>
+这些值可通过如下方法访问：</p>
+
+<pre><code class="language-python">print d[&#39;a&#39;]
+print d[&#39;b&#39;]
+print d[&#39;c&#39;]
+print d[&#39;d&#39;]
+</code></pre>
+
+<p><code>Traceback (most recent call last):<br/>
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt; KeyError: &#39;d&#39;</code><br/>
+由于不存在 &#39;d&#39; 这个键，所以引发了KeyError异常。</p>
+
+<p><strong>哈希表（Hash tables）</strong><br/>
+在Python中，字典是通过哈希表实现的。也就是说，字典是一个数组，而数组的索引是键经过哈希函数处理后得到的。哈希函数的目的是使键均匀地分布在数组中。由于不同的键可能具有相同的哈希值，即可能出现冲突，高级的哈希函数能够使冲突数目最小化。Python中并不包含这样高级的哈希函数，几个重要（用于处理字符串和整数）的哈希函数通常情况下均是常规的类型：</p>
+
+<pre><code>&gt;&gt;&gt; map(hash, (0, 1, 2, 3))
+[0, 1, 2, 3]
+&gt;&gt;&gt; map(hash, (&quot;namea&quot;, &quot;nameb&quot;, &quot;namec&quot;, &quot;named&quot;))
+[-1658398457, -1658398460, -1658398459, -1658398462]
+</code></pre>
+
+<p>在以下的篇幅中，我们仅考虑用字符串作为键的情况。在Python中，用于处理字符串的哈希函数是这样定义的：</p>
+
+<pre><code class="language-python">arguments: string object
+returns: hash
+function string_hash:
+    if hash cached:
+        return it
+    set len to string&#39;s length
+    initialize var p pointing to 1st char of string object
+    set x to value pointed by p left shifted by 7 bits
+    while len &gt;= 0:
+        set var x to (1000003 * x) xor value pointed by p
+        increment pointer p
+    set x to x xor length of string object
+    cache x as the hash so we don&#39;t need to calculate it again
+    return x as the hash
+</code></pre>
+
+<p>如果在Python中运行 hash(&#39;a&#39;) ，后台将执行 string_hash()函数，然后返回 12416037344 （这里我们假设采用的是64位的平台）。</p>
+
+<p>如果用长度为 x 的数组存储键/值对，则我们需要用值为 x-1 的掩码计算槽（slot，存储键/值对的单元）在数组中的索引。这可使计算索引的过程变得非常迅速。字典结构调整长度的机制（以下会详细介绍）会使找到空槽的概率很高，也就意味着在多数情况下只需要进行简单的计算。假如字典中所用数组的长度是 8 ，那么键&#39;a&#39;的索引为：hash(&#39;a&#39;) &amp; 7 = 0，同理&#39;b&#39;的索引为 3 ,&#39;c&#39;的索引为 2 , 而&#39;z&#39;的索引与&#39;b&#39;相同，也为 3 ，这就出现了冲突。<br/>
+<img src="media/15198200217202/15198207691451.png" alt=""/><br/>
+可以看出，Python的哈希函数在键彼此连续的时候表现得很理想，这主要是考虑到通常情况下处理的都是这类形式的数据。然而，一旦我们添加了键&#39;z&#39;就会出现冲突，因为这个键值并不毗邻其他键，且相距较远。</p>
+
+<p>当然，我们也可以用索引为键的哈希值的链表来存储键/值对，但会增加查找元素的时间，时间复杂度也不再是 O(1) 了。下一节将介绍Python的字典解决冲突所采用的方法。</p>
+
+<p><strong>开放寻址法（ Open addressing ）</strong></p>
+
+<p>开放寻址法是一种用探测手段处理冲突的方法。在上述键&#39;z&#39;冲突的例子中，索引 3 在数组中已经被占用了，因而需要探寻一个当前未被使用的索引。增加和搜寻键/值对需要的时间均为 O(1)。</p>
+
+<p>搜寻空闲槽用到了一个二次探测序列（quadratic probing sequence），其代码如下：</p>
+
+<pre><code class="language-python">j = (5*j) + 1 + perturb; 
+perturb &gt;&gt;= PERTURB_SHIFT;
+use j % 2**i as the next table index;
+</code></pre>
+
+<p>循环地5*j+1可以快速放大不影响初始索引的哈希值二进位的微小差异。变量perturb可使其他二进位也不断变化。</p>
+
+<p>出于好奇，我们来看一看当数组长度为 32 时的探测序列，j = 3 -&gt; 11 -&gt; 19 -&gt; 29 -&gt; 5 -&gt; 6 -&gt; 16 -&gt; 31 -&gt; 28 -&gt; 13 -&gt; 2…</p>
+
+<p>关于探测序列的更多介绍可以参阅dictobject.c的源码。文件的开头包含了对探测机理的详细介绍。<br/>
+<img src="media/15198200217202/15198208428424.jpg" alt=""/><br/>
+下面我们结合例子来看一看 Python 内部代码。<br/>
+<strong>基于C语言的字典结构</strong><br/>
+以下基于C语言的数据结构用于存储字典的键/值对（也称作 entry），存储内容有哈希值，键和值。PyObject 是 Python 对象的一个基类。</p>
+
+<pre><code class="language-C">typedef struct {
+    Py_ssize_t me_hash;
+    PyObject *me_key;
+    PyObject *me_value
+} PyDictEntry;
+</code></pre>
+
+<p>下面为字典对应的数据结构。其中，ma_fill为活动槽以及哑槽（dummy slot）的总数。当一个活动槽中的键/值对被删除后，该槽则被标记为哑槽。ma_used为活动槽的总数。ma_mask值为数组的长度减 1 ，用于计算槽的索引。ma_table为数组本身，ma_smalltable为长度为 8 的初始数组。</p>
+
+<pre><code class="language-C">typedef struct _dictobject PyDictObject;
+struct _dictobject {
+    PyObject_HEAD
+    Py_ssize_t ma_fill;
+    Py_ssize_t ma_used;
+    Py_ssize_t ma_mask;
+    PyDictEntry *ma_table;
+    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
+    PyDictEntry ma_smalltable[PyDict_MINSIZE];
+};
+</code></pre>
+
+<p><strong>字典初始化</strong><br/>
+字典在初次创建时将调用PyDict_New()函数。这里删掉了源代码中的部分行，并且将C语言代码转换成了伪代码以突出其中的几个关键概念。</p>
+
+<pre><code class="language-C">returns new dictionary object
+function PyDict_New:
+    allocate new dictionary object
+    clear dictionary&#39;s table
+    set dictionary&#39;s number of used slots + dummy slots (ma_fill) to 0
+    set dictionary&#39;s number of active slots (ma_used) to 0
+    set dictionary&#39;s mask (ma_value) to dictionary size - 1 = 7
+    set dictionary&#39;s lookup function to lookdict_string
+    return allocated dictionary object
+</code></pre>
+
+<p><strong>添加项</strong><br/>
+添加新的键/值对调用的是PyDict_SetItem()函数。函数将使用一个指针指向字典对象和键/值对。这一过程中，首先会检查键是否是字符串，然后计算哈希值，如果先前已经计算并缓存了键的哈希值，则直接使用缓存的值。接着调用insertdict()函数添加新键/值对。如果活动槽和空槽的总数超过数组长度的2/3，则需调整数组的长度。为什么是 2/3 ？这主要是为了保证探测序列能够以足够快的速度找到空闲槽。后面我们会介绍调整长度的函数。</p>
+
+<pre><code class="language-C">arguments: dictionary, key, value
+returns: 0 if OK or -1
+function PyDict_SetItem:
+    if key&#39;s hash cached:
+        use hash
+    else:
+        calculate hash
+    call insertdict with dictionary object, key, hash and value
+    if key/value pair added successfully and capacity over 2/3:
+        call dictresize to resize dictionary&#39;s table
+</code></pre>
+
+<p>inserdict() 使用搜寻函数 lookdict_string() 来查找空闲槽。这跟查找键所用的是同一函数。lookdict_string() 使用哈希值和掩码计算槽的索引。如果用“索引 = 哈希值&amp;掩码”的方法未找到键，则会用调用先前介绍的循环方法探测，直至找到一个空闲槽。第一轮探测，如果未找到匹配的键的且探测过程中遇到过哑槽，则返回一个哑槽。这可使优先选择先前删除的槽。<br/>
+现在我们想添加如下的键/值对：{‘a’: 1, ‘b’: 2′, ‘z’: 26, ‘y’: 25, ‘c’: 5, ‘x’: 24}，那么将会发生如下过程：</p>
+
+<p>分配一个字典结构，内部表的尺寸为8。<br/>
+<img src="media/15198200217202/15198209955932.jpg" alt=""/><br/>
+以下就是我们目前所得到的：<br/>
+<img src="media/15198200217202/15198210086336.jpg" alt=""/><br/>
+8个槽中的6个已被使用，使用量已经超过了总容量的2/3，因而，dictresize()函数将会被调用，用以分配一个长度更大的数组，同时将旧表中的条目复制到新的表中。</p>
+
+<p>在我们这个例子中，dictresize()函数被调用后，数组长度调整后的长度不小于活动槽数量的 4 倍，即minused = 24 = 4 * ma_used。而当活动槽的数量非常大（大于50000）时，调整后长度应不小于活动槽数量的2倍，即2*ma_used。为什么是 4 倍？这主要是为了减少调用调整长度函数的次数，同时能显著提高稀疏度。</p>
+
+<p>新表的长度应大于 24，计算长度值时会不断对当前长度值进行升位运算，直到大于 24，最终得到的长度是 32，例如当前长度为 8 ，则计算过程如8 -&gt; 16 -&gt; 32。</p>
+
+<p>这就是长度调整的过程：分配一个长度为 32 的新表，然后用新的掩码，也就是 31 ，将旧表中的条目插入到新表。最终得到的结果如下：<br/>
+<img src="media/15198200217202/15198210614829.jpg" alt=""/><br/>
+<strong>删除项</strong><br/>
+删除条目时将调用PyDict_DelItem()函数。删除时，首先计算键的哈希值，然后调用搜询函数返回到该条目，最后该槽被标记为哑槽。</p>
+
+<p>假设我们想要从字典中删除键&#39;c&#39;，我们最终将得到如下结果：<br/>
+<img src="media/15198200217202/15198210844803.png" alt=""/><br/>
+注意，删除项目后，即使最终活动槽的数量远小于总的数量也不会触发调整数组长度的动作。但是，若删减后又增加键/值对时，由于调整长度的条件判断基于的是活动槽与哑槽的总数量，因而可能会缩减数组长度。</p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/2/28 20:13 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
+                <a class="clearlink" href="15156751072902.html">
+                
+                  <h1>Python对象的浅拷贝与深拷贝</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>我们知道，对象赋值实际上是简单的对象引用。也就是说，当你创建了一个对象，然后把它赋值给另外一个变量的时候，Python并没有拷贝这个对象，而是拷贝了这个对象的引用。<br/>
+举例说明：</p>
+
+<pre><code class="language-python">x = 3.14
+y = x
+</code></pre>
+
+<p>语句<code>x = 3.14</code>创建了一个浮点型对象并将其引用赋值给x。<br/>
+x是第一个引用。<br/>
+语句<code>y = x</code>创建了一个指向同一对象的别名y，而事实上并没有为y创建一个新对象(该对象引用计数变成了2)。<br/>
+<img src="media/15156751072902/15156757071783.jpg" alt=""/></p>
+
+<h3 id="toc_0">对象赋值</h3>
+
+<p>直接看一段代码：</p>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = will
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出为：<br/>
+<img src="media/15156751072902/15156770585054.png" alt=""/></p>
+
+<p>下面来分析一下这段代码：</p>
+
+<ul>
+<li>首先，创建了一个名为will的变量，这个变量指向一个list对象，从第一张图中可以看到所有对象的地址（每次运行，结果可能不同）</li>
+<li>然后，通过will变量对wilber变量进行赋值，那么wilber变量将指向will变量对应的对象（内存地址），也就是说&quot;wilber is will&quot;，&quot;wilber[i] is will[i]&quot;
+
+<ul>
+<li>可以理解为，Python中，对象的赋值都是进行对象引用（内存地址）传递</li>
+</ul></li>
+<li>第三张图中，由于will和wilber指向同一个对象，所以对will的任何修改都会体现在wilber上
+
+<ul>
+<li>这里需要注意的一点是，str是不可变类型，所以当修改的时候会替换旧的对象，产生一个新的地址39758496
+<img src="media/15156751072902/15156771227464.png" alt=""/></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_1">浅拷贝</h3>
+
+<p>下面就来看看浅拷贝的结果：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.copy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156771638072.png" alt=""/><br/>
+分析一下这段代码：</p>
+
+<ul>
+<li>首先，依然使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的浅拷贝函数copy()，对will指向的对象进行浅拷贝，然后浅拷贝生成的新对象赋值给wilber变量
+
+<ul>
+<li>浅拷贝会创建一个新的对象，这个例子中&quot;wilber is not will&quot;</li>
+<li>但是，对于对象中的元素，浅拷贝就只会使用原始元素的引用（内存地址），也就是说&quot;wilber[i] is will[i]&quot;</li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，所以will的修改结果会相应的反应到wilber上
+<img src="media/15156751072902/15156771821899.png" alt=""/>
+总结一下，当我们使用下面的操作的时候，会产生浅拷贝的效果：</li>
+</ul></li>
+<li>使用切片[:]操作</li>
+<li>使用工厂函数（如list/dir/set）</li>
+<li>使用copy模块中的copy()函数
+例如：</li>
+</ul>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+willber = will[:]
+wiww = list(will)
+</code></pre>
+
+<h3 id="toc_2">深拷贝</h3>
+
+<p>最后来看看深拷贝：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.deepcopy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156773634373.png" alt=""/></p>
+
+<p>分析一下这段代码：</p>
+
+<ul>
+<li>首先，同样使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的深拷贝函数deepcopy()，对will指向的对象进行深拷贝，然后深拷贝生成的新对象赋值给wilber变量
+
+<ul>
+<li>跟浅拷贝类似，深拷贝也会创建一个新的对象，这个例子中&quot;wilber is not will&quot; </li>
+<li>但是，对于对象中的元素，深拷贝都会重新生成一份（有特殊情况，下面会说明），而不是简单的使用原始元素的引用（内存地址）
+
+<ul>
+<li>例子中will的第三个元素指向39737304，而wilber的第三个元素是一个全新的对象39773088，也就是说，&quot;wilber[2] is not will[2]&quot;</li>
+</ul></li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，但是由于&quot;wilber[2] is not will[2]&quot;，所以will的修改不会影响wilber
+<img src="media/15156751072902/15156773891985.png" alt=""/></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_3">拷贝的特殊情况</h3>
+
+<p>其实，对于拷贝有一些特殊情况：</p>
+
+<ul>
+<li>对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有拷贝这一说
+
+<ul>
+<li>也就是说，对于这些类型，&quot;obj is copy.copy(obj)&quot; 、&quot;obj is copy.deepcopy(obj)&quot;</li>
+</ul></li>
+<li>如果元祖变量只包含原子类型对象，则不能深拷贝，看下面的例子
+<img src="media/15156751072902/15156774222287.png" alt=""/></li>
+</ul>
+
+<h3 id="toc_4">总结</h3>
+
+<p>本文介绍了对象的赋值和拷贝，以及它们之间的差异：<br/>
+* Python中对象的赋值都是进行对象引用（内存地址）传递<br/>
+* 使用copy.copy()，可以进行对象的浅拷贝，它复制了对象，但对于对象中的元素，依然使用原始的引用.<br/>
+* 如果需要复制一个容器对象，以及它里面的所有元素（包含元素的子元素），可以使用copy.deepcopy()进行深拷贝<br/>
+* 对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有被拷贝一说<br/>
+* 如果元祖变量只包含原子类型对象，则不能深拷贝.</p>
+
+<p>文章引用：<br/>
+<a href=""></a><a href="https://www.cnblogs.com/wilber2013/p/4645353.html">https://www.cnblogs.com/wilber2013/p/4645353.html</a></p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/1/11 20:51 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+              
+
+
+			<div class="row">
+			  <div class="large-6 columns">
+			  <p class="text-left" style="padding-top:25px;">
+			   <a href="Python_5.html">&laquo; Prev Page</a>  
+			  </p>
+			  </div>
+			  <div class="large-6 columns">
+			<p class="text-right" style="padding-top:25px;">
+			 <a href="Python_7.html">&raquo; Next Page</a> 
+			</p>
+			  </div>
+			</div>
+		</div>
+	</div><!-- large 8 -->
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15655124741455.html">Python常见的错误<九></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655124251876.html">Python常见的错误<八></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655123624150.html">Python常见的错误<七></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122908336.html">Python常见的错误<六></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122526636.html">Python常见的错误<五></a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>

@@ -107,37 +107,229 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14832356716225.html">
+                <a class="clearlink" href="14950245211652.html">
                 
-                  <h1>Bootstrap Basic</h1>
+                  <h1>Block</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h2 id="toc_0">基本的HTML模板</h2>
-
-<ul>
-<li>bootstrap模板为使IE6、7、8兼容， 需要引用下面的代码：</li>
+                        	<ul>
+<li>Block是一个数据类型；</li>
 </ul>
 
-<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js&quot;&gt;&lt;/script&gt;
+<hr/>
+
+<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
+
+<hr/>
+
+<blockquote>
+<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
+</blockquote>
+
+<h3 id="toc_0">如何声明一个block变量</h3>
+
+<pre><code>void (^myBlock1)();
+int (^myBlock2)();
+int (^myBlock3)(int num1, int num2);
+</code></pre>
+
+<h3 id="toc_1">block变量的初始化</h3>
+
+<pre><code>void (^myBlock1)() = ^void(){
+        NSLog(@&quot;test&quot;);
+    };
+
+int (^myBlock2)() = ^int(){
+    int num1 = 10 + 20;
+    return num1;
+};
+
+int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
+    int num3 = num1 + num2;
+    return num3;
+};
+</code></pre>
+
+<blockquote>
+<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
+</blockquote>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+int main(int argc, const char * argv[]) {
+    
+    void (^myBlock1)();
+    myBlock1 = ^void(){
+        NSLog(@&quot;test&quot;);
+    };
+    myBlock1();
+    
+    int (^myBlock2)() = ^int(){
+        int num1 = 10 + 20;
+        return num1;
+    };
+    int sum = myBlock2();
+    NSLog(@&quot;sum = %d&quot;, sum);
+    
+    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
+        int num3 = num1 + num2;
+        return num3;
+    };
+    
+    int res = myblock3(10, 100);
+    NSLog(@&quot;res = %d&quot;, res);
+    
+    
+    return 0;
+}
+</code></pre>
+
+<h3 id="toc_2">block的简写</h3>
+
+<ol>
+<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
+</ol>
+
+<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
+void (^myBlock1)() = ^(){
+        NSLog(@&quot;test&quot;);
+    };
+</code></pre>
+
+<ol>
+<li>如果代码段没有参数，代码段的（）也可以省略：</li>
+</ol>
+
+<pre><code>int (^myBlock2)() = ^int{
+    int num1 = 10 + 20;
+    return num1;
+};
+</code></pre>
+
+<ol>
+<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
+</ol>
+
+<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
+    int num3 = num1 + num2;
+    return num3;
+};
+</code></pre>
+
+<ol>
+<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
+</ol>
+
+<ul>
+<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
+<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
+</ul>
+
+<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
+    int num3 = num1 + num2;
+    return num3;
+};
+    
+int result = myBlock4(20, 30);
+NSLog(@&quot;result is %d&quot;, result);
+</code></pre>
+
+<h3 id="toc_3">简化block的定义</h3>
+
+<ol>
+<li>typedef: 将block定义为一个短类型。</li>
+</ol>
+
+<pre><code>typedef void (^NewType)();
+NewType block1 = ^void(){
+    NSLog(@&quot;Hello&quot;);
+};
+block1();
 </code></pre>
 
 <ul>
-<li>为使IE6、7、8兼容css3样式，需要引用下面的代码：</li>
+<li>block内部可以取外部的局部变量和全局变量的值</li>
+<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
+<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
 </ul>
 
-<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;
+<h3 id="toc_4">block作为函数的参数</h3>
+
+<ol>
+<li>可以在函数中声明一个指定格式的block：</li>
+</ol>
+
+<pre><code>void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
 </code></pre>
 
-<ul>
-<li>如果要使用Bootstrap的js插件，需要先调入jquery</li>
-</ul>
+<ol>
+<li>使用typedef简化定义：</li>
+</ol>
 
-<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;
+<pre><code>typedef void (^NewBlock) ();
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
 </code></pre>
 
-<h2 id="toc_1">全局样式</h2>
+<ol>
+<li>如何调用：</li>
+</ol>
+
+<pre><code>#import &lt;Foundation/Foundation.h&gt;
+
+typedef void (^NewBlock) ();
+
+void test(void (^block1)()){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block1();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+void test_2(NewBlock block2){
+    NSLog(@&quot;~~~~~~~~&quot;);
+    block2();
+    NSLog(@&quot;~~~~~~~~&quot;);
+}
+
+int main(int argc, const char * argv[]) {
+
+    NewBlock type = ^{
+        NSLog(@&quot;hahahah&quot;);
+    };
+    
+    test_2(type);
+    
+    test_2(^{
+        NSLog(@&quot;hahahah&quot;);
+    });
+    
+    return 0;
+}
+</code></pre>
+
+<p>在这个状态下直接敲回车：<br/>
+<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
+可以转换成：<br/>
+<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
+然后直接补充代码即可：<br/>
+<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
+
+<blockquote>
+<p>将block作为函数的参数可以实现什么效果？</p>
+</blockquote>
+
+<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
+</code></pre>
 
                         
                       </div>
@@ -146,10 +338,91 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/1/1 9:54 AM</span>
+                    <span class="date">2017/5/17 20:35 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
+                <a class="clearlink" href="14896702983964.html">
+                
+                  <h1>继承与多态</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h3 id="toc_0">static关键字</h3>
+
+<ol>
+<li><p>C语言中的static</p>
+
+<ul>
+<li>修饰局部变量</li>
+<li>修饰全局变量</li>
+<li>修饰函数</li>
+</ul></li>
+<li><p>OC中的static关键字</p>
+
+<ul>
+<li>static不能修饰属性，也不能修饰方法</li>
+<li>static可以修饰方法中的局部变量</li>
+</ul>
+
+<p>如果方法中的局部变量被static修饰，那么这个变量就会变成静态变量，存储在常量区，当方法执行完毕不会被回收。下次再执行这个方法的时候，直接使用而不用再次声明。<br/>
+<img src="media/14896702983964/14896706781899.jpg" alt=""/></p>
+
+<ul>
+<li>如果方法的返回值是当前类的对象，那么方法的返回值就写为instanceType</li>
+</ul></li>
+<li><p>什么时候用到static<br/>
+<img src="media/14896702983964/14896717656421.jpg" alt=""/></p></li>
+</ol>
+
+<h3 id="toc_1">self关键字</h3>
+
+<ul>
+<li>self是一个指针；</li>
+<li>在对象方法中self指向当前对象；</li>
+<li><p>在类方法中self指向当前类；</p></li>
+<li><p>作用：</p>
+
+<ul>
+<li>可以显式的访问当前对象的属性； self -&gt; 属性</li>
+<li>可以使用self来调用当前对象的其他的对象方法；</li>
+</ul></li>
+</ul>
+
+<h3 id="toc_2">私有属性和私有方法</h3>
+
+<ul>
+<li>将属性定义在@implementation之中和将属性定义在@interface之中并标记为@private唯一的区别： 提示和不提示</li>
+<li>都不能被外界访问</li>
+<li>方法不写声明，只写实现，那么这个方法就是一个私有方法；</li>
+<li>私有方法只能在本类的其他方法中调用，不能被外界调用</li>
+</ul>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/3/16 21:18 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -173,7 +446,7 @@
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			
+			 <a href="all_15.html">&raquo; Next Page</a> 
 			</p>
 			  </div>
 			</div>
@@ -241,31 +514,31 @@
 	      
 		      
 			      <li class="post">
-			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			        <a href="15655124251876.html">Python常见的错误<八></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			        <a href="15655123624150.html">Python常见的错误<七></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

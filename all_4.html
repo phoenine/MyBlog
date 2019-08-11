@@ -107,40 +107,80 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15142967450536.html">
+                <a class="clearlink" href="15654471089883.html">
                 
-                  <h1>Pyhton变量变换原理</h1>
+                  <h1>Python常见的错误<一></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
+                        	<h4 id="toc_0">常见错误1: 滥用表达式作为函数参数的默认值</h4>
 
-<pre><code class="language-C">tmp = x;
-x = y;
-y = tmp;
+<p>Python允许为函数的参数提供默认的可选值。尽管这是语言的一大特色，但是它可能会导致一些易变默认值的混乱。<br/><br/>
+一个常见的错误是认为函数每次不提供可选参数调用时，会将可选参数将设置为默认指定值。例如下面这段代码：</p>
+
+<pre><code class="language-python">def extendList(val, list=[]):
+    list.append(val)
+    return list
+
+list1 = extendList(10)
+list2 = extendList(123,[])
+list3 = extendList(&#39;a&#39;)
+
+print(&quot;list1 = %s&quot; % list1)
+print(&quot;list2 = %s&quot; % list2)
+print(&quot;list3 = %s&quot; % list3)
 </code></pre>
 
-<p>而在python中，则无需中间变量即可实现：</p>
-
-<pre><code class="language-python">x , y = y, x
+<pre><code>list1 = [10, &#39;a&#39;]
+list2 = [123]
+list3 = [10, &#39;a&#39;]
 </code></pre>
 
-<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
-将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
+<p>很多人都会误认为list1=[10]，list3=[‘a’]，因为他们以为每次extendList被调用时，列表参数的默认值都将被设置为[]。<br/><br/>
+但实际上的情况是，<b> 函数参数的默认列表只在函数被定义的那一刻创建一次。</b><br/><br/>
+当extendList被没有指定特定参数list调用时，这组list的值随后将被使用。这是因为<u>带有默认参数的表达式在函数被定义的时候被计算，不是在调用的时候被计算。</u><br/><br/>
+因此list1和list3是在同一个默认列表上进行操作（计算）的。<br/><br/>
+而list2是在一个分离的列表上进行操作（计算）的。（通过传递一个自有的空列表作为列表参数的数值）。<br/>
+extendList的定义可以作如下修改:</p>
 
-<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
+<pre><code class="language-python">def extendList_2(val, list=None):
+    if list is None:
+        list = []
+    list.append(val)
+    return list
+
+list1 = extendList_2(10)
+list2 = extendList_2(123,[])
+list3 = extendList_2(&#39;a&#39;)
+
+print(&quot;list1 = %s&quot; % list1)
+print(&quot;list2 = %s&quot; % list2)
+print(&quot;list3 = %s&quot; % list3)
 </code></pre>
 
-<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
-
-<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
+<pre><code>list1 = [10]
+list2 = [123]
+list3 = [&#39;a&#39;]
 </code></pre>
 
-<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
-接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
-运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
-<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
+<p>下面dis库是python(默认的CPython)自带的一个库,可以用来分析字节码。</p>
+
+<pre><code class="language-python">import dis
+dis.dis(extendList)
+</code></pre>
+
+<pre><code>  2           0 LOAD_FAST                1 (list)
+              2 LOAD_METHOD              0 (append)
+              4 LOAD_FAST                0 (val)
+              6 CALL_METHOD              1
+              8 POP_TOP
+
+  3          10 LOAD_FAST                1 (list)
+             12 RETURN_VALUE
+</code></pre>
+
+<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
 
                         
                       </div>
@@ -149,7 +189,7 @@ y = tmp;
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/26 21:59 PM</span>
+                    <span class="date">2019/8/10 22:25 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -166,36 +206,270 @@ y = tmp;
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15142936231027.html">
+                <a class="clearlink" href="15211187332796.html">
                 
-                  <h1>Python Unittest与Mock</h1>
+                  <h1>Python 陷阱与缺陷列表</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p><strong>unittest</strong><br/>
-python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
-python unittest的框架如下： <br/>
-<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
-基本使用方法如下：</p>
+                        	<p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
 
-<ol>
-<li>import unittest module</li>
-<li>定义一个继承自unittest.TestCase的测试用例类。</li>
-<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
-<li>定义测试用例，名字需要以test开头。</li>
-<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
-<li>调用unittest.main()启动测试</li>
-<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
-</ol>
+<pre><code class="language-python">&gt;&gt;&gt; a=1
+&gt;&gt;&gt; def func():
+...     a+=1
+...     print a
+...
+&gt;&gt;&gt; func()
+Traceback (most recent call last):
+File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+File &quot;&lt;stdin&gt;&quot;, line 2, in func
+UnboundLocalError: local variable &#39;a&#39; referenced before assignment
+</code></pre>
 
-<p>这里举个简单的例子说明：<br/>
-<img src="media/15142936231027/15142939572020.png" alt=""/></p>
+<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
 
-<p>常用的断言：<br/>
-<img src="media/15142936231027/15142939778044.png" alt=""/></p>
+<p>对于“UnboundLocalError”,还有更高级的版本：</p>
 
-<p><strong>Mock</strong></p>
+<pre><code class="language-python">import random
+ 
+def func(ok):
+    if ok:
+        a = random.random()
+    else:
+        import random
+        a = random.randint(1, 10)
+    return a
+ 
+func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
+</code></pre>
+
+<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
+
+<p>那么Python中哪些真正算得上陷阱呢？</p>
+
+<p><strong>第一：以mutable对象作为默认参数</strong></p>
+
+<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
+...     lst.append(1)
+...     return lst
+...
+&gt;&gt;&gt; f()
+[1]
+&gt;&gt;&gt; f()
+[1, 1]
+</code></pre>
+
+<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
+<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
+&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
+
+<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import time
+&gt;&gt;&gt; def report(when=time.time()):
+... return when
+...
+&gt;&gt;&gt; report()
+1500113234.487932
+&gt;&gt;&gt; report()
+1500113234.487932
+</code></pre>
+
+<p>python docoment 给出了标准的解决办法：<br/>
+<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
+...  if when is None:
+...  when = time.time()
+... return when
+...
+&gt;&gt;&gt; report()
+1500113446.746997
+&gt;&gt;&gt; report()
+1500113448.552873
+</code></pre>
+
+<p><strong>第二: x += y vs x = x + y</strong><br/>
+一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
+2 
+&gt;&gt;&gt; x=1;x = x+1;print x
+2
+&gt;&gt;&gt; x=[1];x+=[2];print x
+[1, 2]
+&gt;&gt;&gt; x=[1];x=x+[2];print x
+[1, 2]
+</code></pre>
+
+<p>呃，被光速打脸了？</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
+4357132800
+4357132728
+&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
+4357132800
+4357132800
+</code></pre>
+
+<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
+
+<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
+
+<pre><code class="language-python">import dis
+
+def foo(x, y):
+    x += y
+
+def foo2(x, y):
+    x = x + y
+
+print dis.dis(foo)
+print dis.dis(foo2)
+</code></pre>
+
+<p>输出结果如下：</p>
+
+<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 INPLACE_ADD         
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+
+77            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 BINARY_ADD          
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+</code></pre>
+
+<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
+更多内容可以参考：<br/>
+<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
+
+<p><strong>第三，神奇的小括号–()</strong><br/>
+小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;tuple&#39;&gt;
+&gt;&gt;&gt; type(())
+&lt;type &#39;tuple&#39;&gt;
+</code></pre>
+
+<p>但如果只有一个元素呢</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p><strong>第四：生成一个元素是列表的列表</strong><br/>
+这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
+很简单嘛：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
+&gt;&gt;&gt; a
+[[], [], [], [], [], [], [], [], [], []]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a[0] 
+[10]
+</code></pre>
+
+<p>看起来很不错，简单明了，but</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a[1]
+[10]
+&gt;&gt;&gt; a
+[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
+</code></pre>
+
+<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a
+[[10], [], [], [], [], [], [], [], [], []]
+</code></pre>
+
+<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
+列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
+... for idx, elem in enumerate(lst):
+... if elem % 3 == 0:
+... del lst[idx]
+</code></pre>
+
+<p>测试一下，</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 4, 5]
+</code></pre>
+
+<p>好像没什么错，不过这只是运气好</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 6, 5, 4]
+</code></pre>
+
+<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
+如果逻辑比较简单，使用list comprehension是不错的注意<br/>
+&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
+修改方法很简单：</p>
+
+<pre><code class="language-python">def mod_list(lst):
+    new_lst = []
+    for elem in lst:
+        if elem % 3 != 0:
+            new_lst.append(elem)
+    return new_lst
+
+lst = [1, 2, 3, 4, 5, 6]
+s = mod_list(lst)
+print s
+
+lst = [1, 2, 3, 6, 5, 4]
+s = mod_list(lst)
+print s
+</code></pre>
+
+<p><strong>第六，闭包与lambda</strong><br/>
+这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+...  return [lambda x:i*x for i in range(5)]
+...
+&gt;&gt;&gt; for multiplier in create_multipliers():
+... print multiplier(2)
+...
+</code></pre>
+
+<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
+
+<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
+解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+... return [lambda x, i = i:i*x for i in range(5)]
+...
+</code></pre>
 
                         
                       </div>
@@ -204,7 +478,7 @@ python unittest的框架如下： <br/>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/26 21:7 PM</span>
+                    <span class="date">2018/3/15 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -299,31 +573,31 @@ python unittest的框架如下： <br/>
 	      
 		      
 			      <li class="post">
-			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			        <a href="15655124251876.html">Python常见的错误<八></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			        <a href="15655123624150.html">Python常见的错误<七></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

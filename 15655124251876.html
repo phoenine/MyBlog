@@ -1,0 +1,415 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Python常见的错误<八> - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python常见的错误<八></h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2019/8/11 16:33 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+
+<p>请看下面这个 filefoo.py:</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
+
+bad()
+</code></pre>
+
+<p>在Python 2中运行正常：</p>
+
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
+</code></pre>
+
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+</code></pre>
+
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
+
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
+</code></pre>
+
+<pre><code class="language-python">
+</code></pre>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15655124741455.html" 
+          title="Previous Post: Python常见的错误<九>">&laquo; Python常见的错误<九></a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15655123624150.html" 
+          title="Next Post: Python常见的错误<七>">Python常见的错误<七> &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15655124741455.html">Python常见的错误<九></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655124251876.html">Python常见的错误<八></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655123624150.html">Python常见的错误<七></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122908336.html">Python常见的错误<六></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122526636.html">Python常见的错误<五></a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>

@@ -107,24 +107,275 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15095429404216.html">
+                <a class="clearlink" href="15161072350728.html">
                 
-                  <h1>通过MWeb上传Blog</h1>
+                  <h1>Auto Install Stack</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
+                        	<p>自动安装脚本：</p>
 
-<ol>
-<li><p>新增分类 -&gt; CSDN Blog</p></li>
-<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
-</ol>
+<pre><code class="language-sh">#!/bin/bash
 
-<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
-3. 生成网站，并推送到博客</p>
+##############################################################################
+# Use script like this:
+# ./auto_install_stack.sh ${num}
+#            run 1  --- will re-install stack with default image.
+#            run 2  --- will re-install stack with specified image(install new stack with same yaml file).
+#            run 3  --- will re-install stack with specified image and yaml parameter(first use this scripts).
+##############################################################################
 
-<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
+set +x
+
+function echo_color(){
+    case $1 in
+        &quot;red&quot;)
+            echo -e &quot;\033[31m $2 \033[0m&quot; ;;
+        &quot;red-shining&quot;)
+            echo -e &quot;\033[31m \033[05m $2 \033[0m&quot; ;;
+        &quot;yellow&quot;)
+            echo -e &quot;\033[33m $2 \033[0m&quot; ;;
+        &quot;blue&quot;)
+            echo -e &quot;\033[34m $2 \033[0m&quot; ;;
+        &quot;blue-shining&quot;)
+            echo -e &quot;\033[34m \033[05m $2 \033[0m&quot; ;;
+        &quot;purple&quot;)
+            echo -e &quot;\033[35m $2 \033[0m&quot; ;;
+        &quot;green&quot;)
+            echo -e &quot;\033[32m $2 \033[0m&quot; ;;
+        &quot;*&quot;)
+            echo -e &quot;\033[37m $2 \033[0m&quot; ;;
+    esac
+}
+
+current_dir=`pwd`
+num=`echo ${current_dir##*/} | tr -cd &quot;[0-9]&quot;`
+if [ ${current_dir##*/} != &quot;hranuser${num}&quot; ]
+then
+    echo_color red &quot; === Error: Current directory must be end with &#39;/hranuser&#39; ===&quot;
+    exit -1
+fi
+local_dir=&quot;rcp-heat&quot;
+stack_type=&quot;net&quot;
+if [ ! -d &quot;${local_dir}&quot; ]
+then
+    mkdir -p ${local_dir}
+fi
+
+function _create_image()
+{
+    RCP_IMAGE_URL=$1
+    IMAGE_FILE=${RCP_IMAGE_URL##*/}
+    echo_color blue &quot; === Begin to download RCP image to ${local_dir}/${IMAGE_FILE} === &quot;
+    wget -O ${local_dir}/${IMAGE_FILE} ${RCP_IMAGE_URL}
+    if [ $? -ne 0 ]
+    then
+        set +x
+        echo_color red &quot; === Download image unsuceessfully, please check your image name is right === &quot;
+        exit -1
+    fi
+    echo_color blue &quot; === Download image suceessfully ==== &quot;
+    echo_color blue &quot; === Begin to create image === &quot;
+    nova image-delete ${IMAGE_FILE}
+    glance image-create --name=${IMAGE_FILE} --container-format=bare --visibility=private --disk-format=qcow2 --file=${local_dir}/${IMAGE_FILE}
+    glance_status=`nova image-show ${IMAGE_FILE} | grep status | awk &#39;{print $4}&#39;`
+    if [ &quot;ACTIVE&quot; != &quot;${glance_status}&quot; ]
+    then
+        echo_color blue-shining &quot; === Waiting for image active... ==== &quot;
+        sleep 5
+    fi
+    echo_color blue &quot; === Create image suceessfully ==== &quot;
+    sleep 3
+}
+
+function _download_yaml()
+{
+    TEMPLATE_FILE=${RCP_TEMPLATE_URL##*/}
+    echo_color blue &quot; === Downloading RCP template to ${local_dir}/${TEMPLATE_FILE} === &quot;
+    wget -O ${local_dir}/${TEMPLATE_FILE} ${RCP_TEMPLATE_URL}
+    if [ $? -ne 0 ]
+    then
+        set +x
+        echo_color red &quot; === Download template unsuceessfully, please check your template file is right === &quot;
+        exit -1
+    fi
+    echo_color blue &quot; === Download template suceessfully ==== &quot;
+    ls -l ${local_dir}
+    tar -xzvf ${local_dir}/${TEMPLATE_FILE} -C ${local_dir}
+    rm -f ${local_dir}/${TEMPLATE_FILE}
+}
+
+function _uninstall_old_stack()
+{
+    echo_color blue &quot; === Begin to uninstall existed stack === &quot;
+    ### === used for N34 === ###
+    STACK_UUID=`heat stack-list | awk &#39;{print $2}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    ### === used for touchdown === ###
+    # STACK_UUID=`heat stack-list | grep touchdown | awk &#39;{print $2}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+    if [ -n &quot;${STACK_UUID}&quot; ]
+    then    
+        heat stack-delete ${STACK_UUID}
+        while ((1))
+        do
+            set +x
+            STACK_STATUS=`heat stack-list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+            if [ -n &quot;${STACK_STATUS}&quot; ]
+            then
+                sleep 10
+                echo_color blue &quot; === Deleting old stack, please wait... === &quot;
+            else
+                break
+            fi
+        done
+    fi
+    echo_color blue &quot; === Uninstall existed stack successfully === &quot;
+}
+
+function _mod_env_file_part()
+{
+    echo_color blue &quot; === Begin to modify env file... === &quot;
+    RCP_IMAGE_URL=$REPLY
+    IMAGE_FILE=${RCP_IMAGE_URL##*/}
+    rcp_heat_file=&quot;rcp-heat/net/rcp-heat.env&quot;
+    sed -i &quot;s/image: .*/image: ${IMAGE_FILE}/g&quot; ${rcp_heat_file}
+    echo_color blue &quot; === Modify successfully. === &quot;
+}
+
+function _mod_env_file_full()
+{
+    echo_color blue &quot; === Begin to modify env file... === &quot;
+    IMAGE_FILE=${RCP_IMAGE_URL##*/}
+    key_name=&quot;default_key&quot;
+    cluster_id=&quot;RCP-1234&quot;
+    hostname_prefix=&quot;abc&quot;
+    cp=&quot;rcp_medium_v2&quot;
+    ei=&quot;rcp_xlarge_v2&quot;
+    mn=&quot;rcp_large_v2&quot;
+    up=&quot;rcp_xlarge_v2&quot;
+    uvm=&quot;rcp_medium_v2&quot;
+    time_zone=&quot;Asia/Shanghai&quot;
+    ### use oam uuid
+    #oam_network=&quot;`nova network-list | grep -w &quot;vnfoam &quot; | awk &#39;{print $2}&#39;`&quot;
+    ### use oam name
+    oam_network=&quot;vnfoam&quot;
+    ntp_servers=&quot;10.39.12.252&quot;
+    dns_forwarders=&quot;10.56.126.31&quot;
+    vif_models=&quot;avp&quot;
+    vif_models_2=&quot;virtio&quot;
+    _nokadmin=&quot;Nokia123&quot;
+    _nokfsoperator=&quot;RCP_owner&quot;
+    root=&quot;root&quot;
+    ext0=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==1&#39;`&quot;
+    ext1=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==2&#39;`&quot;
+    ext2=&quot;`nova network-list | grep hran${num} | awk &#39;{print $4}&#39; | awk &#39;NR==3&#39;`&quot;
+    number_of_uvm_nodes=&quot;0&quot;
+    rcp_heat_file=&quot;rcp-heat/net/rcp-heat.env&quot;
+    sed -i &quot;s/image: .*/image: ${IMAGE_FILE}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/key_name: .*/key_name: ${key_name}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/cluster_id: .*/cluster_id: ${cluster_id}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/hostname_prefix: .*/hostname_prefix: ${hostname_prefix}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ cp: .*/ cp: ${cp}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ ei: .*/ ei: ${ei}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ mn: .*/ mn: ${mn}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ up: .*/ up: ${up}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/uvm: .*/uvm: ${uvm}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s#time-zone: .*#time-zone: ${time_zone}#g&quot; ${rcp_heat_file}
+    sed -i &quot;s/oam_network: .*/oam_network: ${oam_network}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ntp_servers: .*/ntp_servers: ${ntp_servers}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/dns_forwarders: .*/dns_forwarders: ${dns_forwarders}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/_nokadmin: .*/_nokadmin: ${_nokadmin}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/_nokfsoperator: .*/_nokfsoperator: ${_nokfsoperator}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/root: .*/root: ${root}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext0: .*/ext0: ${ext0}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext1: .*/ext1: ${ext1}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ext2: .*/ext2: ${ext2}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ external: .*/ external: ${vif_models}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ internal: .*/ internal: ${vif_models_2}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/ oam: .*/ oam: ${vif_models}/g&quot; ${rcp_heat_file}
+    sed -i &quot;s/number_of_uvm_nodes: .*/number_of_uvm_nodes: ${number_of_uvm_nodes}/g&quot; ${rcp_heat_file}
+    nova keypair-add ${key_name}
+    echo_color blue &quot; === Modify successfully. === &quot;
+}
+
+function _launch_stack()
+{
+    echo_color blue &quot; === Begin to launch stack === &quot;
+    heat stack-create -e ${local_dir}/${stack_type}/rcp-heat.env -f ${local_dir}/${stack_type}/rcp-heat.yaml touchdown_auto
+    while ((1))
+    do
+        set +x
+        STACK_STATUS=`heat stack-list | awk &#39;{print $6}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+        if [ &quot;CREATE_COMPLETE&quot; != &quot;${STACK_STATUS}&quot; ]
+        then
+            sleep 30
+            echo_color blue &quot; === Installing, please wait... === &quot;
+        else
+            break
+        fi
+    done
+    oam=`nova list | grep vnfoam | awk &#39;{print $14}&#39;`
+    echo_color blue &quot; === Launch stack successfully, ${oam} === \033[05m ${oam} &quot;
+}
+
+function reinstall_stack_1()
+{
+    _uninstall_old_stack
+    _launch_stack
+}
+
+function reinstall_stack_2()
+{
+    _create_image $REPLY
+    _uninstall_old_stack
+    _mod_env_file_part
+    _launch_stack
+    rm -f ${local_dir}/${IMAGE_FILE}
+}
+
+function reinstall_stack_3()
+{
+    _download_yaml
+    _mod_env_file_full
+    _create_image ${RCP_IMAGE_URL}
+    _uninstall_old_stack
+    _launch_stack
+    rm -f ${local_dir}/${IMAGE_FILE}
+}
+
+
+case &quot;$1&quot; in
+    1)
+      echo &quot;Begin to re-install stack.....&quot;
+      reinstall_stack_1
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    2)
+      read -p &quot;Please input specified image url: &quot;
+      echo &quot;Begin to re-install stack with image ${REPLY##*/}.....&quot;
+      reinstall_stack_2
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    3)
+      read -p &quot;Please input specified image url: &quot; RCP_IMAGE_URL
+      read -p &quot;Please input specified yaml url: &quot; RCP_TEMPLATE_URL
+      echo &quot;Begin to re-install stack with image ${RCP_IMAGE_URL##*/} and yaml ${RCP_TEMPLATE_URL##*/}.....&quot;
+      reinstall_stack_3
+      echo &quot;Script completes!!!!!&quot;
+      exit 1
+      ;;
+    *)
+      echo &quot;Usage:
+            run 1  --- will re-install stack with default image.
+            run 2  --- will re-install stack with specified image.
+            run 3  --- will re-install stack with specified image and yaml parameter.&quot;
+      exit 1
+      ;;
+esac
+exit 0
+</code></pre>
 
                         
                       </div>
@@ -133,10 +384,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/11/1 21:29 PM</span>
+                    <span class="date">2018/1/16 20:53 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -150,166 +401,121 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14991719231835.html">
+                <a class="clearlink" href="15161070375181.html">
                 
-                  <h1>自定义控件</h1>
+                  <h1>Auto Migrate Tools(v2.0)</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIView的封装</h3>
+                        	<p>更新了下脚本：<br/>
+还是有些问题：<br/>
+1. 如果有其他Project的node怎么处理？<br/>
+2. 如果有自己的其他node怎么处理？</p>
 
-<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
-* 目的：封装空间内部的细节，不让外界关心</p>
+<pre><code class="language-sh">#!/bin/bash
 
-<h3 id="toc_1">UIView的封装有两种方式</h3>
+function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
 
-<p>通过纯代码封装：<br/>
-1. 新建一个继承UIView的类<br/>
-2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
-3. 在initWithFrame:方法中添加子控件<br/>
-4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
-5. 提供一个模型属性，重写模型属性的set方法<br/>
-6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
-UIView的封装代码如下：</p>
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+UE_NODE_LIST=`nova list | grep ei | awk &#39;{print $4}&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OTHER_NODE_LIST=`nova list --fields name | grep -v ei | awk &#39;NR&gt;2&#39; | awk &#39;{print $4}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+OPTIMAL_COMPUTE=&#39;&#39;
+INFERIOR_COMPUTE=&#39;&#39;
+INIT_USED=8.0
 
-<pre><code> /**
-  *  CustomView.h文件
-  */
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+    echo &quot;===========Finally the chosen computer is : 1. $OPTIMAL_COMPUTER  2. $INFERIOR_COMPUTE.==============&quot;
 
- // 步骤1 新建一个继承UIView的类
- #import &lt;UIKit/UIKit.h&gt;
- @class CustomModel;
- @interface CustomView : UIView
- // 在这里为了方便，可以自行添加构造方法，方便使用
- // 步骤5 提供一个`模型`属性，重写模型属性的set方法
- @property (nonatomic, strong) CustomModel *model;
- @end
-</code></pre>
+for INSTANCE_NAME in $OTHER_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All UE instance are not stand alone.&quot;
 
-<pre><code>/**
- *  CustomView.m文件
- */
- #import &quot;CustomView.h&quot;
- #import &quot;CustomModel.h&quot;
- @interface CustomView ()
- // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
- @property (nonatomic, weak) UIImageView *iconImageView;
- @property (nonatomic, weak) UILabel *nameLabel;
- @end
+for INSTANCE_NAME in $UE_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All other instance are not stand alone.&quot;
 
- @implementation CustomView
- // 步骤3 在initWithFrame:方法中添加子控件
- - (instancetype)initWithFrame:(CGRect)frame
- {
-     if (self = [super initWithFrame:frame]) {
-     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
-     UIImageView *iconImageView = [[UIImageView alloc] init];
-     self.iconImageView = iconImageView;
-     [self addSubview:iconImageView];
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+if [[ -z &quot;$OPTIMAL_COMPUTER&quot; ]];then
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $OPTIMAL_COMPUTER
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done
+else
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $INFERIOR_COMPUTE
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done   
+fi
 
-     UILabel *nameLabel = [[UILabel alloc] init];
-     // 设置子控件的属性
-     nameLabel.textAlignment = NSTextAlignmentCenter;
-     nameLabel.font = [UIFont systemFontOfSize:10];
-     self.nameLabel = nameLabel;
-     [self addSubview:nameLabel];
-     }
-     return self;
- }
-
- // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
- - (void)layoutSubviews
- {
-     [super layoutSubviews];
-
-     CGFloat iconImageViewX = 0;
-     CGFloat iconImageViewY = 0;
-     CGFloat iconImageViewW = self.bounds.size.width;
-     CGFloat iconImageViewH = 80;
-     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
-
-     CGFloat nameLabelX = 0;
-     CGFloat nameLabelY = iconImageViewH;
-     CGFloat nameLabelW = iconImageViewW;
-     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
-     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
- }
-
- // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
- - (void)setModel:(CustomModel *)model
- {
-     _model = model;
-     self.iconImageView.image = [UIImage imageNamed:model.icon];
-     self.nameLabel.text = model.name;
- }
- @end
-</code></pre>
-
-<p>layoutSubviews在以下情况下会被调用：<br/>
-1. init初始化不会触发layoutSubviews<br/>
-2. addSubview会触发layoutSubviews<br/>
-3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
-4. 滚动一个UIScrollView会触发layoutSubviews<br/>
-5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
-6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
-
-<p>模型代码如下：</p>
-
-<pre><code> /**
-  *  CustomModel.h文件
-  */
- #import &lt;Foundation/Foundation.h&gt;
-
- @interface CustomModel : NSObject
-    /**
-     *  名字
-     */
- @property (nonatomic, copy) NSString *name;
-    /**
-     *  图片
-     */
- @property (nonatomic, copy) NSString *icon;
-
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
-
- @end
-</code></pre>
-
-<pre><code> /**
-  *  CustomModel.m文件
-  */
- #import &quot;CustomModel.h&quot;
-
- @implementation CustomModel
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
- {
-     return [[self alloc] initWithName:name icon:icon];
- }
-
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
- {
-     if (self = [super init]) {
-         self.name = name;
-         self.icon = icon;
-     }
-     return self;
- }
- @end
-</code></pre>
-
-<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
-
-<pre><code>// 创建自定义的View
- CustomView *customView = [[CustomView alloc] init];
-// 设置数据
- CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
- customView.model = model;
-// 设置frame
- customView.frame = CGRectMake(100, 100, 67, 100);
-// 添加子控件
- [self.view addSubview:customView];
+echo__green &quot;Live migration is successfully.&quot;
 </code></pre>
 
                         
@@ -319,10 +525,10 @@ UIView的封装代码如下：</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/7/4 20:38 PM</span>
+                    <span class="date">2018/1/16 20:50 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -414,31 +620,31 @@ UIView的封装代码如下：</p>
 	      
 		      
 			      <li class="post">
-			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			        <a href="15655124251876.html">Python常见的错误<八></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			        <a href="15655123624150.html">Python常见的错误<七></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

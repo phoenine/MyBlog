@@ -107,92 +107,167 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14848362414368.html">
+                <a class="clearlink" href="14991719231835.html">
                 
-                  <h1>类、对象和方法</h1>
+                  <h1>自定义控件</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h2 id="toc_0">对象在内存中式如何存储的</h2>
+                        	<h3 id="toc_0">UIView的封装</h3>
 
-<h4 id="toc_1">内存中的五大区域：</h4>
+<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
+* 目的：封装空间内部的细节，不让外界关心</p>
 
-<ol>
-<li>堆： 程序员手动申请的字节空间： malloc calloc</li>
-<li>栈： 存储局部变量</li>
-<li>BSS段： 存储未被初始化的全部变量 静态变量</li>
-<li>数据段(常量区)： 存储已被初始化的全局 静态变量，常量</li>
-<li>代码段： 存储程序的代码</li>
-</ol>
+<h3 id="toc_1">UIView的封装有两种方式</h3>
 
-<h4 id="toc_2">类加载</h4>
+<p>通过纯代码封装：<br/>
+1. 新建一个继承UIView的类<br/>
+2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
+3. 在initWithFrame:方法中添加子控件<br/>
+4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
+5. 提供一个模型属性，重写模型属性的set方法<br/>
+6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
+UIView的封装代码如下：</p>
 
-<ol>
-<li>在创建对象的时候， 肯定是需要访问类的</li>
-<li>声明一个类的指针变量也会访问类的</li>
-<li>在程序运行期间，当某个类第一次被访问的时候，会将这个类存储到内存中的代码段区域，这个过程叫做类加载。</li>
-<li>直到程序结束的时候才会被释放。</li>
-</ol>
+<pre><code> /**
+  *  CustomView.h文件
+  */
 
-<h4 id="toc_3">对象在内存中的存储</h4>
+ // 步骤1 新建一个继承UIView的类
+ #import &lt;UIKit/UIKit.h&gt;
+ @class CustomModel;
+ @interface CustomView : UIView
+ // 在这里为了方便，可以自行添加构造方法，方便使用
+ // 步骤5 提供一个`模型`属性，重写模型属性的set方法
+ @property (nonatomic, strong) CustomModel *model;
+ @end
+</code></pre>
 
-<p>假设写在函数当中：<br/>
-Person *p1 = [Person new];</p>
+<pre><code>/**
+ *  CustomView.m文件
+ */
+ #import &quot;CustomView.h&quot;
+ #import &quot;CustomModel.h&quot;
+ @interface CustomView ()
+ // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
+ @property (nonatomic, weak) UIImageView *iconImageView;
+ @property (nonatomic, weak) UILabel *nameLabel;
+ @end
 
-<ol>
-<li>Person * p1 : 会在栈内存中申请一块空间，在栈内存中声明一个Person类型的指针变量p1(指针变量只能存储地址);</li>
-<li>[Person new]: 真正在内存中创建对象的其实是这段代码;</li>
-<li><p>new做的事情：</p></li>
-</ol>
+ @implementation CustomView
+ // 步骤3 在initWithFrame:方法中添加子控件
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+     if (self = [super initWithFrame:frame]) {
+     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
+     UIImageView *iconImageView = [[UIImageView alloc] init];
+     self.iconImageView = iconImageView;
+     [self addSubview:iconImageView];
 
-<ul>
-<li>     在堆内存中申请一块合适大小的空间;</li>
-<li>     在这个空间根据类的模板创建对象;</li>
-<li>     类模板中定义了什么属性，就把这些属性依次声明在对象之中</li>
-<li>     对象中还有另一个属性，叫做isa，这是一个指针，指向对象所属的类在代码段中的地址。</li>
-<li>     初始化对象的属性：
-    如果属性的类型是基本数据类型，那么就赋值0；<br/>
-    如果属性的类型是C语言的指针类型，那么就赋值为NULL；<br/>
-    如果属性的类型是OC的类指针类型，那么就赋值为nil</li>
-</ul>
+     UILabel *nameLabel = [[UILabel alloc] init];
+     // 设置子控件的属性
+     nameLabel.textAlignment = NSTextAlignmentCenter;
+     nameLabel.font = [UIFont systemFontOfSize:10];
+     self.nameLabel = nameLabel;
+     [self addSubview:nameLabel];
+     }
+     return self;
+ }
 
-<p><img src="media/14848362414368/14876872482687.jpg" alt=""/></p>
+ // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
+ - (void)layoutSubviews
+ {
+     [super layoutSubviews];
 
-<ul>
-<li>     返回对象的地址</li>
-</ul>
+     CGFloat iconImageViewX = 0;
+     CGFloat iconImageViewY = 0;
+     CGFloat iconImageViewW = self.bounds.size.width;
+     CGFloat iconImageViewH = 80;
+     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
 
-<p><img src="media/14848362414368/14876857739160.jpg" alt=""/></p>
+     CGFloat nameLabelX = 0;
+     CGFloat nameLabelY = iconImageViewH;
+     CGFloat nameLabelW = iconImageViewW;
+     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
+     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
+ }
 
-<p>代码中的检测：<br/>
-<img src="media/14848362414368/14876858990226.jpg" alt=""/></p>
+ // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
+ - (void)setModel:(CustomModel *)model
+ {
+     _model = model;
+     self.iconImageView.image = [UIImage imageNamed:model.icon];
+     self.nameLabel.text = model.name;
+ }
+ @end
+</code></pre>
 
-<h4 id="toc_4">注意</h4>
+<p>layoutSubviews在以下情况下会被调用：<br/>
+1. init初始化不会触发layoutSubviews<br/>
+2. addSubview会触发layoutSubviews<br/>
+3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
+4. 滚动一个UIScrollView会触发layoutSubviews<br/>
+5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
+6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
 
-<p>对象里面只有属性，没有方法(自己类的属性 + isa)；</p>
+<p>模型代码如下：</p>
 
-<p>如何访问对象的属性？</p>
+<pre><code> /**
+  *  CustomModel.h文件
+  */
+ #import &lt;Foundation/Foundation.h&gt;
 
-<ul>
-<li>  指针名-&gt;属性名；</li>
-<li>  根据指针 找到指针指向的对象 再找到对象中的属性来访问；</li>
-</ul>
+ @interface CustomModel : NSObject
+    /**
+     *  名字
+     */
+ @property (nonatomic, copy) NSString *name;
+    /**
+     *  图片
+     */
+ @property (nonatomic, copy) NSString *icon;
 
-<p>如何调用方法？</p>
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
 
-<ul>
-<li>  先根据指针名找到对象，对象发现要调用方法，在根据对象的isa指针找到类，然后调用类里面的方法；</li>
-</ul>
+ @end
+</code></pre>
 
-<h4 id="toc_5">问题</h4>
+<pre><code> /**
+  *  CustomModel.m文件
+  */
+ #import &quot;CustomModel.h&quot;
 
-<p>为什么不把方法存储在对象之中？  </p>
+ @implementation CustomModel
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
+ {
+     return [[self alloc] initWithName:name icon:icon];
+ }
 
-<ul>
-<li>因为每一个对象的方法的代码实现都是一样的，没有必要为每一个对象都保存一个方法。
-<img src="media/14848362414368/14876867543683.jpg" alt=""/></li>
-</ul>
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
+ {
+     if (self = [super init]) {
+         self.name = name;
+         self.icon = icon;
+     }
+     return self;
+ }
+ @end
+</code></pre>
+
+<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
+
+<pre><code>// 创建自定义的View
+ CustomView *customView = [[CustomView alloc] init];
+// 设置数据
+ CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
+ customView.model = model;
+// 设置frame
+ customView.frame = CGRectMake(100, 100, 67, 100);
+// 添加子控件
+ [self.view addSubview:customView];
+</code></pre>
 
                         
                       </div>
@@ -201,10 +276,10 @@ Person *p1 = [Person new];</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/1/19 22:30 PM</span>
+                    <span class="date">2017/7/4 20:38 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -218,94 +293,61 @@ Person *p1 = [Person new];</p>
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14848334530232.html">
+                <a class="clearlink" href="14976187081535.html">
                 
-                  <h1>Objective-C 编程</h1>
+                  <h1>UIButton</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<blockquote>
-<p>断断续续学习了好久的OC，一直没有提高，现在才完完全全信服了好记性不如烂笔头，今天开始坚持好好记录自己的学习过程，争取今年能上线一个自己满意的App，加油！</p>
-</blockquote>
-
-<h3 id="toc_0">1.最简单的一个例子</h3>
-
-<pre><code>1. #import &lt;Foundation/Foundation.h&gt;
-2. int main(int argc, const char *argv[])
-3. {
-4.     @autoreleasepool{
-5.         NSLog(@&quot;Programming is fun!&quot;);
-6.     }
-7.     return 0;
-8. }
-</code></pre>
+                        	<h3 id="toc_0">UIButton的状态</h3>
 
 <ul>
-<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Objective C中，大小写是区分的；
-</li>
-<li class="task-list-item"><input disabled="disabled" type="checkbox" /> 编程时要养成插入注释的习惯；
-</li>
+<li><p>normal(普通状态)</p>
+
+<ul>
+<li>默认情况（DEFAULT）</li>
+<li>对应的枚举常量： UIControlStateNormal</li>
+</ul></li>
+<li><p>highlighted (高亮状态)</p>
+
+<ul>
+<li>按钮被按下去的时候</li>
+<li>对应的枚举常量： UIControlStateHighlighted</li>
+</ul></li>
+<li><p>disabled (失效状态)</p>
+
+<ul>
+<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
+<li>对应的枚举变量： UIControlStateDisabled</li>
+</ul></li>
 </ul>
 
-<h3 id="toc_1">2.程序解释</h3>
+<h3 id="toc_1">UIButton代码应用</h3>
 
-<p>第1行：程序告诉编译器找到并处理名为Foundation.h的文件；<br/>
-第2行：指定程序的名称为main<br/>
-问题：<br/>
-<code>int argc, const char *argv[]</code>如何理解？<br/>
-第4行：自动释放池；它的机制是：它使得应用在创建新对象时，系统能够有效地管理应用所使用的内存。<br/>
-第5行：指定要调用名为NSLog的<strong>函数</strong><br/>
-此处的@符号在位于一对双引号的字符串前面，这称为<strong>常量NSString对象</strong><br/>
-第7行：表示要终止main的执行并返回一个状态值0；</p>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(100, 300, 200, 100);
+    button.backgroundColor = [UIColor redColor];
+    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
+    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
+    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
+    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
 
-<h3 id="toc_2">3.练习</h3>
+    [self.view addSubview:button];
+    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
+}
 
-<h4 id="toc_3">第2题：</h4>
+-(IBAction)clickButton:(UIButton *)button {
+    button.enabled = NO;
 
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-int main (int argc, const char * argv[])
-{
-    @autoreleasepool {
-        NSLog(@&quot;In Objective-C, lowercase letters are significant.\nmain is where program execution begins.\nOpen and closed braces enclose program statements in a routine.\nAll program statements must be terminated by a semicolon.&quot;);
-    }
-    return 0;
 }
 </code></pre>
 
-<h4 id="toc_4">第3题：</h4>
-
-<pre><code>返回:
-Testing...
-....1
-...2
-..3
-</code></pre>
-
-<h4 id="toc_5">第4题：</h4>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-int main (int argc, const char * argv[])
-{
-    @autoreleasepool{
-        result = 87 - 15;
-        NSLog(@&quot;The result is %i&quot;, result);
-    }
-    return 0;
-}
-</code></pre>
-
-<h4 id="toc_6">第5题：</h4>
-
-<pre><code>1. INT 改为int；
-2. sum计算缺少；号；
-3. NSLog要用“”号；
-4. sum前缺少，号；
-</code></pre>
-
-<h4 id="toc_7">第6题：</h4>
-
-<p><code>输出结果为：95</code></p>
+<h3 id="toc_2">九宫格布局</h3>
 
                         
                       </div>
@@ -314,10 +356,10 @@ int main (int argc, const char * argv[])
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/1/19 21:44 PM</span>
+                    <span class="date">2017/6/16 21:11 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -409,31 +451,31 @@ int main (int argc, const char * argv[])
 	      
 		      
 			      <li class="post">
-			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			        <a href="15655124251876.html">Python常见的错误<八></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			        <a href="15655123624150.html">Python常见的错误<七></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

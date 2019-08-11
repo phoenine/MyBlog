@@ -107,239 +107,61 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15211170247112.html">
+                <a class="clearlink" href="15655123624150.html">
                 
-                  <h1>浅谈Python中字符串处理</h1>
+                  <h1>Python常见的错误<七></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h2 id="toc_0">一、拆分含有多种分隔符的字符串</h2>
+                        	<h4 id="toc_0">常见错误7: 创建循环依赖模块</h4>
 
-<h3 id="toc_1">1.如何拆分含有多种分隔符的字符串</h3>
+<p>让我们假设你有两个文件，a.py 和 b.py，他们之间相互引用，如下所示：</p>
 
-<p>问题： 我们要把某个字符串依据分隔符号拆分不同的字段，该字符串包含多种不同的分隔符，例如：</p>
+<pre><code class="language-python">import b
 
-<pre><code class="language-python">s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
+def f():
+    return b.x
+print(f())
 </code></pre>
 
-<p>其中;,|,\t 都是分隔符号，如何处理？<br/>
-方法一： 连续使用str.split()方法，每次处理一种分隔符号</p>
+<pre><code class="language-python">import a
 
-<pre><code class="language-python">s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
-def mySplit(s,ds):
-    res = [s]    
-    for d in ds:
-        t = []
-        map(lambda x: t.extend(x.split(d)), res)
-        res = t    
-    return res
-
-print mySplit(s,&#39;;|,\t&#39;)
-
-输出：
-[&#39;ab&#39;, &#39;cd&#39;, &#39;efg&#39;, &#39;hi&#39;, &#39;jkl&#39;, &#39;mn&#39;, &#39;opq&#39;, &#39;rst&#39;, &#39;uvw&#39;, &#39;xyz&#39;]
+x = 1
+def g():
+    print(a.f())
 </code></pre>
 
-<p>方法二： 使用正则表达式的re.split()方法，一次性拆分字符串</p>
+<p>首先，让我们尝试引入 a.py：</p>
 
-<pre><code class="language-python">import re
-
-s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
-
-print re.split(r&#39;[;|,\t]+&#39;,s)
-
-输出：
-[&#39;ab&#39;, &#39;cd&#39;, &#39;efg&#39;, &#39;hi&#39;, &#39;jkl&#39;, &#39;mn&#39;, &#39;opq&#39;, &#39;rst&#39;, &#39;uvw&#39;, &#39;xyz&#39;]
+<pre><code class="language-python">import a
 </code></pre>
 
-<h2 id="toc_2">二、调整字符串中文本格式</h2>
+<p>可以正常工作。这也许是你感到很奇怪。毕竟，我们确实在这里引入了一个循环依赖的模块，我们推测这样会出问题的，不是吗？<br/><br/>
+答案就是在Python中，仅仅引入一个循环依赖的模块是没有问题的。如果一个模块已经被引入了，Python并不会去再次引入它。但是，根据每个模块要访问其他模块中的函数和变量位置的不同，就很可能会遇到问题。<br/><br/>
+所以，回到我们这个例子，当我们引入 a.py 时，再引入 b.py 不会产生任何问题，因为当引入的时候，b.py 不需要 a.py 中定义任何东西。b.py 中唯一引用 a.py 中的东西是调用 a.f()。 但是那个调用是发生在g() 中的，并且 a.py 和 b.py 中都没有调用 g()。所以运行正常。<br/><br/>
+但是，如果我们尝试去引入b.py 会发生什么呢？（在这之前不引入a.py），如下所示:</p>
 
-<h3 id="toc_3">1. 如何判断字符串a是否以字符串b开头或结尾</h3>
-
-<p>问题：某文件系统目录下有一系列文件：a.py,quicksort.c,stack.cpp,b.sh , 编写程序给其中所有.sh文件和.py文件加上用户可执行权限？<br/>
-解决方案：<br/>
-使用字符串中的str.startswith()和end.startswith()方法 (注意：多个匹配时参数使用元组)</p>
-
-<pre><code class="language-python">In [1]: import os    #列出当前目录以.sh和以.py结尾的文件
-In [2]: [name for name in os.listdir(&#39;.&#39;) if name.endswith((&#39;.py&#39;,&#39;.sh&#39;))]
-Out[2]: [&#39;b.sh&#39;, &#39;a.py&#39;]
-
-In [3]: import stat
-
-# 查看 a.py 文件权限
-In [4]: os.stat(&#39;a.py&#39;).st_mode
-Out[4]: 33204# 把文件权限转换成8进制，即为平常看到的权限
-In [5]: oct(os.stat(&#39;a.py&#39;).st_mode)
-Out[5]: &#39;0100664&#39;# 更改文件权限，添加一个可执行权限
-In [6]: os.chmod(&#39;a.py&#39;,os.stat(&#39;a.py&#39;).st_mode | stat.S_IXUSR)
-
-In [7]: ll
-total 0
--rwxrw-r-- 1 yangevan 0 5月   9 14:48 a.py*
--rw-rw-r-- 1 yangevan 0 5月   9 14:48 b.sh
--rw-rw-r-- 1 yangevan 0 5月   9 14:48 quicksort.c
--rw-rw-r-- 1 yangevan 0 5月   9 14:48 stack.cpp
+<pre><code class="language-python">import b
 </code></pre>
 
-<h3 id="toc_4">2.如何对字符串中文本的格式进行调整</h3>
+<p>啊哦。 出问题了！此处的问题是，在引入b.py的过程中，Python尝试去引入 a.py，但是a.py 要调用f()，而f() 有尝试去访问 b.x。但是此时 b.x 还没有被定义呢。所以发生了 AttributeError 异常。</p>
 
-<p>问题：某软件的log文件，其中日期格式为“yyyy-mm-dd”:</p>
+<p>至少，解决这个问题很简单，只需修改b.py，使其在g()中引入 a.py：</p>
 
-<pre><code class="language-python">2017-05-08 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
-2017-05-08 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
-2017-05-08 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-2017-05-08 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-2017-05-08 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
-2017-05-08 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
-2017-05-08 09:12:48 startup packages configure
-09:12:48 startup packages configure
+<pre><code class="language-python">x = 1
+
+def g():
+    import a    # 只有当g()被调用的时候才会引入a
+    print a.f()
 </code></pre>
 
-<p>我们想把其中日期改为美国日期的格式&quot;mm/dd/yyyy&quot;,2017-05-08 ==&gt; 05/08/2017 ,应如何处理？<br/>
-解决方案：<br/>
-使用正则表达式re.sub()方法做字符串替换，利用正则表达式的捕获组捕获每个部分内容，在字符串中调整各个组的捕获顺序。</p>
+<p>现在，当我们再引入b，没有任何问题：</p>
 
-<pre><code class="language-python">In [1]: import re
-
-In [2]: log = open(&#39;/var/log/dpkg.log&#39;).read()
-# (\d{4}) 匹配到4个数字为一个捕获组，其顺序为1。故后面替换用\1放到最后，r是为了防止字符串被转义
-In [3]: print re.sub(&#39;(\d{4})-(\d{2})-(\d{2})&#39;,r&#39;\2/\3/\1&#39;, log)
-05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 startup packages configure
-
-# 也可以为每个捕获组起个名称，而不使用默认顺序来处理
-In [5]: print re.sub(&#39;(?P&lt;year&gt;\d{4})-(?P&lt;month&gt;\d{2})-(?P&lt;day&gt;\d{2})&#39;,r&#39;\g&lt;month&gt;/\g&lt;day&gt;/\g&lt;year&gt;&#39;, log)
-05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
-05/08/2017 09:12:48 startup packages configure
-</code></pre>
-
-<h2 id="toc_5">三、字符串拼接</h2>
-
-<h3 id="toc_6">1.如何将多个小字符串拼接成一个大的字符串</h3>
-
-<p>问题：在程序中我们将各个参数按次序收集到列表中： [&quot;<0112>&quot;, &quot;<32>&quot;,&quot;<1024x768>&quot;,&quot;<60>&quot; ],要把各个参数拼接成数据报进行发送&quot;<0112><32><1024x768><60>&quot;<br/>
-解决方案：<br/>
-方法一：迭代列表，连续使用“+”操作依次拼接每一个字符串</p>
-
-<pre><code class="language-python">In [1]: pl = [&quot;&lt;0112&gt;&quot;, &quot;&lt;32&gt;&quot;,&quot;&lt;1024x768&gt;&quot;,&quot;&lt;60&gt;&quot; ]
-
-In [2]: s = &#39;&#39;
-
-# 这种方法会产生许多临时结果，会造成资源的浪费
-In [3]: for p in pl:
-  ...:     s = s + p
-  ...:     print s
-  ...:    
-&lt;0112&gt;&lt;0112&gt;&lt;32&gt;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;
-In [4]: s
-Out[4]: &#39;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;&#39;
-</code></pre>
-
-<p>方法二：使用str.join()方法，更加快速的拼接列表中所有字符串</p>
-
-<pre><code class="language-python">In [5]: &#39;&#39;.join(pl)
-Out[5]: &#39;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;&#39;
-</code></pre>
-
-<p>有个列表l = [&#39;abc&#39;,123,45,&#39;xyz&#39;],如何让123和45以字符串的方式拼接</p>
-
-<pre><code class="language-python">In [6]: l = [&#39;abc&#39;,123,45,&#39;xyz&#39;]
-
-# 使用生成器表达式，开销比列表表达式小
-In [7]: (str(x) for x in l)
-  ...:
-Out[7]: &lt;generator object &lt;genexpr&gt; at 0x7fe3cadef550&gt;
-
-In [8]: &#39;&#39;.join(str(x) for x in l)
-Out[8]: &#39;abc12345xyz&#39;
-</code></pre>
-
-<h2 id="toc_7">四、字符串居中对齐</h2>
-
-<h3 id="toc_8">1.如何对字符串进行左、右、居中对齐</h3>
-
-<p>问题： 某个字典存储了一系列属性值</p>
-
-<pre><code class="language-python">{    &quot;loDist&quot;:100.0,    &quot;smartCull&quot;:0.04,    &quot;farclip&quot;:477}
-</code></pre>
-
-<p>在程序中想以工整的格式进行输出，如何处理？<br/>
-解决方案：<br/>
-方法一： 使用字符串的str.ljust(),str.rjust(),str.center()进行,右,居中对齐<br/>
-方法二： 使用format方法，传递类似&#39;<20','>20&#39;,&#39;<sup>20&#39;参数完成同样任务</sup></p>
-
-<pre><code class="language-python">In [1]: s = &#39;abc&#39;In 
-
-Out[2]: &#39;abc                 &#39;
-In [3]: s.ljust(20,&#39;=&#39;)
-Out[3]: &#39;abc=================&#39;
-In [4]: s.center(20)
-Out[4]: &#39;        abc         &#39;
-In [5]: format(s,&#39;&lt;20&#39;)
-Out[5]: &#39;abc                 &#39;
-In [6]: d = {
-  ...:     &quot;loDist&quot;:100.0,
-  ...:     &quot;smartCull&quot;:0.04,
-  ...:     &quot;farclip&quot;:477
-  ...: }
-In [7]: d.keys()
-Out[7]: [&#39;loDist&#39;, &#39;smartCull&#39;, &#39;farclip&#39;]
-In [8]: w =max(map(len,d.keys()))
-In [9]: for k in d:
-  ...:     print k.ljust(w),&#39;:&#39;,d[k]
-  ...:    
-loDist    : 100.0
-smartCull : 0.04
-farclip   : 477
-</code></pre>
-
-<h3 id="toc_9">2.去掉不需要的字符串</h3>
-
-<p>问题：<br/>
-1.过滤掉用户输入中前后多余的空白字符： &#39; <a href="mailto:nick@gmail.com">nick@gmail.com</a> &#39;<br/>
-2.过滤某windows下编辑文本中的&#39;\r&#39;: &#39;hello world\r\n&#39;<br/>
-3.去掉文本中的unicode组合符号(音调):u&#39;zǒu&#39;<br/>
-解决方案：<br/>
-方法一： 字符串strip(),lstrip(),rstrip()方法去掉字符串两端字符<br/>
-方法二：删除单个固定位置的字符，可以使用切片+拼接的方式<br/>
-方法三：字符串的replace方法或正则表达式re.sub()方法删除任意位置字符<br/>
-方法四：字符串translate()方法,可以同时删除多种不同字符</p>
-
-<pre><code class="language-python">In [1]: s = &#39;  abc 123  &#39;
-In [2]: s.strip()
-Out[2]: &#39;abc 123&#39;
-In [3]: s.lstrip()
-Out[3]: &#39;abc 123  &#39;
-In [4]: s = &#39;-----ab+++++&#39;
-In [5]: s.strip(&#39;-+&#39;)
-Out[5]: &#39;ab&#39;
-In [6]: s = &#39;abc:123&#39;
-In [7]: s[:3]+s[4:]
-Out[7]: &#39;abc123&#39;
-In [8]: s = &#39;\tabc\t123\txyz&#39;# 去除\t
-In [9]: s.replace(&#39;\t&#39;,&#39;&#39;)
-Out[9]: &#39;abc123xyz&#39;
-In [10]: s = &#39;\tabc\t123\txyz\ropq\r&#39;
-In [11]: import re# 去除\t\r
-In [12]: re.sub(&#39;[\t\r]&#39;,&#39;&#39;,s)
-Out[12]: &#39;abc123xyzopq&#39;
-In [13]: s = &#39;abc\refg\n\2342\t&#39;# 去除\t\r\n
-In [14]: s.translate(None,&#39;\t\r\n&#39;)
-Out[14]: &#39;abcefg\x9c2&#39;
-In [15]: u = u&#39;zǒu&#39;
-In [16]: u
-Out[16]: u&#39;z\u01d2u&#39;
-In [17]: print u.translate({0x01d2:None})
-zu
+<pre><code class="language-python">&gt;&gt;&gt; import b
+&gt;&gt;&gt; b.g()
+1    # Printed a first time since module &#39;a&#39; calls &#39;print f()&#39; at the end
+1    # Printed a second time, this one is our call to &#39;g&#39;
 </code></pre>
 
                         
@@ -349,7 +171,7 @@ zu
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/3/15 20:30 PM</span>
+                    <span class="date">2019/8/11 16:32 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -366,160 +188,57 @@ zu
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15198200217202.html">
+                <a class="clearlink" href="15655122908336.html">
                 
-                  <h1>Python 字典的内部实现</h1>
+                  <h1>Python常见的错误<六></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>python中字典是通过键索引的，因此，字典也可视作彼此关联的两个数组。下面我们尝试向字典中添加3个键/值（key/value）对：</p>
+                        	<h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
 
-<pre><code class="language-python">d = {&#39;a&#39;:1, &#39;b&#39;:2}
-d[&#39;c&#39;] = 3
-print d
+<p>我们来看下面这个例子：</p>
+
+<pre><code class="language-python">def create_multipliers():
+    return [lambda x : i * x for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
 </code></pre>
 
-<p>输出：<code>{&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}</code><br/>
-这些值可通过如下方法访问：</p>
-
-<pre><code class="language-python">print d[&#39;a&#39;]
-print d[&#39;b&#39;]
-print d[&#39;c&#39;]
-print d[&#39;d&#39;]
+<pre><code>8
+8
+8
+8
+8
 </code></pre>
 
-<p><code>Traceback (most recent call last):<br/>
-  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt; KeyError: &#39;d&#39;</code><br/>
-由于不存在 &#39;d&#39; 这个键，所以引发了KeyError异常。</p>
+<p>你也许希望获得下面的输出结果：<br/><br/>
+0<br/><br/>
+2<br/><br/>
+4<br/><br/>
+6<br/><br/>
+8<br/><br/>
+惊讶吧!<br/><br/>
+这之所以会发生是由于Python中的“后期绑定”行为——闭包中用到的变量只有在函数被调用的时候才会被赋值。<br/><br/>
+所以，在上面的代码中，任何时候，当返回的函数被调用时，Python会在该函数被调用时的作用域中查找 i 对应的值（这时，循环已经结束，所以 i 被赋上了最终的值——4）。<br/><br/>
+解决的方法有一点hack的味道：</p>
 
-<p><strong>哈希表（Hash tables）</strong><br/>
-在Python中，字典是通过哈希表实现的。也就是说，字典是一个数组，而数组的索引是键经过哈希函数处理后得到的。哈希函数的目的是使键均匀地分布在数组中。由于不同的键可能具有相同的哈希值，即可能出现冲突，高级的哈希函数能够使冲突数目最小化。Python中并不包含这样高级的哈希函数，几个重要（用于处理字符串和整数）的哈希函数通常情况下均是常规的类型：</p>
+<pre><code class="language-python">def create_multipliers():
+    return [lambda x, i=i : i * x for i in range(5)]
 
-<pre><code>&gt;&gt;&gt; map(hash, (0, 1, 2, 3))
-[0, 1, 2, 3]
-&gt;&gt;&gt; map(hash, (&quot;namea&quot;, &quot;nameb&quot;, &quot;namec&quot;, &quot;named&quot;))
-[-1658398457, -1658398460, -1658398459, -1658398462]
+for multiplier in create_multipliers():
+    print(multiplier(2))
 </code></pre>
 
-<p>在以下的篇幅中，我们仅考虑用字符串作为键的情况。在Python中，用于处理字符串的哈希函数是这样定义的：</p>
-
-<pre><code class="language-python">arguments: string object
-returns: hash
-function string_hash:
-    if hash cached:
-        return it
-    set len to string&#39;s length
-    initialize var p pointing to 1st char of string object
-    set x to value pointed by p left shifted by 7 bits
-    while len &gt;= 0:
-        set var x to (1000003 * x) xor value pointed by p
-        increment pointer p
-    set x to x xor length of string object
-    cache x as the hash so we don&#39;t need to calculate it again
-    return x as the hash
+<pre><code>0
+2
+4
+6
+8
 </code></pre>
 
-<p>如果在Python中运行 hash(&#39;a&#39;) ，后台将执行 string_hash()函数，然后返回 12416037344 （这里我们假设采用的是64位的平台）。</p>
-
-<p>如果用长度为 x 的数组存储键/值对，则我们需要用值为 x-1 的掩码计算槽（slot，存储键/值对的单元）在数组中的索引。这可使计算索引的过程变得非常迅速。字典结构调整长度的机制（以下会详细介绍）会使找到空槽的概率很高，也就意味着在多数情况下只需要进行简单的计算。假如字典中所用数组的长度是 8 ，那么键&#39;a&#39;的索引为：hash(&#39;a&#39;) &amp; 7 = 0，同理&#39;b&#39;的索引为 3 ,&#39;c&#39;的索引为 2 , 而&#39;z&#39;的索引与&#39;b&#39;相同，也为 3 ，这就出现了冲突。<br/>
-<img src="media/15198200217202/15198207691451.png" alt=""/><br/>
-可以看出，Python的哈希函数在键彼此连续的时候表现得很理想，这主要是考虑到通常情况下处理的都是这类形式的数据。然而，一旦我们添加了键&#39;z&#39;就会出现冲突，因为这个键值并不毗邻其他键，且相距较远。</p>
-
-<p>当然，我们也可以用索引为键的哈希值的链表来存储键/值对，但会增加查找元素的时间，时间复杂度也不再是 O(1) 了。下一节将介绍Python的字典解决冲突所采用的方法。</p>
-
-<p><strong>开放寻址法（ Open addressing ）</strong></p>
-
-<p>开放寻址法是一种用探测手段处理冲突的方法。在上述键&#39;z&#39;冲突的例子中，索引 3 在数组中已经被占用了，因而需要探寻一个当前未被使用的索引。增加和搜寻键/值对需要的时间均为 O(1)。</p>
-
-<p>搜寻空闲槽用到了一个二次探测序列（quadratic probing sequence），其代码如下：</p>
-
-<pre><code class="language-python">j = (5*j) + 1 + perturb; 
-perturb &gt;&gt;= PERTURB_SHIFT;
-use j % 2**i as the next table index;
-</code></pre>
-
-<p>循环地5*j+1可以快速放大不影响初始索引的哈希值二进位的微小差异。变量perturb可使其他二进位也不断变化。</p>
-
-<p>出于好奇，我们来看一看当数组长度为 32 时的探测序列，j = 3 -&gt; 11 -&gt; 19 -&gt; 29 -&gt; 5 -&gt; 6 -&gt; 16 -&gt; 31 -&gt; 28 -&gt; 13 -&gt; 2…</p>
-
-<p>关于探测序列的更多介绍可以参阅dictobject.c的源码。文件的开头包含了对探测机理的详细介绍。<br/>
-<img src="media/15198200217202/15198208428424.jpg" alt=""/><br/>
-下面我们结合例子来看一看 Python 内部代码。<br/>
-<strong>基于C语言的字典结构</strong><br/>
-以下基于C语言的数据结构用于存储字典的键/值对（也称作 entry），存储内容有哈希值，键和值。PyObject 是 Python 对象的一个基类。</p>
-
-<pre><code class="language-C">typedef struct {
-    Py_ssize_t me_hash;
-    PyObject *me_key;
-    PyObject *me_value
-} PyDictEntry;
-</code></pre>
-
-<p>下面为字典对应的数据结构。其中，ma_fill为活动槽以及哑槽（dummy slot）的总数。当一个活动槽中的键/值对被删除后，该槽则被标记为哑槽。ma_used为活动槽的总数。ma_mask值为数组的长度减 1 ，用于计算槽的索引。ma_table为数组本身，ma_smalltable为长度为 8 的初始数组。</p>
-
-<pre><code class="language-C">typedef struct _dictobject PyDictObject;
-struct _dictobject {
-    PyObject_HEAD
-    Py_ssize_t ma_fill;
-    Py_ssize_t ma_used;
-    Py_ssize_t ma_mask;
-    PyDictEntry *ma_table;
-    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
-    PyDictEntry ma_smalltable[PyDict_MINSIZE];
-};
-</code></pre>
-
-<p><strong>字典初始化</strong><br/>
-字典在初次创建时将调用PyDict_New()函数。这里删掉了源代码中的部分行，并且将C语言代码转换成了伪代码以突出其中的几个关键概念。</p>
-
-<pre><code class="language-C">returns new dictionary object
-function PyDict_New:
-    allocate new dictionary object
-    clear dictionary&#39;s table
-    set dictionary&#39;s number of used slots + dummy slots (ma_fill) to 0
-    set dictionary&#39;s number of active slots (ma_used) to 0
-    set dictionary&#39;s mask (ma_value) to dictionary size - 1 = 7
-    set dictionary&#39;s lookup function to lookdict_string
-    return allocated dictionary object
-</code></pre>
-
-<p><strong>添加项</strong><br/>
-添加新的键/值对调用的是PyDict_SetItem()函数。函数将使用一个指针指向字典对象和键/值对。这一过程中，首先会检查键是否是字符串，然后计算哈希值，如果先前已经计算并缓存了键的哈希值，则直接使用缓存的值。接着调用insertdict()函数添加新键/值对。如果活动槽和空槽的总数超过数组长度的2/3，则需调整数组的长度。为什么是 2/3 ？这主要是为了保证探测序列能够以足够快的速度找到空闲槽。后面我们会介绍调整长度的函数。</p>
-
-<pre><code class="language-C">arguments: dictionary, key, value
-returns: 0 if OK or -1
-function PyDict_SetItem:
-    if key&#39;s hash cached:
-        use hash
-    else:
-        calculate hash
-    call insertdict with dictionary object, key, hash and value
-    if key/value pair added successfully and capacity over 2/3:
-        call dictresize to resize dictionary&#39;s table
-</code></pre>
-
-<p>inserdict() 使用搜寻函数 lookdict_string() 来查找空闲槽。这跟查找键所用的是同一函数。lookdict_string() 使用哈希值和掩码计算槽的索引。如果用“索引 = 哈希值&amp;掩码”的方法未找到键，则会用调用先前介绍的循环方法探测，直至找到一个空闲槽。第一轮探测，如果未找到匹配的键的且探测过程中遇到过哑槽，则返回一个哑槽。这可使优先选择先前删除的槽。<br/>
-现在我们想添加如下的键/值对：{‘a’: 1, ‘b’: 2′, ‘z’: 26, ‘y’: 25, ‘c’: 5, ‘x’: 24}，那么将会发生如下过程：</p>
-
-<p>分配一个字典结构，内部表的尺寸为8。<br/>
-<img src="media/15198200217202/15198209955932.jpg" alt=""/><br/>
-以下就是我们目前所得到的：<br/>
-<img src="media/15198200217202/15198210086336.jpg" alt=""/><br/>
-8个槽中的6个已被使用，使用量已经超过了总容量的2/3，因而，dictresize()函数将会被调用，用以分配一个长度更大的数组，同时将旧表中的条目复制到新的表中。</p>
-
-<p>在我们这个例子中，dictresize()函数被调用后，数组长度调整后的长度不小于活动槽数量的 4 倍，即minused = 24 = 4 * ma_used。而当活动槽的数量非常大（大于50000）时，调整后长度应不小于活动槽数量的2倍，即2*ma_used。为什么是 4 倍？这主要是为了减少调用调整长度函数的次数，同时能显著提高稀疏度。</p>
-
-<p>新表的长度应大于 24，计算长度值时会不断对当前长度值进行升位运算，直到大于 24，最终得到的长度是 32，例如当前长度为 8 ，则计算过程如8 -&gt; 16 -&gt; 32。</p>
-
-<p>这就是长度调整的过程：分配一个长度为 32 的新表，然后用新的掩码，也就是 31 ，将旧表中的条目插入到新表。最终得到的结果如下：<br/>
-<img src="media/15198200217202/15198210614829.jpg" alt=""/><br/>
-<strong>删除项</strong><br/>
-删除条目时将调用PyDict_DelItem()函数。删除时，首先计算键的哈希值，然后调用搜询函数返回到该条目，最后该槽被标记为哑槽。</p>
-
-<p>假设我们想要从字典中删除键&#39;c&#39;，我们最终将得到如下结果：<br/>
-<img src="media/15198200217202/15198210844803.png" alt=""/><br/>
-注意，删除项目后，即使最终活动槽的数量远小于总的数量也不会触发调整数组长度的动作。但是，若删减后又增加键/值对时，由于调整长度的条件判断基于的是活动槽与哑槽的总数量，因而可能会缩减数组长度。</p>
+<p>在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
 
                         
                       </div>
@@ -528,7 +247,7 @@ function PyDict_SetItem:
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/2/28 20:13 PM</span>
+                    <span class="date">2019/8/11 16:31 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -623,31 +342,31 @@ function PyDict_SetItem:
 	      
 		      
 			      <li class="post">
-			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			        <a href="15655124251876.html">Python常见的错误<八></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			        <a href="15655123624150.html">Python常见的错误<七></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

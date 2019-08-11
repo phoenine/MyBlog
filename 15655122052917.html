@@ -1,0 +1,414 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Python常见的错误<四> - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python常见的错误<四></h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2019/8/11 16:30 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h4 id="toc_0">常见错误4: 不理解Python的作用域</h4>
+
+<p>Python是基于 LEGB 来进行作用于解析的, LEGB<br/><br/>
+是 Local, Enclosing, Global,Built-in 的缩写。看起来“见文知意”，对吗？实际上，在Python中还有一些需要注意的地方，先看下面一段代码：</p>
+
+<pre><code class="language-python">x = 10
+def foo():
+    x += 1
+    print(x)
+
+foo()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+UnboundLocalError                         Traceback (most recent call last)
+
+&lt;ipython-input-1-ec96c7a5b5d8&gt; in &lt;module&gt;
+      4     print(x)
+      5 
+----&gt; 6 foo()
+
+
+&lt;ipython-input-1-ec96c7a5b5d8&gt; in foo()
+      1 x = 10
+      2 def foo():
+----&gt; 3     x += 1
+      4     print(x)
+      5 
+
+
+UnboundLocalError: local variable &#39;x&#39; referenced before assignment
+</code></pre>
+
+<p>这里出什么问题了？<br/><br/>
+上面的问题之所以会发生是因为当你给作用域中的一个变量赋值时，Python 会自动的把它当做是当前作用域的局部变量，从而会隐藏外部作用域中的同名变量。<br/><br/>
+很多人会感到很吃惊，当他们给之前可以正常运行的代码的函数体的某个地方添加了一句赋值语句之后就得到了一个 UnboundLocalError 的错误。<br/><br/>
+尤其是当开发者使用 lists 时，这个问题就更加常见。请看下面这个例子：</p>
+
+<pre><code class="language-python">lst = [1, 2, 3]
+def foo_1():
+    lst.append(5)
+
+foo_1()
+lst
+</code></pre>
+
+<pre><code>[1, 2, 3, 5]
+</code></pre>
+
+<pre><code class="language-python">def foo_2():
+    lst += [5]
+
+foo_2()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+UnboundLocalError                         Traceback (most recent call last)
+
+&lt;ipython-input-5-4f369a1ee364&gt; in &lt;module&gt;
+      2     lst += [5]
+      3 
+----&gt; 4 foo_2()
+
+
+&lt;ipython-input-5-4f369a1ee364&gt; in foo_2()
+      1 def foo_2():
+----&gt; 2     lst += [5]
+      3 
+      4 foo_2()
+
+
+UnboundLocalError: local variable &#39;lst&#39; referenced before assignment
+</code></pre>
+
+<p>嗯？为什么 foo2 报错，而foo1没有问题呢？<br/><br/>
+原因和之前那个例子的一样，不过更加令人难以捉摸。foo1 没有对 lst 进行赋值操作，而 foo2 做了。<br/><br/>
+要知道， lst += [5] 是 lst = lst + [5] 的缩写，我们试图对 lst 进行赋值操作（Python把他当成了局部变量）。<br/><br/>
+此外，我们对 lst 进行的赋值操作是基于 lst 自身（这再一次被Python当成了局部变量），但此时还未定义。因此出错！</p>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15655122526636.html" 
+          title="Previous Post: Python常见的错误<五>">&laquo; Python常见的错误<五></a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15655121732301.html" 
+          title="Next Post: Python常见的错误<三>">Python常见的错误<三> &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15655124741455.html">Python常见的错误<九></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655124251876.html">Python常见的错误<八></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655123624150.html">Python常见的错误<七></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122908336.html">Python常见的错误<六></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122526636.html">Python常见的错误<五></a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>

@@ -107,109 +107,458 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15142090414246.html">
+                <a class="clearlink" href="15211176555242.html">
                 
-                  <h1>Python学习之整数比较</h1>
+                  <h1>高效的 itertools 模块</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>最近学习python，发现整数比较时一个有趣的现象：</p>
+                        	<p>我们知道，迭代器的特点是：惰性求值（Lazy evaluation），即只有当迭代至某个值时，它才会被计算，这个特点使得迭代器特别适合于遍历大文件或无限集合等，因为我们不用一次性将它们存储在内存中。</p>
 
-<pre><code class="language-python">a = 256
-b = 256
-print id(a)
-print id(b)
-print(a == b)
-print(a is b)
-print(id(a) == id(b))
-print(id(a) is id(b))
-c = 257
-d = 257
-print id(c)
-print id(d)
-print(c == d)
-print(c is d)
-print(id(c) == id(d))
-print(id(c) is id(d))
+<p>&lt;-朕的朱批 -&gt; 还记得enumerate犯下的错误吗？</p>
+
+<p>Python 内置的 itertools 模块包含了一系列用来产生不同类型迭代器的函数或类，这些函数的返回都是一个迭代器，我们可以通过 for 循环来遍历取值，也可以使用 next() 来取值。<br/>
+itertools 模块提供的迭代器函数有以下几种类型：</p>
+
+<ul>
+<li>无限迭代器：生成一个无限序列，比如自然数序列 1, 2, 3, 4, ...；</li>
+<li>有限迭代器：接收一个或多个序列（sequence）作为参数，进行组合、分组和过滤等；</li>
+<li>组合生成器：序列的排列、组合，求序列的笛卡儿积等；</li>
+</ul>
+
+<p>无限迭代器</p>
+
+<p>itertools 模块提供了三个函数（事实上，它们是类）用于生成一个无限序列迭代器：</p>
+
+<ul>
+<li>count(firstval=0, step=1)创建一个从 firstval (默认值为 0) 开始，以 step (默认值为 1) 为步长的的无限整数迭代器</li>
+<li>cycle(iterable)对 iterable 中的元素反复执行循环，返回迭代器</li>
+<li>repeat(object [,times]反复生成 object，如果给定 times，则重复次数为 times，否则为无限
+下面，让我们看看一些例子。</li>
+</ul>
+
+<p><strong>count</strong><br/>
+count() 接收两个参数，第一个参数指定开始值，默认为 0，第二个参数指定步长，默认为 1：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import itertools
+&gt;&gt;&gt;
+&gt;&gt;&gt; nums = itertools.count()
+&gt;&gt;&gt; for i in nums:
+...     if i &gt; 6:
+...         break
+...     print i
+...
+0
+1
+2
+3
+4
+5
+6
+&gt;&gt;&gt; nums = itertools.count(10, 2)    # 指定开始值和步长
+&gt;&gt;&gt; for i in nums:
+...     if i &gt; 20:
+...         break
+...     print i
+...
+10
+12
+14
+16
+18
+20
 </code></pre>
 
-<p>在pycharm中运行的结果是：</p>
+<p><strong>cycle</strong><br/>
+cycle() 用于对 iterable 中的元素反复执行循环：</p>
 
-<pre><code>32019104
-32019104
-True
-True
-True
-False
-40550424
-40550424
-True
-True
-True
-False
+<pre><code class="language-python">&gt;&gt;&gt; import itertools
+&gt;&gt;&gt;
+&gt;&gt;&gt; cycle_strings = itertools.cycle(&#39;ABC&#39;)
+&gt;&gt;&gt; i = 1
+&gt;&gt;&gt; for string in cycle_strings:
+...     if i == 10:
+...         break
+...     print i, string
+...     i += 1
+...
+1 A
+2 B
+3 C
+4 A
+5 B
+6 C
+7 A
+8 B
+9 C
 </code></pre>
 
-<p>而在Python IDE中运行：</p>
+<p><strong>repeat</strong><br/>
+repeat() 用于反复生成一个 object：</p>
 
-<pre><code class="language-python">&gt;&gt;&gt; a = 256
-&gt;&gt;&gt; b = 256
-&gt;&gt;&gt; a == b
-True
-&gt;&gt;&gt; a is b
-True
-&gt;&gt;&gt; id(a)
-32346576L
-&gt;&gt;&gt; id(b)
-32346576L
-&gt;&gt;&gt; c = 257
-&gt;&gt;&gt; d = 257
-&gt;&gt;&gt; c == d
-True
-&gt;&gt;&gt; c is d
-False
-&gt;&gt;&gt; id(c)
-39891736L
-&gt;&gt;&gt; id(d)
-39891712L
+<pre><code class="language-python">&gt;&gt;&gt; import itertools
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in itertools.repeat(&#39;hello world&#39;, 3):
+...     print item
+...
+hello world
+hello world
+hello world
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in itertools.repeat([1, 2, 3, 4], 3):
+...     print item
+...
+[1, 2, 3, 4]
+[1, 2, 3, 4]
+[1, 2, 3, 4]
 </code></pre>
 
-<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
-在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
-- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
-- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
+<p><strong>有限迭代器</strong><br/>
+itertools 模块提供了多个函数（类），接收一个或多个迭代对象作为参数，对它们进行组合、分组和过滤等：</p>
 
-<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？</p>
+<ul>
+<li>chain()</li>
+<li>compress()</li>
+<li>dropwhile()</li>
+<li>groupby()</li>
+<li>ifilter()</li>
+<li>ifilterfalse()</li>
+<li>islice()</li>
+<li>imap()</li>
+<li>starmap()</li>
+<li>tee()</li>
+<li>takewhile()</li>
+<li>izip()</li>
+<li>izip_longest()</li>
+</ul>
 
-<p><strong>问题一：256和257，差别在哪里？</strong></p>
+<p><strong>chain</strong><br/>
+chain 的使用形式如下：<br/>
+<code>chain(iterable1, iterable2, iterable3, ...)</code><br/>
+chain 接收多个可迭代对象作为参数，将它们『连接』起来，作为一个新的迭代器返回。</p>
 
-<p>出于对性能的考虑，Python内部做了很多的优化工作，对于整数对象，Python把一些频繁使用的整数对象缓存起来，保存到一个叫small_ints的链表中，在Python的整个生命周期内，任何需要引用这些整数对象的地方，都不再重新创建新的对象，而是直接引用缓存中的对象。Python把这些可能频繁使用的整数对象规定在范围[-5, 256)之间的小对象放在small_ints中，注意左闭右开。但凡是需要用些小整数时，就从这里面取，不再去临时创建新的对象。因为257不再小整数范围内，因此尽管a和b的值是一样，但是他们在Python内部却是以两个独立的对象存在的，各自为政，互不干涉。</p>
-
-<p>源码位置：<code>Include/intobject.h | Objects/intobject.c</code></p>
-
-<p><strong>小整数对象池：</strong><br/>
-小整数对象池就是一个<strong>PyIntObject指针数组</strong></p>
-
-<pre><code class="language-C">#ifndef NSMALLPOSINTS
-#define NSMALLPOSINTS 257
-#endif
-#ifndef NSMALLNEGINTS
-#define NSMALLNEGINTS 5
-#endif
-#if NSMALLNEGINTS + NSMALLPOSINTS &gt; 0
-/* References to small integers are saved in this array so that they can be shared. The integers that are saved are those in the range -NSMALLNEGINTS (inclusive) to NSMALLPOSINTS (not inclusive).*/
-static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
-#endif
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import chain
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in chain([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]):
+...     print item
+...
+1
+2
+3
+a
+b
+c
 </code></pre>
 
-<p>其结构如下：<br/>
-<img src="media/15142090414246/15142908389467.png" alt=""/></p>
+<p>chain 还有一个常见的用法：<br/>
+<code>chain.from_iterable(iterable)</code><br/>
+接收一个可迭代对象作为参数，返回一个迭代器：</p>
 
-<p><strong>问题二：都是257，is结局为啥不一样？</strong></p>
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import chain
+&gt;&gt;&gt;
+&gt;&gt;&gt; string = chain.from_iterable(&#39;ABCD&#39;)
+&gt;&gt;&gt; string.next()
+&#39;A&#39;
+</code></pre>
 
-<p>其实答案就是如此简单：</p>
+<p><strong>compress</strong><br/>
+compress 的使用形式如下：<br/>
+<code>compress(data, selectors)</code><br/>
+compress 可用于对数据进行筛选，当 selectors 的某个元素为 true 时，则保留 data 对应位置的元素，否则去除：</p>
 
-<p>对于Python而言，存储好的脚本文件（Script file）和在Console中的交互式（interactive）命令，执行方式不同。对于脚本文件，解释器将其当作整个代码块执行，而对于交互性命令行中的每一条命令，解释器将其当作单独的代码块执行。而Python在执行同一个代码块的初始化对象的命令时，会检查是否其值是否已经存在，如果存在，会将其重用（这句话不够严谨，后面会详谈）。所以在给出的例子中，文件执行时（同一个代码块）会把a、b两个变量指向同一个对象；而在命令行执行时，a、b赋值语句分别被当作两个代码块执行，所以会得到两个不同的对象，因而is判断返回False。</p>
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import compress
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1, 0, 1]))
+[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;, &#39;F&#39;]
+&gt;&gt;&gt; list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1]))
+[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;]
+&gt;&gt;&gt; list(compress(&#39;ABCDEF&#39;, [True, False, True]))
+[&#39;A&#39;, &#39;C&#39;]
+</code></pre>
+
+<p><strong>dropwhile</strong><br/>
+dropwhile 的使用形式如下：<br/>
+<code>dropwhile(predicate, iterable)</code><br/>
+其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则丢弃该元素，否则返回该项及所有后续项。<br/>
+&lt;-朕的朱批 -&gt; predicate 断言，断定。 注意其返回项是丢弃元素判定失败后的后续项</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import dropwhile
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(dropwhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
+[6, 2, 1]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(dropwhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
+[2, 1, 6, 5, 4]
+</code></pre>
+
+<p><strong>groupby</strong><br/>
+groupby 用于对序列进行分组，它的使用形式如下：<br/>
+<code>groupby(iterable[, keyfunc])</code><br/>
+其中，iterable 是一个可迭代对象，keyfunc 是分组函数，用于对 iterable 的连续项进行分组，如果不指定，则默认对 iterable 中的连续相同项进行分组，返回一个 (key, sub-iterator) 的迭代器。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import groupby
+&gt;&gt;&gt;
+&gt;&gt;&gt; for key, value_iter in groupby(&#39;aaabbbaaccd&#39;):
+...     print key, &#39;:&#39;, list(value_iter)
+...
+a : [&#39;a&#39;, &#39;a&#39;, &#39;a&#39;]
+b : [&#39;b&#39;, &#39;b&#39;, &#39;b&#39;]
+a : [&#39;a&#39;, &#39;a&#39;]
+c : [&#39;c&#39;, &#39;c&#39;]
+d : [&#39;d&#39;]
+&gt;&gt;&gt;
+&gt;&gt;&gt; data = [&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;, &#39;dd&#39;, &#39;eee&#39;, &#39;f&#39;]
+&gt;&gt;&gt; for key, value_iter in groupby(data, len):    # 使用 len 函数作为分组函数
+...     print key, &#39;:&#39;, list(value_iter)
+...
+1 : [&#39;a&#39;]
+2 : [&#39;bb&#39;]
+3 : [&#39;ccc&#39;]
+2 : [&#39;dd&#39;]
+3 : [&#39;eee&#39;]
+1 : [&#39;f&#39;]
+&gt;&gt;&gt;
+&gt;&gt;&gt; data = [&#39;a&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;ddd&#39;, &#39;eee&#39;, &#39;f&#39;]
+&gt;&gt;&gt; for key, value_iter in groupby(data, len):
+...     print key, &#39;:&#39;, list(value_iter)
+...
+1 : [&#39;a&#39;]
+2 : [&#39;bb&#39;, &#39;cc&#39;]
+3 : [&#39;ddd&#39;, &#39;eee&#39;]
+1 : [&#39;f&#39;]
+</code></pre>
+
+<p><strong>ifilter</strong><br/>
+ifilter 的使用形式如下：<br/>
+<code>ifilter(function or None, sequence)</code><br/>
+将 iterable 中 function(item) 为 True 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 True 的项。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import ifilter
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(ifilter(lambda x: x &lt; 6, range(10)))
+[0, 1, 2, 3, 4, 5]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(ifilter(None, [0, 1, 2, 0, 3, 4]))
+[1, 2, 3, 4]
+</code></pre>
+
+<p><strong>ifilterfalse</strong><br/>
+ifilterfalse 的使用形式和 ifilter 类似，它将 iterable 中 function(item) 为 False 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 False 的项。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import ifilterfalse
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(ifilterfalse(lambda x: x &lt; 6, range(10)))
+[6, 7, 8, 9]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(ifilter(None, [0, 1, 2, 0, 3, 4]))
+[0, 0]
+</code></pre>
+
+<p><strong>islice</strong><br/>
+islice 是切片选择，它的使用形式如下：<br/>
+<code>islice(iterable, [start,] stop [, step])</code><br/>
+其中，iterable 是可迭代对象，start 是开始索引，stop 是结束索引，step 是步长，start 和 step 可选。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import count, islice
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(islice([10, 6, 2, 8, 1, 3, 9], 5))
+[10, 6, 2, 8, 1]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(islice(count(), 6))
+[0, 1, 2, 3, 4, 5]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(islice(count(), 3, 10))
+[3, 4, 5, 6, 7, 8, 9]
+&gt;&gt;&gt; list(islice(count(), 3, 10 ,2))
+[3, 5, 7, 9]
+</code></pre>
+
+<p>&lt;-朕的朱批 -&gt;似乎没啥用<br/>
+<strong>imap</strong><br/>
+imap 类似 map 操作，它的使用形式如下：<br/>
+<code>imap(func, iter1, iter2, iter3, ...)</code><br/>
+imap 返回一个迭代器，元素为 func(i1, i2, i3, ...)，i1，i2 等分别来源于 iter, iter2。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import imap
+&gt;&gt;&gt;
+&gt;&gt;&gt; imap(str, [1, 2, 3, 4])
+&lt;itertools.imap object at 0x10556d050&gt;
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(imap(str, [1, 2, 3, 4]))
+[&#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(imap(pow, [2, 3, 10], [4, 2, 3]))
+[16, 9, 1000]
+</code></pre>
+
+<p><strong>tee</strong><br/>
+tee 的使用形式如下：<br/>
+<code>tee(iterable [,n])</code><br/>
+tee 用于从 iterable 创建 n 个独立的迭代器，以元组的形式返回，n 的默认值是 2。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import tee
+&gt;&gt;&gt;
+&gt;&gt;&gt; tee(&#39;abcd&#39;)   # n 默认为 2，创建两个独立的迭代器
+(&lt;itertools.tee object at 0x1049957e8&gt;, &lt;itertools.tee object at 0x104995878&gt;)
+&gt;&gt;&gt;
+&gt;&gt;&gt; iter1, iter2 = tee(&#39;abcde&#39;)
+&gt;&gt;&gt; list(iter1)
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+&gt;&gt;&gt; list(iter2)
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+&gt;&gt;&gt;
+&gt;&gt;&gt; tee(&#39;abc&#39;, 3)  # 创建三个独立的迭代器
+(&lt;itertools.tee object at 0x104995998&gt;, &lt;itertools.tee object at 0x1049959e0&gt;, &lt;itertools.tee object at 0x104995a28&gt;)
+</code></pre>
+
+<p><strong>takewhile</strong><br/>
+takewhile 的使用形式如下：<br/>
+<code>takewhile(predicate, iterable)</code><br/>
+其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则保留该元素，只要 predicate(item) 为 false，则立即停止迭代。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import takewhile
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(takewhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
+[1, 3]
+&gt;&gt;&gt; list(takewhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
+[]
+</code></pre>
+
+<p><strong>zip</strong><br/>
+izip 用于将多个可迭代对象对应位置的元素作为一个元组，将所有元组『组成』一个迭代器，并返回。它的使用形式如下：<br/>
+<code>izip(iter1, iter2, ..., iterN)</code><br/>
+如果某个可迭代对象不再生成值，则迭代停止。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import izip
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in izip(&#39;ABCD&#39;, &#39;xy&#39;):
+...     print item
+...
+(&#39;A&#39;, &#39;x&#39;)
+(&#39;B&#39;, &#39;y&#39;)
+&gt;&gt;&gt; for item in izip([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]):
+...     print item
+...
+(1, &#39;a&#39;)
+(2, &#39;b&#39;)
+(3, &#39;c&#39;)
+</code></pre>
+
+<p><strong>izip_longest</strong><br/>
+izip_longest 跟 izip 类似，但迭代过程会持续到所有可迭代对象的元素都被迭代完。它的形式如下：<br/>
+<code>izip_longest(iter1, iter2, ..., iterN, [fillvalue=None])</code><br/>
+如果有指定 fillvalue，则会用其填充缺失的值，否则为 None。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import izip_longest
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;):
+...     print item
+...
+(&#39;A&#39;, &#39;x&#39;)
+(&#39;B&#39;, &#39;y&#39;)
+(&#39;C&#39;, None)
+(&#39;D&#39;, None)
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;, fillvalue=&#39;-&#39;):
+...     print item
+...
+(&#39;A&#39;, &#39;x&#39;)
+(&#39;B&#39;, &#39;y&#39;)
+(&#39;C&#39;, &#39;-&#39;)
+(&#39;D&#39;, &#39;-&#39;)
+</code></pre>
+
+<p>&lt;-朕的朱批 -&gt; filevalue挺方便<br/>
+<strong>组合生成器</strong><br/>
+itertools 模块还提供了多个组合生成器函数，用于求序列的排列、组合等：</p>
+
+<ul>
+<li>product</li>
+<li>permutations</li>
+<li>combinations</li>
+<li>combinations_with_replacement</li>
+</ul>
+
+<p>&lt;-朕的朱批 -&gt; 排列组合必备良方<br/>
+<strong>product</strong><br/>
+product 用于求多个可迭代对象的笛卡尔积，它跟嵌套的 for 循环等价。它的一般使用形式如下：<br/>
+<code>product(iter1, iter2, ... iterN, [repeat=1])</code><br/>
+其中，repeat 是一个关键字参数，用于指定重复生成序列的次数，</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import product
+&gt;&gt;&gt;
+&gt;&gt;&gt; for item in product(&#39;ABCD&#39;, &#39;xy&#39;):
+...     print item
+...
+(&#39;A&#39;, &#39;x&#39;)
+(&#39;A&#39;, &#39;y&#39;)
+(&#39;B&#39;, &#39;x&#39;)
+(&#39;B&#39;, &#39;y&#39;)
+(&#39;C&#39;, &#39;x&#39;)
+(&#39;C&#39;, &#39;y&#39;)
+(&#39;D&#39;, &#39;x&#39;)
+(&#39;D&#39;, &#39;y&#39;)
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(product(&#39;ab&#39;, range(3)))
+[(&#39;a&#39;, 0), (&#39;a&#39;, 1), (&#39;a&#39;, 2), (&#39;b&#39;, 0), (&#39;b&#39;, 1), (&#39;b&#39;, 2)]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(product((0,1), (0,1), (0,1)))
+[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(product(&#39;ABC&#39;, repeat=2))
+[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;C&#39;)]
+&gt;&gt;&gt;
+</code></pre>
+
+<p><strong>permutations</strong><br/>
+permutations 用于生成一个排列，它的一般使用形式如下：<br/>
+<code>permutations(iterable[, r])</code><br/>
+其中，r 指定生成排列的元素的长度，如果不指定，则默认为可迭代对象的元素长度。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import permutations
+&gt;&gt;&gt;
+&gt;&gt;&gt; permutations(&#39;ABC&#39;, 2)
+&lt;itertools.permutations object at 0x1074d9c50&gt;
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(permutations(&#39;ABC&#39;, 2))
+[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;)]
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(permutations(&#39;ABC&#39;))
+[(&#39;A&#39;, &#39;B&#39;, &#39;C&#39;), (&#39;A&#39;, &#39;C&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;A&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;B&#39;, &#39;A&#39;)]
+&gt;&gt;&gt;
+</code></pre>
+
+<p><strong>combinations</strong><br/>
+combinations 用于求序列的组合，它的使用形式如下：<br/>
+<code>combinations(iterable, r)</code><br/>
+其中，r 指定生成组合的元素的长度。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import combinations
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(combinations(&#39;ABC&#39;, 2))
+[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;)]
+</code></pre>
+
+<p><strong>combinations_with_replacement</strong><br/>
+combinations_with_replacement 和 combinations 类似，但它生成的组合包含自身元素。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; from itertools import combinations_with_replacement
+&gt;&gt;&gt;
+&gt;&gt;&gt; list(combinations_with_replacement(&#39;ABC&#39;, 2))
+[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;C&#39;)]
+</code></pre>
+
+<p><strong>小结</strong></p>
+
+<p>itertools 模块提供了很多用于产生多种类型迭代器的函数，它们的返回值不是 list，而是迭代器。</p>
+
+<p><strong>参考链接</strong></p>
+
+<ul>
+<li>itertools — Functions creating iterators for efficient looping</li>
+<li>itertools – Iterator functions for efficient looping – Python Module of the Week</li>
+</ul>
 
                         
                       </div>
@@ -218,7 +567,7 @@ static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/25 21:37 PM</span>
+                    <span class="date">2018/3/15 20:40 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -235,88 +584,240 @@ static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15142078830298.html">
+                <a class="clearlink" href="15211170247112.html">
                 
-                  <h1>Auto Migrate Tool</h1>
+                  <h1>浅谈Python中字符串处理</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
+                        	<h2 id="toc_0">一、拆分含有多种分隔符的字符串</h2>
 
-<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
-function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
-function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
-function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+<h3 id="toc_1">1.如何拆分含有多种分隔符的字符串</h3>
 
-COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
-UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
-OPTIMAL_COMPUTER=&#39;&#39;
-INIT_USED=8.0
-for COMPUTER in $COMPUTER_LIST
-    do
-        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
-        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
-            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
-            OPTIMAL_COMPUTER=$COMPUTER
-            break
-        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
-            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
-            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$CPUS_USED
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            fi
-        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
-            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
-            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
-            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
-            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
-            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$USED_RATE
-                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            else
-                continue
-            fi
-        else
-            echo__red &quot;This computer node is full.&quot;
-        fi
-    done
-echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
-echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
-nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
-UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
-if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-    echo &quot;Still migrating, please wait...&quot;
-    sleep 5
-fi
-echo__green &quot;Live migration is successfully.&quot;  
+<p>问题： 我们要把某个字符串依据分隔符号拆分不同的字段，该字符串包含多种不同的分隔符，例如：</p>
+
+<pre><code class="language-python">s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
 </code></pre>
 
-<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
+<p>其中;,|,\t 都是分隔符号，如何处理？<br/>
+方法一： 连续使用str.split()方法，每次处理一种分隔符号</p>
 
-<ul>
-<li><p>通过bc</p>
+<pre><code class="language-python">s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
+def mySplit(s,ds):
+    res = [s]    
+    for d in ds:
+        t = []
+        map(lambda x: t.extend(x.split(d)), res)
+        res = t    
+    return res
 
-<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
+print mySplit(s,&#39;;|,\t&#39;)
 
-<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
-</code></pre></li>
-<li><p>通过dc<br/>
-可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
-<li><p>expr<br/>
-expr竟然也可以？先保存下来，下次再试试：</p>
+输出：
+[&#39;ab&#39;, &#39;cd&#39;, &#39;efg&#39;, &#39;hi&#39;, &#39;jkl&#39;, &#39;mn&#39;, &#39;opq&#39;, &#39;rst&#39;, &#39;uvw&#39;, &#39;xyz&#39;]
+</code></pre>
 
-<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
-echo $b is bigger
-else
-echo $a is bigger
-fi
-</code></pre></li>
-</ul>
+<p>方法二： 使用正则表达式的re.split()方法，一次性拆分字符串</p>
+
+<pre><code class="language-python">import re
+
+s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
+
+print re.split(r&#39;[;|,\t]+&#39;,s)
+
+输出：
+[&#39;ab&#39;, &#39;cd&#39;, &#39;efg&#39;, &#39;hi&#39;, &#39;jkl&#39;, &#39;mn&#39;, &#39;opq&#39;, &#39;rst&#39;, &#39;uvw&#39;, &#39;xyz&#39;]
+</code></pre>
+
+<h2 id="toc_2">二、调整字符串中文本格式</h2>
+
+<h3 id="toc_3">1. 如何判断字符串a是否以字符串b开头或结尾</h3>
+
+<p>问题：某文件系统目录下有一系列文件：a.py,quicksort.c,stack.cpp,b.sh , 编写程序给其中所有.sh文件和.py文件加上用户可执行权限？<br/>
+解决方案：<br/>
+使用字符串中的str.startswith()和end.startswith()方法 (注意：多个匹配时参数使用元组)</p>
+
+<pre><code class="language-python">In [1]: import os    #列出当前目录以.sh和以.py结尾的文件
+In [2]: [name for name in os.listdir(&#39;.&#39;) if name.endswith((&#39;.py&#39;,&#39;.sh&#39;))]
+Out[2]: [&#39;b.sh&#39;, &#39;a.py&#39;]
+
+In [3]: import stat
+
+# 查看 a.py 文件权限
+In [4]: os.stat(&#39;a.py&#39;).st_mode
+Out[4]: 33204# 把文件权限转换成8进制，即为平常看到的权限
+In [5]: oct(os.stat(&#39;a.py&#39;).st_mode)
+Out[5]: &#39;0100664&#39;# 更改文件权限，添加一个可执行权限
+In [6]: os.chmod(&#39;a.py&#39;,os.stat(&#39;a.py&#39;).st_mode | stat.S_IXUSR)
+
+In [7]: ll
+total 0
+-rwxrw-r-- 1 yangevan 0 5月   9 14:48 a.py*
+-rw-rw-r-- 1 yangevan 0 5月   9 14:48 b.sh
+-rw-rw-r-- 1 yangevan 0 5月   9 14:48 quicksort.c
+-rw-rw-r-- 1 yangevan 0 5月   9 14:48 stack.cpp
+</code></pre>
+
+<h3 id="toc_4">2.如何对字符串中文本的格式进行调整</h3>
+
+<p>问题：某软件的log文件，其中日期格式为“yyyy-mm-dd”:</p>
+
+<pre><code class="language-python">2017-05-08 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 startup packages configure
+09:12:48 startup packages configure
+</code></pre>
+
+<p>我们想把其中日期改为美国日期的格式&quot;mm/dd/yyyy&quot;,2017-05-08 ==&gt; 05/08/2017 ,应如何处理？<br/>
+解决方案：<br/>
+使用正则表达式re.sub()方法做字符串替换，利用正则表达式的捕获组捕获每个部分内容，在字符串中调整各个组的捕获顺序。</p>
+
+<pre><code class="language-python">In [1]: import re
+
+In [2]: log = open(&#39;/var/log/dpkg.log&#39;).read()
+# (\d{4}) 匹配到4个数字为一个捕获组，其顺序为1。故后面替换用\1放到最后，r是为了防止字符串被转义
+In [3]: print re.sub(&#39;(\d{4})-(\d{2})-(\d{2})&#39;,r&#39;\2/\3/\1&#39;, log)
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 startup packages configure
+
+# 也可以为每个捕获组起个名称，而不使用默认顺序来处理
+In [5]: print re.sub(&#39;(?P&lt;year&gt;\d{4})-(?P&lt;month&gt;\d{2})-(?P&lt;day&gt;\d{2})&#39;,r&#39;\g&lt;month&gt;/\g&lt;day&gt;/\g&lt;year&gt;&#39;, log)
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 startup packages configure
+</code></pre>
+
+<h2 id="toc_5">三、字符串拼接</h2>
+
+<h3 id="toc_6">1.如何将多个小字符串拼接成一个大的字符串</h3>
+
+<p>问题：在程序中我们将各个参数按次序收集到列表中： [&quot;<0112>&quot;, &quot;<32>&quot;,&quot;<1024x768>&quot;,&quot;<60>&quot; ],要把各个参数拼接成数据报进行发送&quot;<0112><32><1024x768><60>&quot;<br/>
+解决方案：<br/>
+方法一：迭代列表，连续使用“+”操作依次拼接每一个字符串</p>
+
+<pre><code class="language-python">In [1]: pl = [&quot;&lt;0112&gt;&quot;, &quot;&lt;32&gt;&quot;,&quot;&lt;1024x768&gt;&quot;,&quot;&lt;60&gt;&quot; ]
+
+In [2]: s = &#39;&#39;
+
+# 这种方法会产生许多临时结果，会造成资源的浪费
+In [3]: for p in pl:
+  ...:     s = s + p
+  ...:     print s
+  ...:    
+&lt;0112&gt;&lt;0112&gt;&lt;32&gt;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;
+In [4]: s
+Out[4]: &#39;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;&#39;
+</code></pre>
+
+<p>方法二：使用str.join()方法，更加快速的拼接列表中所有字符串</p>
+
+<pre><code class="language-python">In [5]: &#39;&#39;.join(pl)
+Out[5]: &#39;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;&#39;
+</code></pre>
+
+<p>有个列表l = [&#39;abc&#39;,123,45,&#39;xyz&#39;],如何让123和45以字符串的方式拼接</p>
+
+<pre><code class="language-python">In [6]: l = [&#39;abc&#39;,123,45,&#39;xyz&#39;]
+
+# 使用生成器表达式，开销比列表表达式小
+In [7]: (str(x) for x in l)
+  ...:
+Out[7]: &lt;generator object &lt;genexpr&gt; at 0x7fe3cadef550&gt;
+
+In [8]: &#39;&#39;.join(str(x) for x in l)
+Out[8]: &#39;abc12345xyz&#39;
+</code></pre>
+
+<h2 id="toc_7">四、字符串居中对齐</h2>
+
+<h3 id="toc_8">1.如何对字符串进行左、右、居中对齐</h3>
+
+<p>问题： 某个字典存储了一系列属性值</p>
+
+<pre><code class="language-python">{    &quot;loDist&quot;:100.0,    &quot;smartCull&quot;:0.04,    &quot;farclip&quot;:477}
+</code></pre>
+
+<p>在程序中想以工整的格式进行输出，如何处理？<br/>
+解决方案：<br/>
+方法一： 使用字符串的str.ljust(),str.rjust(),str.center()进行,右,居中对齐<br/>
+方法二： 使用format方法，传递类似&#39;<20','>20&#39;,&#39;<sup>20&#39;参数完成同样任务</sup></p>
+
+<pre><code class="language-python">In [1]: s = &#39;abc&#39;In 
+
+Out[2]: &#39;abc                 &#39;
+In [3]: s.ljust(20,&#39;=&#39;)
+Out[3]: &#39;abc=================&#39;
+In [4]: s.center(20)
+Out[4]: &#39;        abc         &#39;
+In [5]: format(s,&#39;&lt;20&#39;)
+Out[5]: &#39;abc                 &#39;
+In [6]: d = {
+  ...:     &quot;loDist&quot;:100.0,
+  ...:     &quot;smartCull&quot;:0.04,
+  ...:     &quot;farclip&quot;:477
+  ...: }
+In [7]: d.keys()
+Out[7]: [&#39;loDist&#39;, &#39;smartCull&#39;, &#39;farclip&#39;]
+In [8]: w =max(map(len,d.keys()))
+In [9]: for k in d:
+  ...:     print k.ljust(w),&#39;:&#39;,d[k]
+  ...:    
+loDist    : 100.0
+smartCull : 0.04
+farclip   : 477
+</code></pre>
+
+<h3 id="toc_9">2.去掉不需要的字符串</h3>
+
+<p>问题：<br/>
+1.过滤掉用户输入中前后多余的空白字符： &#39; <a href="mailto:nick@gmail.com">nick@gmail.com</a> &#39;<br/>
+2.过滤某windows下编辑文本中的&#39;\r&#39;: &#39;hello world\r\n&#39;<br/>
+3.去掉文本中的unicode组合符号(音调):u&#39;zǒu&#39;<br/>
+解决方案：<br/>
+方法一： 字符串strip(),lstrip(),rstrip()方法去掉字符串两端字符<br/>
+方法二：删除单个固定位置的字符，可以使用切片+拼接的方式<br/>
+方法三：字符串的replace方法或正则表达式re.sub()方法删除任意位置字符<br/>
+方法四：字符串translate()方法,可以同时删除多种不同字符</p>
+
+<pre><code class="language-python">In [1]: s = &#39;  abc 123  &#39;
+In [2]: s.strip()
+Out[2]: &#39;abc 123&#39;
+In [3]: s.lstrip()
+Out[3]: &#39;abc 123  &#39;
+In [4]: s = &#39;-----ab+++++&#39;
+In [5]: s.strip(&#39;-+&#39;)
+Out[5]: &#39;ab&#39;
+In [6]: s = &#39;abc:123&#39;
+In [7]: s[:3]+s[4:]
+Out[7]: &#39;abc123&#39;
+In [8]: s = &#39;\tabc\t123\txyz&#39;# 去除\t
+In [9]: s.replace(&#39;\t&#39;,&#39;&#39;)
+Out[9]: &#39;abc123xyz&#39;
+In [10]: s = &#39;\tabc\t123\txyz\ropq\r&#39;
+In [11]: import re# 去除\t\r
+In [12]: re.sub(&#39;[\t\r]&#39;,&#39;&#39;,s)
+Out[12]: &#39;abc123xyzopq&#39;
+In [13]: s = &#39;abc\refg\n\2342\t&#39;# 去除\t\r\n
+In [14]: s.translate(None,&#39;\t\r\n&#39;)
+Out[14]: &#39;abcefg\x9c2&#39;
+In [15]: u = u&#39;zǒu&#39;
+In [16]: u
+Out[16]: u&#39;z\u01d2u&#39;
+In [17]: print u.translate({0x01d2:None})
+zu
+</code></pre>
 
                         
                       </div>
@@ -325,10 +826,10 @@ fi
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/25 21:18 PM</span>
+                    <span class="date">2018/3/15 20:30 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -420,31 +921,31 @@ fi
 	      
 		      
 			      <li class="post">
-			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			        <a href="15655124251876.html">Python常见的错误<八></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			        <a href="15655123624150.html">Python常见的错误<七></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15198200217202.html">Python 字典的内部实现</a>
+			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15161073656469.html">Auto Install Stack(v2.0)</a>
+			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

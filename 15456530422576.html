@@ -1,0 +1,793 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Fire up GraphLab Create - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Graphlab_ML.html">Graphlab_ML</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Fire up GraphLab Create</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2018/12/24 20:4 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Graphlab_ML.html'>Graphlab_ML</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <p>We always start with this line before using any part of GraphLab Create. It can take up to 30 seconds to load the GraphLab library - be patient!</p>
+
+<p>The first time you use GraphLab create, you must enter a product key to license the software for non-commerical academic use. To register for a free one-year academic license and obtain your key, go to <a href="https://turi.com/download/academic.html">turi.com</a>.</p>
+
+<pre><code class="language-python">import graphlab
+# Set product key on this computer. After running this cell, you will not need to re-enter your product key. 
+graphlab.product_key.set_product_key(&#39;1E4A-6269-C872-58A9-3CCB-79BF-72E3-19E7&#39;)
+
+# Limit number of worker processes. This preserves system memory, which prevents hosted notebooks from crashing.
+graphlab.set_runtime_config(&#39;GRAPHLAB_DEFAULT_NUM_PYLAMBDA_WORKERS&#39;, 4)
+
+# Output active product key.
+graphlab.product_key.get_product_key()
+</code></pre>
+
+<pre><code>[INFO] graphlab.cython.cy_server: GraphLab Create v2.1 started. Logging: /tmp/graphlab_server_1545652417.log
+
+
+This non-commercial license of GraphLab Create for academic use is assigned to sparkbye@hotmail.com and will expire on November 25, 2019.
+
+
+
+
+
+&#39;1E4A-6269-C872-58A9-3CCB-79BF-72E3-19E7&#39;
+</code></pre>
+
+<h1 id="toc_0">Load a tabular data set</h1>
+
+<pre><code class="language-python">files = &quot;/Users/Evan/Documents/docker_data/jupyter/Deep_Learning/Week_1/people-example.csv&quot;
+sf = graphlab.SFrame(files)
+</code></pre>
+
+<pre>Finished parsing file /Users/Evan/Documents/docker_data/jupyter/Deep_Learning/Week_1/people-example.csv</pre>
+
+<pre>Parsing completed. Parsed 7 lines in 0.035828 secs.</pre>
+
+<pre><code>------------------------------------------------------
+Inferred types from first 100 line(s) of file as 
+column_type_hints=[str,str,str,int]
+If parsing fails due to incorrect types, you can correct
+the inferred type list above and pass it to read_csv in
+the column_type_hints argument
+------------------------------------------------------
+</code></pre>
+
+<pre>Finished parsing file /Users/Evan/Documents/docker_data/jupyter/Deep_Learning/Week_1/people-example.csv</pre>
+
+<pre>Parsing completed. Parsed 7 lines in 0.006844 secs.</pre>
+
+<h1 id="toc_1">SFrame basics</h1>
+
+<pre><code class="language-python">sf # we can view first few lines of table
+</code></pre>
+
+<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
+    <tr>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">First Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Last Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Country</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">age</th>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Smith</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">24</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Williams</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Canada</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Jone</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">England</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Brown</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">USA</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Cooper</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Poland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Campbell</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Ward</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Switzerland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">25</td>
+    </tr>
+</table>
+[7 rows x 4 columns]<br/>
+</div>
+
+<pre><code class="language-python">sf.tail()  # view end of the table
+</code></pre>
+
+<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
+    <tr>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">First Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Last Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Country</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">age</th>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Smith</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">24</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Williams</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Canada</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Jone</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">England</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Brown</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">USA</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Cooper</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Poland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Campbell</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Ward</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Switzerland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">25</td>
+    </tr>
+</table>
+[7 rows x 4 columns]<br/>
+</div>
+
+<h1 id="toc_2">GraphLab Canvas</h1>
+
+<pre><code class="language-python"># .show() visualizes any data structure in GraphLab Create
+# If you want Canvas visualization to show up on this notebook, 
+# add this line:
+graphlab.canvas.set_target(&#39;ipynb&#39;)
+</code></pre>
+
+<pre><code class="language-python">sf[&#39;age&#39;].show(view=&#39;Categorical&#39;)
+</code></pre>
+
+<h1 id="toc_3">Inspect columns of dataset</h1>
+
+<pre><code class="language-python">sf[&#39;Country&#39;]
+</code></pre>
+
+<pre><code>dtype: str
+Rows: 7
+[&#39;United States&#39;, &#39;Canada&#39;, &#39;England&#39;, &#39;USA&#39;, &#39;Poland&#39;, &#39;United States&#39;, &#39;Switzerland&#39;]
+</code></pre>
+
+<pre><code class="language-python">sf[&#39;age&#39;]
+</code></pre>
+
+<pre><code>dtype: int
+Rows: 7
+[24, 23, 22, 23, 23, 22, 25]
+</code></pre>
+
+<p>Some simple columnar operations</p>
+
+<pre><code class="language-python">sf[&#39;age&#39;].mean()
+</code></pre>
+
+<pre><code>23.142857142857146
+</code></pre>
+
+<pre><code class="language-python">sf[&#39;age&#39;].max()
+</code></pre>
+
+<pre><code>25
+</code></pre>
+
+<h1 id="toc_4">Create new columns in our SFrame</h1>
+
+<pre><code class="language-python">sf
+</code></pre>
+
+<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
+    <tr>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">First Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Last Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Country</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">age</th>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Smith</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">24</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Williams</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Canada</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Jone</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">England</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Brown</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">USA</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Cooper</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Poland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Campbell</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Ward</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Switzerland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">25</td>
+    </tr>
+</table>
+[7 rows x 4 columns]<br/>
+</div>
+
+<pre><code class="language-python">sf[&#39;Full Name&#39;] = sf[&#39;First Name&#39;] + &#39; &#39; + sf[&#39;Last Name&#39;]
+</code></pre>
+
+<pre><code class="language-python">sf
+</code></pre>
+
+<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
+    <tr>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">First Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Last Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Country</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">age</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Full Name</th>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Smith</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">24</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob Smith</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Williams</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Canada</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice Williams</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Jone</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">England</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm Jone</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Brown</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">USA</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix Brown</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Cooper</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Poland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex Cooper</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Campbell</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod Campbell</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Ward</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Switzerland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">25</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek Ward</td>
+    </tr>
+</table>
+[7 rows x 5 columns]<br/>
+</div>
+
+<pre><code class="language-python">sf[&#39;age&#39;] * sf[&#39;age&#39;]
+</code></pre>
+
+<pre><code>dtype: int
+Rows: 7
+[576, 529, 484, 529, 529, 484, 625]
+</code></pre>
+
+<h1 id="toc_5">Use the apply function to do a advance transformation of our data</h1>
+
+<pre><code class="language-python">sf[&#39;Country&#39;]
+</code></pre>
+
+<pre><code>dtype: str
+Rows: 7
+[&#39;United States&#39;, &#39;Canada&#39;, &#39;England&#39;, &#39;USA&#39;, &#39;Poland&#39;, &#39;United States&#39;, &#39;Switzerland&#39;]
+</code></pre>
+
+<pre><code class="language-python">sf[&#39;Country&#39;].show()
+</code></pre>
+
+<pre><code class="language-python">def transform_country(country):
+    if country == &#39;USA&#39;:
+        return &#39;United States&#39;
+    else:
+        return country
+</code></pre>
+
+<pre><code class="language-python">transform_country(&#39;Brazil&#39;)
+</code></pre>
+
+<pre><code>&#39;Brazil&#39;
+</code></pre>
+
+<pre><code class="language-python">transform_country(&#39;Brasil&#39;)
+</code></pre>
+
+<pre><code>&#39;Brasil&#39;
+</code></pre>
+
+<pre><code class="language-python">transform_country(&#39;USA&#39;)
+</code></pre>
+
+<pre><code>&#39;United States&#39;
+</code></pre>
+
+<pre><code class="language-python">sf[&#39;Country&#39;].apply(transform_country)
+</code></pre>
+
+<pre><code>dtype: str
+Rows: 7
+[&#39;United States&#39;, &#39;Canada&#39;, &#39;England&#39;, &#39;United States&#39;, &#39;Poland&#39;, &#39;United States&#39;, &#39;Switzerland&#39;]
+</code></pre>
+
+<pre><code class="language-python">sf[&#39;Country&#39;] = sf[&#39;Country&#39;].apply(transform_country)
+</code></pre>
+
+<pre><code class="language-python">sf
+</code></pre>
+
+<div style="max-height:1000px;max-width:1500px;overflow:auto;"><table frame="box" rules="cols">
+    <tr>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">First Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Last Name</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Country</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">age</th>
+        <th style="padding-left: 1em; padding-right: 1em; text-align: center">Full Name</th>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Smith</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">24</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Bob Smith</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Williams</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Canada</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alice Williams</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Jone</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">England</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Malcolm Jone</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Brown</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Felix Brown</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Cooper</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Poland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">23</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Alex Cooper</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Campbell</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">United States</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">22</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Tod Campbell</td>
+    </tr>
+    <tr>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Ward</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Switzerland</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">25</td>
+        <td style="padding-left: 1em; padding-right: 1em; text-align: center; vertical-align: top">Derek Ward</td>
+    </tr>
+</table>
+[7 rows x 5 columns]<br/>
+</div>
+
+<pre><code class="language-python">
+</code></pre>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15456530906319.html" 
+          title="Previous Post: Predicting House Prices">&laquo; Predicting House Prices</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15211187332796.html" 
+          title="Next Post: Python 陷阱与缺陷列表">Python 陷阱与缺陷列表 &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Graphlab_ML.html"><strong>Graphlab_ML</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15456530906319.html">Predicting House Prices</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15456530422576.html">Fire up GraphLab Create</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211187332796.html">Python 陷阱与缺陷列表</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211176555242.html">高效的 itertools 模块</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15211170247112.html">浅谈Python中字符串处理</a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>

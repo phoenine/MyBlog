@@ -1,0 +1,383 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Python常见的错误<七> - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python常见的错误<七></h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2019/8/11 16:32 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h4 id="toc_0">常见错误7: 创建循环依赖模块</h4>
+
+<p>让我们假设你有两个文件，a.py 和 b.py，他们之间相互引用，如下所示：</p>
+
+<pre><code class="language-python">import b
+
+def f():
+    return b.x
+print(f())
+</code></pre>
+
+<pre><code class="language-python">import a
+
+x = 1
+def g():
+    print(a.f())
+</code></pre>
+
+<p>首先，让我们尝试引入 a.py：</p>
+
+<pre><code class="language-python">import a
+</code></pre>
+
+<p>可以正常工作。这也许是你感到很奇怪。毕竟，我们确实在这里引入了一个循环依赖的模块，我们推测这样会出问题的，不是吗？<br/><br/>
+答案就是在Python中，仅仅引入一个循环依赖的模块是没有问题的。如果一个模块已经被引入了，Python并不会去再次引入它。但是，根据每个模块要访问其他模块中的函数和变量位置的不同，就很可能会遇到问题。<br/><br/>
+所以，回到我们这个例子，当我们引入 a.py 时，再引入 b.py 不会产生任何问题，因为当引入的时候，b.py 不需要 a.py 中定义任何东西。b.py 中唯一引用 a.py 中的东西是调用 a.f()。 但是那个调用是发生在g() 中的，并且 a.py 和 b.py 中都没有调用 g()。所以运行正常。<br/><br/>
+但是，如果我们尝试去引入b.py 会发生什么呢？（在这之前不引入a.py），如下所示:</p>
+
+<pre><code class="language-python">import b
+</code></pre>
+
+<p>啊哦。 出问题了！此处的问题是，在引入b.py的过程中，Python尝试去引入 a.py，但是a.py 要调用f()，而f() 有尝试去访问 b.x。但是此时 b.x 还没有被定义呢。所以发生了 AttributeError 异常。</p>
+
+<p>至少，解决这个问题很简单，只需修改b.py，使其在g()中引入 a.py：</p>
+
+<pre><code class="language-python">x = 1
+
+def g():
+    import a    # 只有当g()被调用的时候才会引入a
+    print a.f()
+</code></pre>
+
+<p>现在，当我们再引入b，没有任何问题：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import b
+&gt;&gt;&gt; b.g()
+1    # Printed a first time since module &#39;a&#39; calls &#39;print f()&#39; at the end
+1    # Printed a second time, this one is our call to &#39;g&#39;
+</code></pre>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15655124251876.html" 
+          title="Previous Post: Python常见的错误<八>">&laquo; Python常见的错误<八></a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15655122908336.html" 
+          title="Next Post: Python常见的错误<六>">Python常见的错误<六> &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15655124741455.html">Python常见的错误<九></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655124251876.html">Python常见的错误<八></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655123624150.html">Python常见的错误<七></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122908336.html">Python常见的错误<六></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15655122526636.html">Python常见的错误<五></a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>
