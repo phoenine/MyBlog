@@ -107,6 +107,61 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="15142936231027.html">
+                
+                  <h1>Python Unittest与Mock</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p><strong>unittest</strong><br/>
+python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
+python unittest的框架如下： <br/>
+<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
+基本使用方法如下：</p>
+
+<ol>
+<li>import unittest module</li>
+<li>定义一个继承自unittest.TestCase的测试用例类。</li>
+<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
+<li>定义测试用例，名字需要以test开头。</li>
+<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
+<li>调用unittest.main()启动测试</li>
+<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
+</ol>
+
+<p>这里举个简单的例子说明：<br/>
+<img src="media/15142936231027/15142939572020.png" alt=""/></p>
+
+<p>常用的断言：<br/>
+<img src="media/15142936231027/15142939778044.png" alt=""/></p>
+
+<p><strong>Mock</strong></p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/12/26 21:7 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="15142090414246.html">
                 
                   <h1>Python学习之整数比较</h1>
@@ -234,169 +289,6 @@ static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15137747318292.html">
-                
-                  <h1>Python格式化输出与format函数</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
-
-<p><strong>打印整数</strong></p>
-
-<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
-
-&gt;&gt;&gt; I&#39;m number 20  
-</code></pre>
-
-<p><strong>打印浮点数(默认)</strong></p>
-
-<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
-
-&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
-</code></pre>
-
-<p><strong>打印浮点数(指定位数)</strong></p>
-
-<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
-
-&gt;&gt;&gt; His height is 1.73 m 
-</code></pre>
-
-<p><strong>打印字符串</strong></p>
-
-<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
-
-&gt;&gt;&gt; My name is terry 
-</code></pre>
-
-<p><strong>打印指定占位符宽度</strong></p>
-
-<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
-
-&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
-</code></pre>
-
-<p><strong>打印指定占位符(左对齐)</strong></p>
-
-<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
-
-&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
-</code></pre>
-
-<p><strong>打印指定占位符(前导0)</strong></p>
-
-<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
-
-&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
-</code></pre>
-
-<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
-用法主要包含以下几类：</p>
-
-<p><strong>通过位置</strong><br/>
-字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
-
-<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
-
-&gt;&gt;&gt; aaa,bbb,aaa  
-</code></pre>
-
-<p><strong>通过关键字参数</strong></p>
-
-<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
-
-&gt;&gt;&gt; Terry,18  
-</code></pre>
-
-<p><strong>通过对象属性</strong></p>
-
-<pre><code class="language-python">class Person:
-    def __init__(self,name,age):
-        self.name = name
-        self.age = age
-
-    def __str__(self):
-        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
-
-print str(Person(&#39;Terry&#39;,18))
-
-&gt;&gt;&gt; This guy is Terry,he is 18 old.
-</code></pre>
-
-<p><strong>通过下标</strong></p>
-
-<pre><code class="language-python">person = [&#39;Terry&#39;,18]
-print(&#39;{0[0]},{0[1]}&#39;.format(person))
-
-&gt;&gt;&gt; Terry,18
-</code></pre>
-
-<p><strong>通过格式</strong><br/>
-如上面的前导0：</p>
-
-<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
-
-&gt;&gt;&gt; 00000189
-&gt;&gt;&gt;      189
-&gt;&gt;&gt; aaaaa189
-</code></pre>
-
-<p>以及浮点数：</p>
-
-<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
-
-&gt;&gt;&gt; 321.33
-</code></pre>
-
-<p><strong>其他类型</strong><br/>
-主要就是二进制b、十进制d、八进制o、十六进制x:</p>
-
-<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
-print(&#39;{:d}&#39;.format(46))
-print(&#39;{:o}&#39;.format(46))
-print(&#39;{:x}&#39;.format(46))
-
-&gt;&gt;&gt; 101110
-&gt;&gt;&gt; 46
-&gt;&gt;&gt; 56
-&gt;&gt;&gt; 2e
-</code></pre>
-
-<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
-
-<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
-
-&gt;&gt;&gt; 99,988,844,333
-</code></pre>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/12/20 20:58 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -476,6 +368,12 @@ print(&#39;{:x}&#39;.format(46))
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -495,12 +393,6 @@ print(&#39;{:x}&#39;.format(46))
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

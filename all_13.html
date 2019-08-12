@@ -107,6 +107,86 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="14976187081535.html">
+                
+                  <h1>UIButton</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h3 id="toc_0">UIButton的状态</h3>
+
+<ul>
+<li><p>normal(普通状态)</p>
+
+<ul>
+<li>默认情况（DEFAULT）</li>
+<li>对应的枚举常量： UIControlStateNormal</li>
+</ul></li>
+<li><p>highlighted (高亮状态)</p>
+
+<ul>
+<li>按钮被按下去的时候</li>
+<li>对应的枚举常量： UIControlStateHighlighted</li>
+</ul></li>
+<li><p>disabled (失效状态)</p>
+
+<ul>
+<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
+<li>对应的枚举变量： UIControlStateDisabled</li>
+</ul></li>
+</ul>
+
+<h3 id="toc_1">UIButton代码应用</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(100, 300, 200, 100);
+    button.backgroundColor = [UIColor redColor];
+    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
+    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
+    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
+    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
+
+    [self.view addSubview:button];
+    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
+}
+
+-(IBAction)clickButton:(UIButton *)button {
+    button.enabled = NO;
+
+}
+</code></pre>
+
+<h3 id="toc_2">九宫格布局</h3>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/6/16 21:11 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="14966683926548.html">
                 
                   <h1>UILable</h1>
@@ -230,152 +310,6 @@
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="14965374170472.html">
-                
-                  <h1>UIView</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h3 id="toc_0">UIView常见属性</h3>
-
-<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
-* 获取自己的父控件对象</p>
-
-<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
-* 获取自己的子控件对象</p>
-
-<p><code>@property(nonatomic) NSInteger tag;</code><br/>
-* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
-
-<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
-* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
-
-<p><code>@property(nonatomic) CGRect frame;</code><br/>
-* 控件矩形框在父控件中的位置和尺寸</p>
-
-<p><code>@property(nonatomic) CGRect bounds;</code><br/>
-* 控件矩形框的位置和尺寸</p>
-
-<p><code>@property(nonatomic) CGPoint center;</code><br/>
-* 控件重点的位置</p>
-
-<pre><code>#import &quot;ViewController.h&quot;
-
-@interface ViewController ()
-
-@property(weak, nonatomic) UILabel *lable;
-
-@end
-
-@implementation ViewController
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    UILabel *lable = [[UILabel alloc] init];
-    lable.frame = CGRectMake(200, 100, 100, 60);
-    lable.backgroundColor = [UIColor redColor];
-    [self.view addSubview:lable];
-    self.lable = lable;
-}
-
-- (IBAction)bounds {
-    self.lable.bounds = CGRectMake(0, 0, 200, 40);
-}
-
-- (IBAction)center {
-    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
-}
-@end
-
-</code></pre>
-
-<h3 id="toc_1">常见的方法</h3>
-
-<pre><code>-(void)loadView{
-    [super loadView];
-}
-
--(void)viewDidLoad{
-    [super viewDidLoad];
-} 
-
--(void)didReceiveMemoryWarning{
-    [super didReceiveMemoryWarning];
-}
-</code></pre>
-
-<h5 id="toc_2">viewDidLoad</h5>
-
-<ul>
-<li>系统调用</li>
-<li>controller的View加载完毕的时候调用</li>
-<li>控件的初始化，数据的初始化(懒加载)</li>
-</ul>
-
-<h5 id="toc_3">didReceiveMemoryWarning</h5>
-
-<ul>
-<li>系统调用</li>
-<li>当控制器接受到内存警告调用</li>
-<li>去除一些不必要的内存，去除耗时的内存</li>
-</ul>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-//    NSLog(@&quot;%@&quot;, self.greenView.superview);
-//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
-//    NSLog(@&quot;%@&quot;, self.view.subviews);
-    UISwitch *sw = [[UISwitch alloc] init];
-    [sw setHighlighted:true];
-    [self.view addSubview:sw];
-    [sw removeFromSuperview];
-}
-</code></pre>
-
-<h5 id="toc_4">addSubview</h5>
-
-<ul>
-<li>添加一个子控件
-##### removeFromSuperview</li>
-<li>从父控件中移除
-##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
-<li>根据一个tag找出对应的控件</li>
-<li>不推荐使用tag
-
-<ul>
-<li>tag的效率差</li>
-<li>tag容易乱</li>
-</ul></li>
-</ul>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/6/4 8:50 AM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -455,6 +389,12 @@
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -474,12 +414,6 @@
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

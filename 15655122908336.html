@@ -127,7 +127,7 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
+      <h5 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h5>
 
 <p>我们来看下面这个例子：</p>
 
@@ -152,9 +152,29 @@ for multiplier in create_multipliers():
 6<br/><br/>
 8<br/><br/>
 惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为——闭包中用到的变量只有在函数被调用的时候才会被赋值。<br/><br/>
-所以，在上面的代码中，任何时候，当返回的函数被调用时，Python会在该函数被调用时的作用域中查找 i 对应的值（这时，循环已经结束，所以 i 被赋上了最终的值——4）。<br/><br/>
-解决的方法有一点hack的味道：</p>
+这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
+<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
+因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
+解决的办法有很多：</p>
+
+<p>第一种办法是用Python的生成器：</p>
+
+<pre><code class="language-python">def create_multipliers():
+    for i in range(5): yield lambda x : i * x
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+</code></pre>
+
+<pre><code>0
+2
+4
+6
+8
+</code></pre>
+
+<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
+在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
 
 <pre><code class="language-python">def create_multipliers():
     return [lambda x, i=i : i * x for i in range(5)]
@@ -170,7 +190,26 @@ for multiplier in create_multipliers():
 8
 </code></pre>
 
-<p>在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
+<p>还有种替代的方案是，使用偏函数：</p>
+
+<pre><code class="language-python">from functools import partial
+from operator import mul
+def create_multipliers():
+    return [partial(mul, i) for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+</code></pre>
+
+<pre><code>0
+2
+4
+6
+8
+</code></pre>
+
+<pre><code class="language-python">
+</code></pre>
 
 
     
@@ -271,6 +310,12 @@ for multiplier in create_multipliers():
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -290,12 +335,6 @@ for multiplier in create_multipliers():
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

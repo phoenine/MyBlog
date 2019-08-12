@@ -107,6 +107,87 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="14896702983964.html">
+                
+                  <h1>继承与多态</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h3 id="toc_0">static关键字</h3>
+
+<ol>
+<li><p>C语言中的static</p>
+
+<ul>
+<li>修饰局部变量</li>
+<li>修饰全局变量</li>
+<li>修饰函数</li>
+</ul></li>
+<li><p>OC中的static关键字</p>
+
+<ul>
+<li>static不能修饰属性，也不能修饰方法</li>
+<li>static可以修饰方法中的局部变量</li>
+</ul>
+
+<p>如果方法中的局部变量被static修饰，那么这个变量就会变成静态变量，存储在常量区，当方法执行完毕不会被回收。下次再执行这个方法的时候，直接使用而不用再次声明。<br/>
+<img src="media/14896702983964/14896706781899.jpg" alt=""/></p>
+
+<ul>
+<li>如果方法的返回值是当前类的对象，那么方法的返回值就写为instanceType</li>
+</ul></li>
+<li><p>什么时候用到static<br/>
+<img src="media/14896702983964/14896717656421.jpg" alt=""/></p></li>
+</ol>
+
+<h3 id="toc_1">self关键字</h3>
+
+<ul>
+<li>self是一个指针；</li>
+<li>在对象方法中self指向当前对象；</li>
+<li><p>在类方法中self指向当前类；</p></li>
+<li><p>作用：</p>
+
+<ul>
+<li>可以显式的访问当前对象的属性； self -&gt; 属性</li>
+<li>可以使用self来调用当前对象的其他的对象方法；</li>
+</ul></li>
+</ul>
+
+<h3 id="toc_2">私有属性和私有方法</h3>
+
+<ul>
+<li>将属性定义在@implementation之中和将属性定义在@interface之中并标记为@private唯一的区别： 提示和不提示</li>
+<li>都不能被外界访问</li>
+<li>方法不写声明，只写实现，那么这个方法就是一个私有方法；</li>
+<li>私有方法只能在本类的其他方法中调用，不能被外界调用</li>
+</ul>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2017/3/16 21:18 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="14885942470746.html">
                 
                   <h1>类方法与对象方法</h1>
@@ -163,67 +244,6 @@
                   <div class="more-left left">
                   
                     <span class="date">2017/3/4 10:24 AM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="14879879409983.html">
-                
-                  <h1>对象与方法</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h4 id="toc_0">分组导航标记</h4>
-
-<p>标记：<br/>
-<code># pragma mark XXXX</code><br/>
-分割线：<br/>
-<code># pragma mark -</code></p>
-
-<h4 id="toc_1">类的本质</h4>
-
-<ul>
-<li>类的本质是我们自定义的一个<strong>数据类型</strong></li>
-<li>类可以作为方法的参数:<code>- (void) test : (Dog *)Dog;</code></li>
-<li>一个target钟的类无法直接在另外一个target钟访问；</li>
-<li>类的属性代表这个类所拥有的东西；</li>
-<li>类的方法代表该类所具备的行为和功能；</li>
-</ul>
-
-<h4 id="toc_2">对象作为类的属性</h4>
-
-<p><img src="media/14879879409983/14880765155478.jpg" alt=""/></p>
-
-<ul>
-<li>属性的本质是变量；</li>
-<li>在创建对象的时候，对象中的属性是按照类模板中个规定所创建出来的；</li>
-<li>注意_dog是指针变量；如果对象的属性是另一个类的对象，这个属性仅仅是一个指针变量，并没有对象产生；
-<img src="media/14879879409983/14880768553779.jpg" alt=""/>
-<img src="media/14879879409983/14880772940474.jpg" alt=""/>
-如果要再方法中调用当前对象的另一个方法 <code>[self 方法名]</code></li>
-</ul>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/2/25 9:59 AM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
@@ -318,6 +338,12 @@
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -337,12 +363,6 @@
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

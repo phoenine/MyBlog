@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Ascetic in the deadlock
+  Python - Ascetic in the deadlock
   
   </title>
   
@@ -107,96 +107,24 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655122908336.html">
+                <a class="clearlink" href="15095429404216.html">
                 
-                  <h1>Python常见的错误<六></h1>
+                  <h1>通过MWeb上传Blog</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h5 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h5>
+                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
 
-<p>我们来看下面这个例子：</p>
+<ol>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
+</ol>
 
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x : i * x for i in range(5)]
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
 
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>8
-8
-8
-8
-8
-</code></pre>
-
-<p>你也许希望获得下面的输出结果：<br/><br/>
-0<br/><br/>
-2<br/><br/>
-4<br/><br/>
-6<br/><br/>
-8<br/><br/>
-惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
-<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
-因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
-解决的办法有很多：</p>
-
-<p>第一种办法是用Python的生成器：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    for i in range(5): yield lambda x : i * x
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
-在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
-
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x, i=i : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>还有种替代的方案是，使用偏函数：</p>
-
-<pre><code class="language-python">from functools import partial
-from operator import mul
-def create_multipliers():
-    return [partial(mul, i) for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<pre><code class="language-python">
-</code></pre>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
 
                         
                       </div>
@@ -205,81 +133,7 @@ for multiplier in create_multipliers():
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:31 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="15655122526636.html">
-                
-                  <h1>Python常见的错误<五></h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h4 id="toc_0">常见错误5: 当迭代时修改一个列表（List）</h4>
-
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-for i in range(len(numbers)):
-     if odd(numbers[i]):
-            del numbers[i]
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-IndexError                                Traceback (most recent call last)
-
-&lt;ipython-input-1-c259828f5d17&gt; in &lt;module&gt;
-      2 numbers = [n for n in range(10)]
-      3 for i in range(len(numbers)):
-----&gt; 4      if odd(numbers[i]):
-      5             del numbers[i]
-
-
-IndexError: list index out of range
-</code></pre>
-
-<p>当迭代的时候，从一个 列表或者数组中删除元素，对于任何有经验的开发者来说，这是一个众所周知的错误。尽管上面的例子非常明显，但是许多高级开发者在更复杂的代码中也并非是故意而为之的。<br/>
-幸运的是，Python包含大量简洁优雅的编程范例，若使用得当，能大大简化和精炼代码。<br/><br/>
-这样的好处是能得到更简化和更精简的代码，能更好的避免程序中出现当迭代时修改一个列表这样的bug。一个这样的范例是递推式列表（list comprehensions）。<br/><br/>
-<a href="https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps">https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps</a><br/><br/>
-而且，递推式列表（list comprehensions）针对这个问题是特别有用的，通过更改上文中的实现，得到一段极佳的代码：</p>
-
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-numbers[:] = [n for n in numbers if not odd(n)]  # ahh, the beauty of it all
-numbers
-</code></pre>
-
-<pre><code>[0, 2, 4, 6, 8]
-</code></pre>
-
-<pre><code class="language-python">
-</code></pre>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2019/8/11 16:30 PM</span>
+                    <span class="date">2017/11/1 21:29 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -301,12 +155,12 @@ numbers
 			<div class="row">
 			  <div class="large-6 columns">
 			  <p class="text-left" style="padding-top:25px;">
-			   <a href="all_1.html">&laquo; Prev Page</a>  
+			   <a href="Python_9.html">&laquo; Prev Page</a>  
 			  </p>
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			 <a href="all_3.html">&raquo; Next Page</a> 
+			
 			</p>
 			  </div>
 			</div>

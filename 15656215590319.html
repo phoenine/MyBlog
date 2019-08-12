@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Auto Migrate Tools(v2.0) - Ascetic in the deadlock
+  Python常见的错误<十> - Ascetic in the deadlock
   
   </title>
   
@@ -107,14 +107,14 @@
       <div class="markdown-body article-wrap">
        <div class="article">
           
-          <h1>Auto Migrate Tools(v2.0)</h1>
+          <h1>Python常见的错误<十></h1>
      
         <div class="read-more clearfix">
-          <span class="date">2018/1/16 20:50 PM</span>
+          <span class="date">2019/8/12 22:52 PM</span>
 
           <span>posted in&nbsp;</span> 
           
-              <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
            
          
           <span class="comments">
@@ -127,114 +127,50 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <p>更新了下脚本：<br/>
-还是有些问题：<br/>
-1. 如果有其他Project的node怎么处理？<br/>
-2. 如果有自己的其他node怎么处理？</p>
+      <h4 id="toc_0">常见错误10: 浮点与整除</h4>
 
-<pre><code class="language-sh">#!/bin/bash
+<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
 
-function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
-function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
-function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
-function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+<pre><code class="language-python">def div1(x,y):
+    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
+def div2(x,y):
+    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
+div1(5,2)
+div1(5.,2)
+div2(5,2)
+div2(5.,2.)
+</code></pre>
 
-COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-UE_NODE_LIST=`nova list | grep ei | awk &#39;{print $4}&#39;`
-UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
-OTHER_NODE_LIST=`nova list --fields name | grep -v ei | awk &#39;NR&gt;2&#39; | awk &#39;{print $4}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-OPTIMAL_COMPUTE=&#39;&#39;
-INFERIOR_COMPUTE=&#39;&#39;
-INIT_USED=8.0
+<pre><code>5/2 = 2.5
+5.0/2 = 2.5
+5//2 = 2
+5.0//2.0 = 2.0
+</code></pre>
 
-for COMPUTER in $COMPUTER_LIST
-    do
-        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
-        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
-            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
-            OPTIMAL_COMPUTER=$COMPUTER
-            break
-        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
-            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
-            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$CPUS_USED
-                INFERIOR_COMPUTE=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            fi
-        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
-            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
-            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
-            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
-            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
-            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$USED_RATE
-                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
-                INFERIOR_COMPUTE=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            else
-                continue
-            fi
-        else
-            echo__red &quot;This computer node is full.&quot;
-        fi
-    done
-    echo &quot;===========Finally the chosen computer is : 1. $OPTIMAL_COMPUTER  2. $INFERIOR_COMPUTE.==============&quot;
+<p>在Python3下结果会有怎样的不同？<br/><br/>
+在Python2中，上述代码输出将是<br/><br/>
+5/2 = 2<br/><br/>
+5.0/2 = 2.5<br/><br/>
+5//2 = 2<br/><br/>
+5.0//2.0 = 2.0  </p>
 
-for INSTANCE_NAME in $OTHER_NODE_LIST
-        do
-            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
-            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
-            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
-                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
-                OPTIMAL_COMPUTER=$UE_COMPUTE
-                break
-            else
-                continue
-            fi
-        done
-    echo__red &quot;All UE instance are not stand alone.&quot;
+<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
+注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
 
-for INSTANCE_NAME in $UE_NODE_LIST
-        do
-            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
-            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
-            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
-                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
-                OPTIMAL_COMPUTER=$UE_COMPUTE
-                break
-            else
-                continue
-            fi
-        done
-    echo__red &quot;All other instance are not stand alone.&quot;
+<pre><code class="language-python">from future import division
+</code></pre>
 
-echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
-if [[ -z &quot;$OPTIMAL_COMPUTER&quot; ]];then
-    for UE_NODE in $UE_NODE_LIST
-        do
-            nova live-migration $UE_NODE $OPTIMAL_COMPUTER
-            sleep 5
-            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-                echo &quot;Still migrating, please wait...&quot;
-                sleep 5     
-            fi
-        done
-else
-    for UE_NODE in $UE_NODE_LIST
-        do
-            nova live-migration $UE_NODE $INFERIOR_COMPUTE
-            sleep 5
-            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-                echo &quot;Still migrating, please wait...&quot;
-                sleep 5     
-            fi
-        done   
-fi
+<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
+然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
+因此，在Python3中，将会是如下结果：<br/><br/>
+5/2 = 2.5<br/><br/>
+5.0/2 = 2.5<br/><br/>
+5//2 = 2<br/><br/>
+5.0//2.0 = 2.0  </p>
 
-echo__green &quot;Live migration is successfully.&quot;
+<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
+
+<pre><code class="language-python">
 </code></pre>
 
 
@@ -246,16 +182,13 @@ echo__green &quot;Live migration is successfully.&quot;
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
       
-          <a href="15161072350728.html" 
-          title="Previous Post: Auto Install Stack">&laquo; Auto Install Stack</a>
-      
         </p>
         </div>
         <div class="large-6 columns">
       <p class="text-right" style="padding:15px 0px;">
       
-          <a  href="15156751072902.html" 
-          title="Next Post: Python对象的浅拷贝与深拷贝">Python对象的浅拷贝与深拷贝 &raquo;</a>
+          <a  href="15655124741455.html" 
+          title="Next Post: Python常见的错误<九>">Python常见的错误<九> &raquo;</a>
       
       </p>
         </div>

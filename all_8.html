@@ -107,6 +107,147 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="15161070375181.html">
+                
+                  <h1>Auto Migrate Tools(v2.0)</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>更新了下脚本：<br/>
+还是有些问题：<br/>
+1. 如果有其他Project的node怎么处理？<br/>
+2. 如果有自己的其他node怎么处理？</p>
+
+<pre><code class="language-sh">#!/bin/bash
+
+function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+UE_NODE_LIST=`nova list | grep ei | awk &#39;{print $4}&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OTHER_NODE_LIST=`nova list --fields name | grep -v ei | awk &#39;NR&gt;2&#39; | awk &#39;{print $4}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
+OPTIMAL_COMPUTE=&#39;&#39;
+INFERIOR_COMPUTE=&#39;&#39;
+INIT_USED=8.0
+
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                INFERIOR_COMPUTE=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+    echo &quot;===========Finally the chosen computer is : 1. $OPTIMAL_COMPUTER  2. $INFERIOR_COMPUTE.==============&quot;
+
+for INSTANCE_NAME in $OTHER_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All UE instance are not stand alone.&quot;
+
+for INSTANCE_NAME in $UE_NODE_LIST
+        do
+            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
+            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
+            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
+                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
+                OPTIMAL_COMPUTER=$UE_COMPUTE
+                break
+            else
+                continue
+            fi
+        done
+    echo__red &quot;All other instance are not stand alone.&quot;
+
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+if [[ -z &quot;$OPTIMAL_COMPUTER&quot; ]];then
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $OPTIMAL_COMPUTER
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done
+else
+    for UE_NODE in $UE_NODE_LIST
+        do
+            nova live-migration $UE_NODE $INFERIOR_COMPUTE
+            sleep 5
+            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+                echo &quot;Still migrating, please wait...&quot;
+                sleep 5     
+            fi
+        done   
+fi
+
+echo__green &quot;Live migration is successfully.&quot;
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/1/16 20:50 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="15156751072902.html">
                 
                   <h1>Python对象的浅拷贝与深拷贝</h1>
@@ -327,65 +468,6 @@ print [id(ele) for ele in wilber]
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15142967450536.html">
-                
-                  <h1>Pyhton变量变换原理</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
-
-<pre><code class="language-C">tmp = x;
-x = y;
-y = tmp;
-</code></pre>
-
-<p>而在python中，则无需中间变量即可实现：</p>
-
-<pre><code class="language-python">x , y = y, x
-</code></pre>
-
-<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
-将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
-
-<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
-</code></pre>
-
-<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
-
-<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
-</code></pre>
-
-<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
-接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
-运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
-<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/12/26 21:59 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -465,6 +547,12 @@ y = tmp;
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -484,12 +572,6 @@ y = tmp;
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

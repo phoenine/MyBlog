@@ -107,6 +107,119 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="15655124251876.html">
+                
+                  <h1>Python常见的错误<八></h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+
+<p>请看下面这个 filefoo.py:</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
+
+bad()
+</code></pre>
+
+<p>在Python 2中运行正常：</p>
+
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
+</code></pre>
+
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+</code></pre>
+
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
+
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
+</code></pre>
+
+<pre><code class="language-python">
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2019/8/11 16:33 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="15655123624150.html">
                 
                   <h1>Python常见的错误<七></h1>
@@ -172,82 +285,6 @@ def g():
                   <div class="more-left left">
                   
                     <span class="date">2019/8/11 16:32 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="15655122908336.html">
-                
-                  <h1>Python常见的错误<六></h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
-
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>8
-8
-8
-8
-8
-</code></pre>
-
-<p>你也许希望获得下面的输出结果：<br/><br/>
-0<br/><br/>
-2<br/><br/>
-4<br/><br/>
-6<br/><br/>
-8<br/><br/>
-惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为——闭包中用到的变量只有在函数被调用的时候才会被赋值。<br/><br/>
-所以，在上面的代码中，任何时候，当返回的函数被调用时，Python会在该函数被调用时的作用域中查找 i 对应的值（这时，循环已经结束，所以 i 被赋上了最终的值——4）。<br/><br/>
-解决的方法有一点hack的味道：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x, i=i : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2019/8/11 16:31 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -342,6 +379,12 @@ for multiplier in create_multipliers():
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -361,12 +404,6 @@ for multiplier in create_multipliers():
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  

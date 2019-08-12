@@ -107,6 +107,227 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
+                <a class="clearlink" href="15156751072902.html">
+                
+                  <h1>Python对象的浅拷贝与深拷贝</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>我们知道，对象赋值实际上是简单的对象引用。也就是说，当你创建了一个对象，然后把它赋值给另外一个变量的时候，Python并没有拷贝这个对象，而是拷贝了这个对象的引用。<br/>
+举例说明：</p>
+
+<pre><code class="language-python">x = 3.14
+y = x
+</code></pre>
+
+<p>语句<code>x = 3.14</code>创建了一个浮点型对象并将其引用赋值给x。<br/>
+x是第一个引用。<br/>
+语句<code>y = x</code>创建了一个指向同一对象的别名y，而事实上并没有为y创建一个新对象(该对象引用计数变成了2)。<br/>
+<img src="media/15156751072902/15156757071783.jpg" alt=""/></p>
+
+<h3 id="toc_0">对象赋值</h3>
+
+<p>直接看一段代码：</p>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = will
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出为：<br/>
+<img src="media/15156751072902/15156770585054.png" alt=""/></p>
+
+<p>下面来分析一下这段代码：</p>
+
+<ul>
+<li>首先，创建了一个名为will的变量，这个变量指向一个list对象，从第一张图中可以看到所有对象的地址（每次运行，结果可能不同）</li>
+<li>然后，通过will变量对wilber变量进行赋值，那么wilber变量将指向will变量对应的对象（内存地址），也就是说&quot;wilber is will&quot;，&quot;wilber[i] is will[i]&quot;
+
+<ul>
+<li>可以理解为，Python中，对象的赋值都是进行对象引用（内存地址）传递</li>
+</ul></li>
+<li>第三张图中，由于will和wilber指向同一个对象，所以对will的任何修改都会体现在wilber上
+
+<ul>
+<li>这里需要注意的一点是，str是不可变类型，所以当修改的时候会替换旧的对象，产生一个新的地址39758496
+<img src="media/15156751072902/15156771227464.png" alt=""/></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_1">浅拷贝</h3>
+
+<p>下面就来看看浅拷贝的结果：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.copy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156771638072.png" alt=""/><br/>
+分析一下这段代码：</p>
+
+<ul>
+<li>首先，依然使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的浅拷贝函数copy()，对will指向的对象进行浅拷贝，然后浅拷贝生成的新对象赋值给wilber变量
+
+<ul>
+<li>浅拷贝会创建一个新的对象，这个例子中&quot;wilber is not will&quot;</li>
+<li>但是，对于对象中的元素，浅拷贝就只会使用原始元素的引用（内存地址），也就是说&quot;wilber[i] is will[i]&quot;</li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，所以will的修改结果会相应的反应到wilber上
+<img src="media/15156751072902/15156771821899.png" alt=""/>
+总结一下，当我们使用下面的操作的时候，会产生浅拷贝的效果：</li>
+</ul></li>
+<li>使用切片[:]操作</li>
+<li>使用工厂函数（如list/dir/set）</li>
+<li>使用copy模块中的copy()函数
+例如：</li>
+</ul>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+willber = will[:]
+wiww = list(will)
+</code></pre>
+
+<h3 id="toc_2">深拷贝</h3>
+
+<p>最后来看看深拷贝：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.deepcopy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156773634373.png" alt=""/></p>
+
+<p>分析一下这段代码：</p>
+
+<ul>
+<li>首先，同样使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的深拷贝函数deepcopy()，对will指向的对象进行深拷贝，然后深拷贝生成的新对象赋值给wilber变量
+
+<ul>
+<li>跟浅拷贝类似，深拷贝也会创建一个新的对象，这个例子中&quot;wilber is not will&quot; </li>
+<li>但是，对于对象中的元素，深拷贝都会重新生成一份（有特殊情况，下面会说明），而不是简单的使用原始元素的引用（内存地址）
+
+<ul>
+<li>例子中will的第三个元素指向39737304，而wilber的第三个元素是一个全新的对象39773088，也就是说，&quot;wilber[2] is not will[2]&quot;</li>
+</ul></li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，但是由于&quot;wilber[2] is not will[2]&quot;，所以will的修改不会影响wilber
+<img src="media/15156751072902/15156773891985.png" alt=""/></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_3">拷贝的特殊情况</h3>
+
+<p>其实，对于拷贝有一些特殊情况：</p>
+
+<ul>
+<li>对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有拷贝这一说
+
+<ul>
+<li>也就是说，对于这些类型，&quot;obj is copy.copy(obj)&quot; 、&quot;obj is copy.deepcopy(obj)&quot;</li>
+</ul></li>
+<li>如果元祖变量只包含原子类型对象，则不能深拷贝，看下面的例子
+<img src="media/15156751072902/15156774222287.png" alt=""/></li>
+</ul>
+
+<h3 id="toc_4">总结</h3>
+
+<p>本文介绍了对象的赋值和拷贝，以及它们之间的差异：<br/>
+* Python中对象的赋值都是进行对象引用（内存地址）传递<br/>
+* 使用copy.copy()，可以进行对象的浅拷贝，它复制了对象，但对于对象中的元素，依然使用原始的引用.<br/>
+* 如果需要复制一个容器对象，以及它里面的所有元素（包含元素的子元素），可以使用copy.deepcopy()进行深拷贝<br/>
+* 对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有被拷贝一说<br/>
+* 如果元祖变量只包含原子类型对象，则不能深拷贝.</p>
+
+<p>文章引用：<br/>
+<a href=""></a><a href="https://www.cnblogs.com/wilber2013/p/4645353.html">https://www.cnblogs.com/wilber2013/p/4645353.html</a></p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/1/11 20:51 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
+			<div class="article">
                 <a class="clearlink" href="15142967450536.html">
                 
                   <h1>Pyhton变量变换原理</h1>
@@ -150,61 +371,6 @@ y = tmp;
                   <div class="more-left left">
                   
                     <span class="date">2017/12/26 21:59 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="15142936231027.html">
-                
-                  <h1>Python Unittest与Mock</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p><strong>unittest</strong><br/>
-python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
-python unittest的框架如下： <br/>
-<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
-基本使用方法如下：</p>
-
-<ol>
-<li>import unittest module</li>
-<li>定义一个继承自unittest.TestCase的测试用例类。</li>
-<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
-<li>定义测试用例，名字需要以test开头。</li>
-<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
-<li>调用unittest.main()启动测试</li>
-<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
-</ol>
-
-<p>这里举个简单的例子说明：<br/>
-<img src="media/15142936231027/15142939572020.png" alt=""/></p>
-
-<p>常用的断言：<br/>
-<img src="media/15142936231027/15142939778044.png" alt=""/></p>
-
-<p><strong>Mock</strong></p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/12/26 21:7 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -299,6 +465,12 @@ python unittest的框架如下： <br/>
 	      
 		      
 			      <li class="post">
+			        <a href="15656215590319.html">Python常见的错误<十></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15655124741455.html">Python常见的错误<九></a>
 			      </li>
 		     
@@ -318,12 +490,6 @@ python unittest的框架如下： <br/>
 		      
 			      <li class="post">
 			        <a href="15655122908336.html">Python常见的错误<六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122526636.html">Python常见的错误<五></a>
 			      </li>
 		     
 		  
