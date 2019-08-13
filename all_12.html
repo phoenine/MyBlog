@@ -107,24 +107,144 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15095429404216.html">
+                <a class="clearlink" href="15137747318292.html">
                 
-                  <h1>通过MWeb上传Blog</h1>
+                  <h1>Python格式化输出与format函数</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
+                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
 
-<ol>
-<li><p>新增分类 -&gt; CSDN Blog</p></li>
-<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
-</ol>
+<p><strong>打印整数</strong></p>
 
-<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
-3. 生成网站，并推送到博客</p>
+<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
 
-<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
+&gt;&gt;&gt; I&#39;m number 20  
+</code></pre>
+
+<p><strong>打印浮点数(默认)</strong></p>
+
+<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
+
+&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
+</code></pre>
+
+<p><strong>打印浮点数(指定位数)</strong></p>
+
+<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
+
+&gt;&gt;&gt; His height is 1.73 m 
+</code></pre>
+
+<p><strong>打印字符串</strong></p>
+
+<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
+
+&gt;&gt;&gt; My name is terry 
+</code></pre>
+
+<p><strong>打印指定占位符宽度</strong></p>
+
+<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
+
+&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
+</code></pre>
+
+<p><strong>打印指定占位符(左对齐)</strong></p>
+
+<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
+
+&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
+</code></pre>
+
+<p><strong>打印指定占位符(前导0)</strong></p>
+
+<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
+
+&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
+</code></pre>
+
+<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
+用法主要包含以下几类：</p>
+
+<p><strong>通过位置</strong><br/>
+字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
+
+<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
+
+&gt;&gt;&gt; aaa,bbb,aaa  
+</code></pre>
+
+<p><strong>通过关键字参数</strong></p>
+
+<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
+
+&gt;&gt;&gt; Terry,18  
+</code></pre>
+
+<p><strong>通过对象属性</strong></p>
+
+<pre><code class="language-python">class Person:
+    def __init__(self,name,age):
+        self.name = name
+        self.age = age
+
+    def __str__(self):
+        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
+
+print str(Person(&#39;Terry&#39;,18))
+
+&gt;&gt;&gt; This guy is Terry,he is 18 old.
+</code></pre>
+
+<p><strong>通过下标</strong></p>
+
+<pre><code class="language-python">person = [&#39;Terry&#39;,18]
+print(&#39;{0[0]},{0[1]}&#39;.format(person))
+
+&gt;&gt;&gt; Terry,18
+</code></pre>
+
+<p><strong>通过格式</strong><br/>
+如上面的前导0：</p>
+
+<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
+
+&gt;&gt;&gt; 00000189
+&gt;&gt;&gt;      189
+&gt;&gt;&gt; aaaaa189
+</code></pre>
+
+<p>以及浮点数：</p>
+
+<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
+
+&gt;&gt;&gt; 321.33
+</code></pre>
+
+<p><strong>其他类型</strong><br/>
+主要就是二进制b、十进制d、八进制o、十六进制x:</p>
+
+<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
+print(&#39;{:d}&#39;.format(46))
+print(&#39;{:o}&#39;.format(46))
+print(&#39;{:x}&#39;.format(46))
+
+&gt;&gt;&gt; 101110
+&gt;&gt;&gt; 46
+&gt;&gt;&gt; 56
+&gt;&gt;&gt; 2e
+</code></pre>
+
+<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
+
+<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
+
+&gt;&gt;&gt; 99,988,844,333
+</code></pre>
 
                         
                       </div>
@@ -133,7 +253,7 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/11/1 21:29 PM</span>
+                    <span class="date">2017/12/20 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -150,167 +270,59 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14991719231835.html">
+                <a class="clearlink" href="15096259430881.html">
                 
-                  <h1>自定义控件</h1>
+                  <h1>python中的__name__和__main__</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIView的封装</h3>
+                        	<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
+python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
 
-<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
-* 目的：封装空间内部的细节，不让外界关心</p>
+<ol>
+<li>当代码被执行时，__name__的值为 ‘__main__’</li>
+<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
+</ol>
 
-<h3 id="toc_1">UIView的封装有两种方式</h3>
+<p>举个栗子：<br/>
+在test_1.py中写入如下代码：</p>
 
-<p>通过纯代码封装：<br/>
-1. 新建一个继承UIView的类<br/>
-2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
-3. 在initWithFrame:方法中添加子控件<br/>
-4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
-5. 提供一个模型属性，重写模型属性的set方法<br/>
-6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
-UIView的封装代码如下：</p>
+<pre><code>print &quot;I&#39;m the first...&quot;
 
-<pre><code> /**
-  *  CustomView.h文件
-  */
+def test():
+    print &quot;I&#39;m the second...&quot;
 
- // 步骤1 新建一个继承UIView的类
- #import &lt;UIKit/UIKit.h&gt;
- @class CustomModel;
- @interface CustomView : UIView
- // 在这里为了方便，可以自行添加构造方法，方便使用
- // 步骤5 提供一个`模型`属性，重写模型属性的set方法
- @property (nonatomic, strong) CustomModel *model;
- @end
+print __name__
+if __name__ == &quot;__main__&quot;:
+    test()
+    print &quot;I&#39;m the third...&quot;
+else:
+    print &quot;I&#39;m the last...&quot;
 </code></pre>
 
-<pre><code>/**
- *  CustomView.m文件
- */
- #import &quot;CustomView.h&quot;
- #import &quot;CustomModel.h&quot;
- @interface CustomView ()
- // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
- @property (nonatomic, weak) UIImageView *iconImageView;
- @property (nonatomic, weak) UILabel *nameLabel;
- @end
+<p>直接执行test_1.py，会有如下结果：</p>
 
- @implementation CustomView
- // 步骤3 在initWithFrame:方法中添加子控件
- - (instancetype)initWithFrame:(CGRect)frame
- {
-     if (self = [super initWithFrame:frame]) {
-     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
-     UIImageView *iconImageView = [[UIImageView alloc] init];
-     self.iconImageView = iconImageView;
-     [self addSubview:iconImageView];
-
-     UILabel *nameLabel = [[UILabel alloc] init];
-     // 设置子控件的属性
-     nameLabel.textAlignment = NSTextAlignmentCenter;
-     nameLabel.font = [UIFont systemFontOfSize:10];
-     self.nameLabel = nameLabel;
-     [self addSubview:nameLabel];
-     }
-     return self;
- }
-
- // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
- - (void)layoutSubviews
- {
-     [super layoutSubviews];
-
-     CGFloat iconImageViewX = 0;
-     CGFloat iconImageViewY = 0;
-     CGFloat iconImageViewW = self.bounds.size.width;
-     CGFloat iconImageViewH = 80;
-     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
-
-     CGFloat nameLabelX = 0;
-     CGFloat nameLabelY = iconImageViewH;
-     CGFloat nameLabelW = iconImageViewW;
-     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
-     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
- }
-
- // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
- - (void)setModel:(CustomModel *)model
- {
-     _model = model;
-     self.iconImageView.image = [UIImage imageNamed:model.icon];
-     self.nameLabel.text = model.name;
- }
- @end
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
+I&#39;m the first...
+__main__
+I&#39;m the second...
+I&#39;m the third...
 </code></pre>
 
-<p>layoutSubviews在以下情况下会被调用：<br/>
-1. init初始化不会触发layoutSubviews<br/>
-2. addSubview会触发layoutSubviews<br/>
-3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
-4. 滚动一个UIScrollView会触发layoutSubviews<br/>
-5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
-6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
+<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
+而作为调用来执行时：<br/>
+<code>from test_1 import test</code><br/>
+会有如下结果：</p>
 
-<p>模型代码如下：</p>
-
-<pre><code> /**
-  *  CustomModel.h文件
-  */
- #import &lt;Foundation/Foundation.h&gt;
-
- @interface CustomModel : NSObject
-    /**
-     *  名字
-     */
- @property (nonatomic, copy) NSString *name;
-    /**
-     *  图片
-     */
- @property (nonatomic, copy) NSString *icon;
-
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
-
- @end
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
+I&#39;m the first...
+test_1
+I&#39;m the last...
 </code></pre>
 
-<pre><code> /**
-  *  CustomModel.m文件
-  */
- #import &quot;CustomModel.h&quot;
-
- @implementation CustomModel
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
- {
-     return [[self alloc] initWithName:name icon:icon];
- }
-
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
- {
-     if (self = [super init]) {
-         self.name = name;
-         self.icon = icon;
-     }
-     return self;
- }
- @end
-</code></pre>
-
-<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
-
-<pre><code>// 创建自定义的View
- CustomView *customView = [[CustomView alloc] init];
-// 设置数据
- CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
- customView.model = model;
-// 设置frame
- customView.frame = CGRectMake(100, 100, 67, 100);
-// 添加子控件
- [self.view addSubview:customView];
-</code></pre>
+<p>此时__name__的值为test_1，即模块的名字 。 <br/>
+其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
 
                         
                       </div>
@@ -319,10 +331,10 @@ UIView的封装代码如下：</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/7/4 20:38 PM</span>
+                    <span class="date">2017/11/2 20:32 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -414,6 +426,18 @@ UIView的封装代码如下：</p>
 	      
 		      
 			      <li class="post">
+			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15656215590319.html">Python常见的错误<十></a>
 			      </li>
 		     
@@ -427,18 +451,6 @@ UIView的封装代码如下：</p>
 		      
 			      <li class="post">
 			        <a href="15655124251876.html">Python常见的错误<八></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655123624150.html">Python常见的错误<七></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  

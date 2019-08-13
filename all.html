@@ -107,58 +107,130 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15656215590319.html">
+                <a class="clearlink" href="15657075853367.html">
                 
-                  <h1>Python常见的错误<十></h1>
+                  <h1>Python常见的错误<十二></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误10: 浮点与整除</h4>
+                        	<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
 
-<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
+<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
+a = 3<br/><br/>
+b = 3<br/><br/>
+而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
+a = b = c = 3<br/><br/>
+我们来看看这段代码输出的是什么？</p>
 
-<pre><code class="language-python">def div1(x,y):
-    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
-def div2(x,y):
-    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
-div1(5,2)
-div1(5.,2)
-div2(5,2)
-div2(5.,2.)
+<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
+i = 0
+i = s[i] = 3
+print(i)
+print(s)
 </code></pre>
 
-<pre><code>5/2 = 2.5
-5.0/2 = 2.5
-5//2 = 2
-5.0//2.0 = 2.0
+<pre><code>3
+[1, 2, 3, 3, 5, 6]
 </code></pre>
 
-<p>在Python3下结果会有怎样的不同？<br/><br/>
-在Python2中，上述代码输出将是<br/><br/>
-5/2 = 2<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
+<p>i 的值: 3<br/><br/>
+---这个好解释<br/><br/>
+s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
+？？？<br/><br/>
+s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
 
-<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
-注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
+<pre><code class="language-python">def test():
+    s = [1, 2, 3, 4, 5, 6] 
+    i = 0
+    i = s[i] = 3
+    print(i)
+    print(s)
 
-<pre><code class="language-python">from future import division
+import dis
+dis.dis(test)
 </code></pre>
 
-<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
-然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
-因此，在Python3中，将会是如下结果：<br/><br/>
-5/2 = 2.5<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
+<pre><code>  2           0 LOAD_CONST               1 (1)
+              2 LOAD_CONST               2 (2)
+              4 LOAD_CONST               3 (3)
+              6 LOAD_CONST               4 (4)
+              8 LOAD_CONST               5 (5)
+             10 LOAD_CONST               6 (6)
+             12 BUILD_LIST               6
+             14 STORE_FAST               0 (s)
 
-<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
+  3          16 LOAD_CONST               7 (0)
+             18 STORE_FAST               1 (i)
 
-<pre><code class="language-python">
+  4          20 LOAD_CONST               3 (3)
+             22 DUP_TOP
+             24 STORE_FAST               1 (i)
+             26 LOAD_FAST                0 (s)
+             28 LOAD_FAST                1 (i)
+             30 STORE_SUBSCR
+
+  5          32 LOAD_GLOBAL              0 (print)
+             34 LOAD_FAST                1 (i)
+             36 CALL_FUNCTION            1
+             38 POP_TOP
+
+  6          40 LOAD_GLOBAL              0 (print)
+             42 LOAD_FAST                0 (s)
+             44 CALL_FUNCTION            1
+             46 POP_TOP
+             48 LOAD_CONST               0 (None)
+             50 RETURN_VALUE
 </code></pre>
+
+<p>解释如下：<br/><br/>
+第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
+第1~2行简单解释下:<br/><br/>
+分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
+第3行:<br/><br/>
+LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:  </p>
+
+<pre><code>//取自 python/ceval.c 
+PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)  
+{
+        ... (省略)  
+        TARGET_NOARG(DUP_TOP)  
+        {  
+            v = TOP();    // 复制运行栈帧的顶部值  
+            Py_INCREF(v); // 增加引用计数  
+            PUSH(v);      // 再压入运行栈帧  
+            FAST_DISPATCH();  
+        }  
+        ... (省略)  
+}  
+
+</code></pre>
+
+<p>DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:</p>
+
+<pre><code>         24 STORE_FAST               1 (i)
+         26 LOAD_FAST                0 (s)
+         28 LOAD_FAST                1 (i)
+         30 STORE_SUBSCR
+</code></pre>
+
+<p>果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+
+<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
+这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+
+<p>a = s = 3<br/><br/>
+等价于:<br/><br/>
+a = (s = 3)<br/><br/>
+也就是 s=3 返回3, 再赋值给a  </p>
+
+<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
+希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+
+<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
+a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
+Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
+参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
 
                         
                       </div>
@@ -167,7 +239,7 @@ div2(5.,2.)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/12 22:52 PM</span>
+                    <span class="date">2019/8/13 22:46 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -184,54 +256,75 @@ div2(5.,2.)
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655124741455.html">
+                <a class="clearlink" href="15657061085965.html">
                 
-                  <h1>Python常见的错误<九></h1>
+                  <h1>Python常见的错误<十一></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误9: 误用__del__方法</h4>
+                        	<h4 id="toc_0">常见错误11: 列表的缺陷</h4>
 
-<p>假设你有一个名为 calledmod.py 的文件：</p>
+<p>来看看下面代码的输出结果将是什么？</p>
 
-<pre><code class="language-python">import foo
+<p>下面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
+例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
+然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
+这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
 
-class Bar(object):
-           ...
-    def __del__(self):
-        foo.cleanup(self.myhandle)
+<pre><code class="language-python">list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+print(list[10:])
+print(list[10])
 </code></pre>
 
-<p>并且有一个名为 another_mod.py 的文件：</p>
+<pre><code>[]
 
-<pre><code class="language-python">import mod
-mybar = mod.Bar()
+
+
+---------------------------------------------------------------------------
+
+IndexError                                Traceback (most recent call last)
+
+&lt;ipython-input-5-7b4a48b0e416&gt; in &lt;module&gt;
+      1 list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+      2 print(list[10:])
+----&gt; 3 print(list[10])
+
+
+IndexError: list index out of range
 </code></pre>
 
-<p>你会得到一个 AttributeError 的异常。<br/><br/>
-为什么呢？因为，正如这里所说<br/><br/>
-<a href="https://mail.python.org/pipermail/python-bugs-list/2009-January/069209.html">https://mail.python.org/pipermail/python-bugs-list/2009-January/069209.html</a><br/><br/>
-当解释器退出的时候，模块中的全局变量都被设置成了 None。所以，在上面这个例子中，当 <strong>del</strong> 被调用时，foo 已经被设置成了None。<br/><br/>
-解决方法是使用 atexit.register() 代替。<br/><br/>
-<a href="https://docs.python.org/2/library/atexit.html">https://docs.python.org/2/library/atexit.html</a><br/><br/>
-用这种方式，当你的程序结束执行时（意思是正常退出），你注册的处理程序会在解释器退出之前执行。<br/><br/>
-了解了这些，我们可以将上面 mod.py 的代码修改成下面的这样。</p>
+<p>我们再来看看这段代码，猜想一下，输出是什么？</p>
 
-<pre><code class="language-python">import foo
-import atexit
-
-def cleanup(handle):
-    foo.cleanup(handle)
-
-
-class Bar(object):
-    def __init__(self):
-        ...
-        atexit.register(cleanup, self.myhandle)
+<pre><code class="language-python">list = [ [ ] ] * 5
+print(list)  # output?
+list[0].append(10)
+print(list)  # output?
+list[1].append(20)
+print(list)   # output?
+list.append(30)
+print(list)   # output?
 </code></pre>
 
-<p>这种实现方式提供了一个整洁并且可信赖的方法用来在程序退出之前做一些清理工作。很显然，它是由foo.cleanup 来决定对绑定在 self.myhandle 上对象做些什么处理工作的，但是这就是你想要的。</p>
+<pre><code>[[], [], [], [], []]
+[[10], [10], [10], [10], [10]]
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]
+</code></pre>
+
+<p>解释如下：<br/><br/>
+第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了5个空列表。<br/><br/>
+然而，理解表达式list=[ [ ] ] * 5的关键一点是它不是创造一个包含五个独立列表的列表，而是它是一个<b>创建了包含对同一个列表五次引用的列表。</b><br/><br/>
+只有了解了这一点，我们才能更好的理解接下来的输出结果。<br/><br/>
+list[0].append(10) 将10附加在第一个列表上。<br/>
+但由于所有5个列表是引用的同一个列表，所以这个结果将是：<br/><br/>
+[[10], [10], [10], [10], [10]]。<br/><br/>
+同理，list[1].append(20)将20附加在第二个列表上。但同样由于5个列表是引用的同一个列表，所以输出结果现在是：<br/><br/>
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
+作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
+
+<pre><code class="language-python">
+</code></pre>
 
                         
                       </div>
@@ -240,7 +333,7 @@ class Bar(object):
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:34 PM</span>
+                    <span class="date">2019/8/13 22:21 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -335,6 +428,18 @@ class Bar(object):
 	      
 		      
 			      <li class="post">
+			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15656215590319.html">Python常见的错误<十></a>
 			      </li>
 		     
@@ -348,18 +453,6 @@ class Bar(object):
 		      
 			      <li class="post">
 			        <a href="15655124251876.html">Python常见的错误<八></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655123624150.html">Python常见的错误<七></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  

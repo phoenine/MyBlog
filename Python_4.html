@@ -107,49 +107,93 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655120913106.html">
+                <a class="clearlink" href="15655122052917.html">
                 
-                  <h1>Python常见的错误<二></h1>
+                  <h1>Python常见的错误<四></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误2: 错误地使用类变量</h4>
+                        	<h4 id="toc_0">常见错误4: 不理解Python的作用域</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>Python是基于 LEGB 来进行作用于解析的, LEGB<br/><br/>
+是 Local, Enclosing, Global,Built-in 的缩写。看起来“见文知意”，对吗？实际上，在Python中还有一些需要注意的地方，先看下面一段代码：</p>
 
-<pre><code class="language-python">class A(object):
-    x = 1
+<pre><code class="language-python">x = 10
+def foo():
+    x += 1
+    print(x)
 
-class B(A):
-    pass
-
-class C(A):
-    pass
-
-print(A.x, B.x, C.x)
-B.x = 2
-print(A.x, B.x, C.x)
-A.x = 3
-print(A.x, B.x, C.x)
+foo()
 </code></pre>
 
-<pre><code>1 1 1
-1 2 1
-3 2 3
+<pre><code>---------------------------------------------------------------------------
+
+UnboundLocalError                         Traceback (most recent call last)
+
+&lt;ipython-input-1-ec96c7a5b5d8&gt; in &lt;module&gt;
+      4     print(x)
+      5 
+----&gt; 6 foo()
+
+
+&lt;ipython-input-1-ec96c7a5b5d8&gt; in foo()
+      1 x = 10
+      2 def foo():
+----&gt; 3     x += 1
+      4     print(x)
+      5 
+
+
+UnboundLocalError: local variable &#39;x&#39; referenced before assignment
 </code></pre>
 
-<p>WTF?? 我们只改了A.x，为什么C.x也改了?<br/><br/>
-在Python中，<b>类变量在内部当做字典来处理，其遵循常被引用的方法解析顺序（MRO）</b>。<br/><br/>
-一个变量名如果没有在当前类下的字典中被发现，则会在更高级的类（如它的父类）中尽心搜索直到引用的变量名被找到。（如果引用变量名在自身类和更高级类中没有找到，将会引发一个属性错误）。<br/><br/>
-所以在上面的代码中，由于class C中的x属性没有找到，它会向上找它的基类（尽管Python支持多重继承，但上面的例子中只有A）。<br/><br/>
-如果它的任何一个子类被覆写了值（例如说，当我们执行语句B.x = 2）,这个值只在子类中进行了修改。所以第二个打印语句输出结果是1 2 1。<br/><br/>
-如果这个值在父类中进行了修改，（例如说，当我们执行语句A.x = 3）,这个改变将会影响那些还没有覆写子类的值（在这个例子中就是C），所以第三打印语句输出结果是3 2 3。换句话说，class C中没有它自己的x属性，其独立于A。因此，C.x事实上是A.x的引用。  </p>
+<p>这里出什么问题了？<br/><br/>
+上面的问题之所以会发生是因为当你给作用域中的一个变量赋值时，Python 会自动的把它当做是当前作用域的局部变量，从而会隐藏外部作用域中的同名变量。<br/><br/>
+很多人会感到很吃惊，当他们给之前可以正常运行的代码的函数体的某个地方添加了一句赋值语句之后就得到了一个 UnboundLocalError 的错误。<br/><br/>
+尤其是当开发者使用 lists 时，这个问题就更加常见。请看下面这个例子：</p>
 
-<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
+<pre><code class="language-python">lst = [1, 2, 3]
+def foo_1():
+    lst.append(5)
 
-<pre><code class="language-python">
+foo_1()
+lst
 </code></pre>
+
+<pre><code>[1, 2, 3, 5]
+</code></pre>
+
+<pre><code class="language-python">def foo_2():
+    lst += [5]
+
+foo_2()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+UnboundLocalError                         Traceback (most recent call last)
+
+&lt;ipython-input-5-4f369a1ee364&gt; in &lt;module&gt;
+      2     lst += [5]
+      3 
+----&gt; 4 foo_2()
+
+
+&lt;ipython-input-5-4f369a1ee364&gt; in foo_2()
+      1 def foo_2():
+----&gt; 2     lst += [5]
+      3 
+      4 foo_2()
+
+
+UnboundLocalError: local variable &#39;lst&#39; referenced before assignment
+</code></pre>
+
+<p>嗯？为什么 foo2 报错，而foo1没有问题呢？<br/><br/>
+原因和之前那个例子的一样，不过更加令人难以捉摸。foo1 没有对 lst 进行赋值操作，而 foo2 做了。<br/><br/>
+要知道， lst += [5] 是 lst = lst + [5] 的缩写，我们试图对 lst 进行赋值操作（Python把他当成了局部变量）。<br/><br/>
+此外，我们对 lst 进行的赋值操作是基于 lst 自身（这再一次被Python当成了局部变量），但此时还未定义。因此出错！</p>
 
                         
                       </div>
@@ -158,7 +202,7 @@ print(A.x, B.x, C.x)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:28 PM</span>
+                    <span class="date">2019/8/11 16:30 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -175,80 +219,39 @@ print(A.x, B.x, C.x)
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15654471089883.html">
+                <a class="clearlink" href="15655121732301.html">
                 
-                  <h1>Python常见的错误<一></h1>
+                  <h1>Python常见的错误<三></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误1: 滥用表达式作为函数参数的默认值</h4>
+                        	<h4 id="toc_0">常见错误3: 为 except 指定错误的参数</h4>
 
-<p>Python允许为函数的参数提供默认的可选值。尽管这是语言的一大特色，但是它可能会导致一些易变默认值的混乱。<br/><br/>
-一个常见的错误是认为函数每次不提供可选参数调用时，会将可选参数将设置为默认指定值。例如下面这段代码：</p>
+<p>我们来看下面这个例子：</p>
 
-<pre><code class="language-python">def extendList(val, list=[]):
-    list.append(val)
-    return list
-
-list1 = extendList(10)
-list2 = extendList(123,[])
-list3 = extendList(&#39;a&#39;)
-
-print(&quot;list1 = %s&quot; % list1)
-print(&quot;list2 = %s&quot; % list2)
-print(&quot;list3 = %s&quot; % list3)
+<pre><code class="language-python">try:
+    l = [&quot;a&quot;, &quot;b&quot;]
+    int(l[2])
+except ValueError, IndexError:
+    pass
 </code></pre>
 
-<pre><code>list1 = [10, &#39;a&#39;]
-list2 = [123]
-list3 = [10, &#39;a&#39;]
+<pre><code>  File &quot;&lt;ipython-input-2-4f54e4adb7ee&gt;&quot;, line 4
+    except ValueError, IndexError:
+                     ^
+SyntaxError: invalid syntax
 </code></pre>
 
-<p>很多人都会误认为list1=[10]，list3=[‘a’]，因为他们以为每次extendList被调用时，列表参数的默认值都将被设置为[]。<br/><br/>
-但实际上的情况是，<b> 函数参数的默认列表只在函数被定义的那一刻创建一次。</b><br/><br/>
-当extendList被没有指定特定参数list调用时，这组list的值随后将被使用。这是因为<u>带有默认参数的表达式在函数被定义的时候被计算，不是在调用的时候被计算。</u><br/><br/>
-因此list1和list3是在同一个默认列表上进行操作（计算）的。<br/><br/>
-而list2是在一个分离的列表上进行操作（计算）的。（通过传递一个自有的空列表作为列表参数的数值）。<br/>
-extendList的定义可以作如下修改:</p>
+<p>这里的问题在于 except 语句并不接受以这种方式指定的异常列表。相反，在Python 2.x中，使用语法 except Exception, e 是将一个异常对象绑定到第二个可选参数（在这个例子中是 e）上，以便在后面使用。所以，在上面这个例子中，IndexError 这个异常并不是被except语句捕捉到的，而是被绑定到一个名叫 IndexError的参数上时引发的。<br/><br/>
+在一个except语句中捕获多个异常的正确做法是将第一个参数指定为一个含有所有要捕获异常的元组。并且，为了代码的可移植性，要使用as关键词，因为Python 2 和Python 3都支持这种语法：</p>
 
-<pre><code class="language-python">def extendList_2(val, list=None):
-    if list is None:
-        list = []
-    list.append(val)
-    return list
-
-list1 = extendList_2(10)
-list2 = extendList_2(123,[])
-list3 = extendList_2(&#39;a&#39;)
-
-print(&quot;list1 = %s&quot; % list1)
-print(&quot;list2 = %s&quot; % list2)
-print(&quot;list3 = %s&quot; % list3)
+<pre><code class="language-python">try:
+    l = [&quot;a&quot;, &quot;b&quot;]
+    int(l[2])
+except (ValueError, IndexError) as e:
+    pass
 </code></pre>
-
-<pre><code>list1 = [10]
-list2 = [123]
-list3 = [&#39;a&#39;]
-</code></pre>
-
-<p>下面dis库是python(默认的CPython)自带的一个库,可以用来分析字节码。</p>
-
-<pre><code class="language-python">import dis
-dis.dis(extendList)
-</code></pre>
-
-<pre><code>  2           0 LOAD_FAST                1 (list)
-              2 LOAD_METHOD              0 (append)
-              4 LOAD_FAST                0 (val)
-              6 CALL_METHOD              1
-              8 POP_TOP
-
-  3          10 LOAD_FAST                1 (list)
-             12 RETURN_VALUE
-</code></pre>
-
-<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
 
                         
                       </div>
@@ -257,7 +260,7 @@ dis.dis(extendList)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/10 22:25 PM</span>
+                    <span class="date">2019/8/11 16:29 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -352,6 +355,18 @@ dis.dis(extendList)
 	      
 		      
 			      <li class="post">
+			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15656215590319.html">Python常见的错误<十></a>
 			      </li>
 		     
@@ -365,18 +380,6 @@ dis.dis(extendList)
 		      
 			      <li class="post">
 			        <a href="15655124251876.html">Python常见的错误<八></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655123624150.html">Python常见的错误<七></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  

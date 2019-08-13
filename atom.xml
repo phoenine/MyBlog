@@ -4,13 +4,212 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2019-08-11T16:41:42+08:00</updated>
+  <updated>2019-08-12T23:01:07+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
   <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[Python常见的错误<十二>]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15657075853367.html"/>
+    <updated>2019-08-13T22:46:25+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15657075853367.html</id>
+    <content type="html"><![CDATA[
+<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
+
+<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
+a = 3<br/><br/>
+b = 3<br/><br/>
+而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
+a = b = c = 3<br/><br/>
+我们来看看这段代码输出的是什么？</p>
+
+<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
+i = 0
+i = s[i] = 3
+print(i)
+print(s)
+</code></pre>
+
+<pre><code>3
+[1, 2, 3, 3, 5, 6]
+</code></pre>
+
+<p>i 的值: 3<br/><br/>
+---这个好解释<br/><br/>
+s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
+？？？<br/><br/>
+s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
+
+<pre><code class="language-python">def test():
+    s = [1, 2, 3, 4, 5, 6] 
+    i = 0
+    i = s[i] = 3
+    print(i)
+    print(s)
+
+import dis
+dis.dis(test)
+</code></pre>
+
+<pre><code>  2           0 LOAD_CONST               1 (1)
+              2 LOAD_CONST               2 (2)
+              4 LOAD_CONST               3 (3)
+              6 LOAD_CONST               4 (4)
+              8 LOAD_CONST               5 (5)
+             10 LOAD_CONST               6 (6)
+             12 BUILD_LIST               6
+             14 STORE_FAST               0 (s)
+
+  3          16 LOAD_CONST               7 (0)
+             18 STORE_FAST               1 (i)
+
+  4          20 LOAD_CONST               3 (3)
+             22 DUP_TOP
+             24 STORE_FAST               1 (i)
+             26 LOAD_FAST                0 (s)
+             28 LOAD_FAST                1 (i)
+             30 STORE_SUBSCR
+
+  5          32 LOAD_GLOBAL              0 (print)
+             34 LOAD_FAST                1 (i)
+             36 CALL_FUNCTION            1
+             38 POP_TOP
+
+  6          40 LOAD_GLOBAL              0 (print)
+             42 LOAD_FAST                0 (s)
+             44 CALL_FUNCTION            1
+             46 POP_TOP
+             48 LOAD_CONST               0 (None)
+             50 RETURN_VALUE
+</code></pre>
+
+<p>解释如下：<br/><br/>
+第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
+第1~2行简单解释下:<br/><br/>
+分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
+第3行:<br/><br/>
+LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:  </p>
+
+<pre><code>//取自 python/ceval.c 
+PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)  
+{
+        ... (省略)  
+        TARGET_NOARG(DUP_TOP)  
+        {  
+            v = TOP();    // 复制运行栈帧的顶部值  
+            Py_INCREF(v); // 增加引用计数  
+            PUSH(v);      // 再压入运行栈帧  
+            FAST_DISPATCH();  
+        }  
+        ... (省略)  
+}  
+
+</code></pre>
+
+<p>DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:</p>
+
+<pre><code>         24 STORE_FAST               1 (i)
+         26 LOAD_FAST                0 (s)
+         28 LOAD_FAST                1 (i)
+         30 STORE_SUBSCR
+</code></pre>
+
+<p>果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+
+<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
+这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+
+<p>a = s = 3<br/><br/>
+等价于:<br/><br/>
+a = (s = 3)<br/><br/>
+也就是 s=3 返回3, 再赋值给a  </p>
+
+<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
+希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+
+<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
+a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
+Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
+参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python常见的错误<十一>]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15657061085965.html"/>
+    <updated>2019-08-13T22:21:48+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15657061085965.html</id>
+    <content type="html"><![CDATA[
+<h4 id="toc_0">常见错误11: 列表的缺陷</h4>
+
+<p>来看看下面代码的输出结果将是什么？</p>
+
+<p>下面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
+例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
+然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
+这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
+
+<pre><code class="language-python">list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+print(list[10:])
+print(list[10])
+</code></pre>
+
+<pre><code>[]
+
+
+
+---------------------------------------------------------------------------
+
+IndexError                                Traceback (most recent call last)
+
+&lt;ipython-input-5-7b4a48b0e416&gt; in &lt;module&gt;
+      1 list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+      2 print(list[10:])
+----&gt; 3 print(list[10])
+
+
+IndexError: list index out of range
+</code></pre>
+
+<p>我们再来看看这段代码，猜想一下，输出是什么？</p>
+
+<pre><code class="language-python">list = [ [ ] ] * 5
+print(list)  # output?
+list[0].append(10)
+print(list)  # output?
+list[1].append(20)
+print(list)   # output?
+list.append(30)
+print(list)   # output?
+</code></pre>
+
+<pre><code>[[], [], [], [], []]
+[[10], [10], [10], [10], [10]]
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]
+</code></pre>
+
+<p>解释如下：<br/><br/>
+第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了5个空列表。<br/><br/>
+然而，理解表达式list=[ [ ] ] * 5的关键一点是它不是创造一个包含五个独立列表的列表，而是它是一个<b>创建了包含对同一个列表五次引用的列表。</b><br/><br/>
+只有了解了这一点，我们才能更好的理解接下来的输出结果。<br/><br/>
+list[0].append(10) 将10附加在第一个列表上。<br/>
+但由于所有5个列表是引用的同一个列表，所以这个结果将是：<br/><br/>
+[[10], [10], [10], [10], [10]]。<br/><br/>
+同理，list[1].append(20)将20附加在第二个列表上。但同样由于5个列表是引用的同一个列表，所以输出结果现在是：<br/><br/>
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
+作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
+
+<pre><code class="language-python">
+</code></pre>
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Python常见的错误<十>]]></title>
@@ -2635,76 +2834,6 @@ print [id(ele) for ele in wilber]
 
 <p>文章引用：<br/>
 <a href=""></a><a href="https://www.cnblogs.com/wilber2013/p/4645353.html">https://www.cnblogs.com/wilber2013/p/4645353.html</a></p>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Pyhton变量变换原理]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15142967450536.html"/>
-    <updated>2017-12-26T21:59:05+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15142967450536.html</id>
-    <content type="html"><![CDATA[
-<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
-
-<pre><code class="language-C">tmp = x;
-x = y;
-y = tmp;
-</code></pre>
-
-<p>而在python中，则无需中间变量即可实现：</p>
-
-<pre><code class="language-python">x , y = y, x
-</code></pre>
-
-<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
-将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
-
-<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
-</code></pre>
-
-<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
-
-<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
-</code></pre>
-
-<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
-接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
-运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
-<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python Unittest与Mock]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15142936231027.html"/>
-    <updated>2017-12-26T21:07:03+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15142936231027.html</id>
-    <content type="html"><![CDATA[
-<p><strong>unittest</strong><br/>
-python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
-python unittest的框架如下： <br/>
-<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
-基本使用方法如下：</p>
-
-<ol>
-<li>import unittest module</li>
-<li>定义一个继承自unittest.TestCase的测试用例类。</li>
-<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
-<li>定义测试用例，名字需要以test开头。</li>
-<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
-<li>调用unittest.main()启动测试</li>
-<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
-</ol>
-
-<p>这里举个简单的例子说明：<br/>
-<img src="media/15142936231027/15142939572020.png" alt=""/></p>
-
-<p>常用的断言：<br/>
-<img src="media/15142936231027/15142939778044.png" alt=""/></p>
-
-<p><strong>Mock</strong></p>
 
 ]]></content>
   </entry>

@@ -107,269 +107,48 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15211187332796.html">
+                <a class="clearlink" href="15655120913106.html">
                 
-                  <h1>Python 陷阱与缺陷列表</h1>
+                  <h1>Python常见的错误<二></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
+                        	<h4 id="toc_0">常见错误2: 错误地使用类变量</h4>
 
-<pre><code class="language-python">&gt;&gt;&gt; a=1
-&gt;&gt;&gt; def func():
-...     a+=1
-...     print a
-...
-&gt;&gt;&gt; func()
-Traceback (most recent call last):
-File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-File &quot;&lt;stdin&gt;&quot;, line 2, in func
-UnboundLocalError: local variable &#39;a&#39; referenced before assignment
+<p>我们来看下面这个例子：</p>
+
+<pre><code class="language-python">class A(object):
+    x = 1
+
+class B(A):
+    pass
+
+class C(A):
+    pass
+
+print(A.x, B.x, C.x)
+B.x = 2
+print(A.x, B.x, C.x)
+A.x = 3
+print(A.x, B.x, C.x)
 </code></pre>
 
-<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
-
-<p>对于“UnboundLocalError”,还有更高级的版本：</p>
-
-<pre><code class="language-python">import random
- 
-def func(ok):
-    if ok:
-        a = random.random()
-    else:
-        import random
-        a = random.randint(1, 10)
-    return a
- 
-func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
+<pre><code>1 1 1
+1 2 1
+3 2 3
 </code></pre>
 
-<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
+<p>WTF?? 我们只改了A.x，为什么C.x也改了?<br/><br/>
+在Python中，<b>类变量在内部当做字典来处理，其遵循常被引用的方法解析顺序（MRO）</b>。<br/><br/>
+一个变量名如果没有在当前类下的字典中被发现，则会在更高级的类（如它的父类）中尽心搜索直到引用的变量名被找到。（如果引用变量名在自身类和更高级类中没有找到，将会引发一个属性错误）。<br/><br/>
+所以在上面的代码中，由于class C中的x属性没有找到，它会向上找它的基类（尽管Python支持多重继承，但上面的例子中只有A）。<br/><br/>
+如果它的任何一个子类被覆写了值（例如说，当我们执行语句B.x = 2）,这个值只在子类中进行了修改。所以第二个打印语句输出结果是1 2 1。<br/><br/>
+如果这个值在父类中进行了修改，（例如说，当我们执行语句A.x = 3）,这个改变将会影响那些还没有覆写子类的值（在这个例子中就是C），所以第三打印语句输出结果是3 2 3。换句话说，class C中没有它自己的x属性，其独立于A。因此，C.x事实上是A.x的引用。  </p>
 
-<p>那么Python中哪些真正算得上陷阱呢？</p>
+<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
 
-<p><strong>第一：以mutable对象作为默认参数</strong></p>
-
-<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
-...     lst.append(1)
-...     return lst
-...
-&gt;&gt;&gt; f()
-[1]
-&gt;&gt;&gt; f()
-[1, 1]
-</code></pre>
-
-<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
-<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
-&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
-
-<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; import time
-&gt;&gt;&gt; def report(when=time.time()):
-... return when
-...
-&gt;&gt;&gt; report()
-1500113234.487932
-&gt;&gt;&gt; report()
-1500113234.487932
-</code></pre>
-
-<p>python docoment 给出了标准的解决办法：<br/>
-<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
-...  if when is None:
-...  when = time.time()
-... return when
-...
-&gt;&gt;&gt; report()
-1500113446.746997
-&gt;&gt;&gt; report()
-1500113448.552873
-</code></pre>
-
-<p><strong>第二: x += y vs x = x + y</strong><br/>
-一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
-2 
-&gt;&gt;&gt; x=1;x = x+1;print x
-2
-&gt;&gt;&gt; x=[1];x+=[2];print x
-[1, 2]
-&gt;&gt;&gt; x=[1];x=x+[2];print x
-[1, 2]
-</code></pre>
-
-<p>呃，被光速打脸了？</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
-4357132800
-4357132728
-&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
-4357132800
-4357132800
-</code></pre>
-
-<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
-
-<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
-
-<pre><code class="language-python">import dis
-
-def foo(x, y):
-    x += y
-
-def foo2(x, y):
-    x = x + y
-
-print dis.dis(foo)
-print dis.dis(foo2)
-</code></pre>
-
-<p>输出结果如下：</p>
-
-<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
-              3 LOAD_FAST                1 (y)
-              6 INPLACE_ADD         
-              7 STORE_FAST               0 (x)
-             10 LOAD_CONST               0 (None)
-             13 RETURN_VALUE             None
-
-77            0 LOAD_FAST                0 (x)
-              3 LOAD_FAST                1 (y)
-              6 BINARY_ADD          
-              7 STORE_FAST               0 (x)
-             10 LOAD_CONST               0 (None)
-             13 RETURN_VALUE             None
-</code></pre>
-
-<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
-更多内容可以参考：<br/>
-<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
-
-<p><strong>第三，神奇的小括号–()</strong><br/>
-小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
-&gt;&gt;&gt; type(a)
-&lt;type &#39;tuple&#39;&gt;
-&gt;&gt;&gt; type(())
-&lt;type &#39;tuple&#39;&gt;
-</code></pre>
-
-<p>但如果只有一个元素呢</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a=(1)
-&gt;&gt;&gt; type(a)
-&lt;type &#39;int&#39;&gt;
-</code></pre>
-
-<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
-&gt;&gt;&gt; type(a)
-&lt;type &#39;int&#39;&gt;
-</code></pre>
-
-<p><strong>第四：生成一个元素是列表的列表</strong><br/>
-这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
-很简单嘛：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
-&gt;&gt;&gt; a
-[[], [], [], [], [], [], [], [], [], []]
-&gt;&gt;&gt; a[0].append(10)
-&gt;&gt;&gt; a[0] 
-[10]
-</code></pre>
-
-<p>看起来很不错，简单明了，but</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a[1]
-[10]
-&gt;&gt;&gt; a
-[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
-</code></pre>
-
-<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
-&gt;&gt;&gt; a[0].append(10)
-&gt;&gt;&gt; a
-[[10], [], [], [], [], [], [], [], [], []]
-</code></pre>
-
-<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
-列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
-... for idx, elem in enumerate(lst):
-... if elem % 3 == 0:
-... del lst[idx]
-</code></pre>
-
-<p>测试一下，</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
-&gt;&gt;&gt; modify_lst(lst)
-&gt;&gt;&gt; lst
-[1, 2, 4, 5]
-</code></pre>
-
-<p>好像没什么错，不过这只是运气好</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
-&gt;&gt;&gt; modify_lst(lst)
-&gt;&gt;&gt; lst
-[1, 2, 6, 5, 4]
-</code></pre>
-
-<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
-如果逻辑比较简单，使用list comprehension是不错的注意<br/>
-&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
-修改方法很简单：</p>
-
-<pre><code class="language-python">def mod_list(lst):
-    new_lst = []
-    for elem in lst:
-        if elem % 3 != 0:
-            new_lst.append(elem)
-    return new_lst
-
-lst = [1, 2, 3, 4, 5, 6]
-s = mod_list(lst)
-print s
-
-lst = [1, 2, 3, 6, 5, 4]
-s = mod_list(lst)
-print s
-</code></pre>
-
-<p><strong>第六，闭包与lambda</strong><br/>
-这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
-...  return [lambda x:i*x for i in range(5)]
-...
-&gt;&gt;&gt; for multiplier in create_multipliers():
-... print multiplier(2)
-...
-</code></pre>
-
-<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
-
-<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
-解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
-... return [lambda x, i = i:i*x for i in range(5)]
-...
+<pre><code class="language-python">
 </code></pre>
 
                         
@@ -379,7 +158,7 @@ print s
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/3/15 20:58 PM</span>
+                    <span class="date">2019/8/11 16:28 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -396,458 +175,80 @@ print s
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15211176555242.html">
+                <a class="clearlink" href="15654471089883.html">
                 
-                  <h1>高效的 itertools 模块</h1>
+                  <h1>Python常见的错误<一></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>我们知道，迭代器的特点是：惰性求值（Lazy evaluation），即只有当迭代至某个值时，它才会被计算，这个特点使得迭代器特别适合于遍历大文件或无限集合等，因为我们不用一次性将它们存储在内存中。</p>
+                        	<h4 id="toc_0">常见错误1: 滥用表达式作为函数参数的默认值</h4>
 
-<p>&lt;-朕的朱批 -&gt; 还记得enumerate犯下的错误吗？</p>
+<p>Python允许为函数的参数提供默认的可选值。尽管这是语言的一大特色，但是它可能会导致一些易变默认值的混乱。<br/><br/>
+一个常见的错误是认为函数每次不提供可选参数调用时，会将可选参数将设置为默认指定值。例如下面这段代码：</p>
 
-<p>Python 内置的 itertools 模块包含了一系列用来产生不同类型迭代器的函数或类，这些函数的返回都是一个迭代器，我们可以通过 for 循环来遍历取值，也可以使用 next() 来取值。<br/>
-itertools 模块提供的迭代器函数有以下几种类型：</p>
+<pre><code class="language-python">def extendList(val, list=[]):
+    list.append(val)
+    return list
 
-<ul>
-<li>无限迭代器：生成一个无限序列，比如自然数序列 1, 2, 3, 4, ...；</li>
-<li>有限迭代器：接收一个或多个序列（sequence）作为参数，进行组合、分组和过滤等；</li>
-<li>组合生成器：序列的排列、组合，求序列的笛卡儿积等；</li>
-</ul>
+list1 = extendList(10)
+list2 = extendList(123,[])
+list3 = extendList(&#39;a&#39;)
 
-<p>无限迭代器</p>
-
-<p>itertools 模块提供了三个函数（事实上，它们是类）用于生成一个无限序列迭代器：</p>
-
-<ul>
-<li>count(firstval=0, step=1)创建一个从 firstval (默认值为 0) 开始，以 step (默认值为 1) 为步长的的无限整数迭代器</li>
-<li>cycle(iterable)对 iterable 中的元素反复执行循环，返回迭代器</li>
-<li>repeat(object [,times]反复生成 object，如果给定 times，则重复次数为 times，否则为无限
-下面，让我们看看一些例子。</li>
-</ul>
-
-<p><strong>count</strong><br/>
-count() 接收两个参数，第一个参数指定开始值，默认为 0，第二个参数指定步长，默认为 1：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; import itertools
-&gt;&gt;&gt;
-&gt;&gt;&gt; nums = itertools.count()
-&gt;&gt;&gt; for i in nums:
-...     if i &gt; 6:
-...         break
-...     print i
-...
-0
-1
-2
-3
-4
-5
-6
-&gt;&gt;&gt; nums = itertools.count(10, 2)    # 指定开始值和步长
-&gt;&gt;&gt; for i in nums:
-...     if i &gt; 20:
-...         break
-...     print i
-...
-10
-12
-14
-16
-18
-20
+print(&quot;list1 = %s&quot; % list1)
+print(&quot;list2 = %s&quot; % list2)
+print(&quot;list3 = %s&quot; % list3)
 </code></pre>
 
-<p><strong>cycle</strong><br/>
-cycle() 用于对 iterable 中的元素反复执行循环：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; import itertools
-&gt;&gt;&gt;
-&gt;&gt;&gt; cycle_strings = itertools.cycle(&#39;ABC&#39;)
-&gt;&gt;&gt; i = 1
-&gt;&gt;&gt; for string in cycle_strings:
-...     if i == 10:
-...         break
-...     print i, string
-...     i += 1
-...
-1 A
-2 B
-3 C
-4 A
-5 B
-6 C
-7 A
-8 B
-9 C
+<pre><code>list1 = [10, &#39;a&#39;]
+list2 = [123]
+list3 = [10, &#39;a&#39;]
 </code></pre>
 
-<p><strong>repeat</strong><br/>
-repeat() 用于反复生成一个 object：</p>
+<p>很多人都会误认为list1=[10]，list3=[‘a’]，因为他们以为每次extendList被调用时，列表参数的默认值都将被设置为[]。<br/><br/>
+但实际上的情况是，<b> 函数参数的默认列表只在函数被定义的那一刻创建一次。</b><br/><br/>
+当extendList被没有指定特定参数list调用时，这组list的值随后将被使用。这是因为<u>带有默认参数的表达式在函数被定义的时候被计算，不是在调用的时候被计算。</u><br/><br/>
+因此list1和list3是在同一个默认列表上进行操作（计算）的。<br/><br/>
+而list2是在一个分离的列表上进行操作（计算）的。（通过传递一个自有的空列表作为列表参数的数值）。<br/>
+extendList的定义可以作如下修改:</p>
 
-<pre><code class="language-python">&gt;&gt;&gt; import itertools
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in itertools.repeat(&#39;hello world&#39;, 3):
-...     print item
-...
-hello world
-hello world
-hello world
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in itertools.repeat([1, 2, 3, 4], 3):
-...     print item
-...
-[1, 2, 3, 4]
-[1, 2, 3, 4]
-[1, 2, 3, 4]
+<pre><code class="language-python">def extendList_2(val, list=None):
+    if list is None:
+        list = []
+    list.append(val)
+    return list
+
+list1 = extendList_2(10)
+list2 = extendList_2(123,[])
+list3 = extendList_2(&#39;a&#39;)
+
+print(&quot;list1 = %s&quot; % list1)
+print(&quot;list2 = %s&quot; % list2)
+print(&quot;list3 = %s&quot; % list3)
 </code></pre>
 
-<p><strong>有限迭代器</strong><br/>
-itertools 模块提供了多个函数（类），接收一个或多个迭代对象作为参数，对它们进行组合、分组和过滤等：</p>
-
-<ul>
-<li>chain()</li>
-<li>compress()</li>
-<li>dropwhile()</li>
-<li>groupby()</li>
-<li>ifilter()</li>
-<li>ifilterfalse()</li>
-<li>islice()</li>
-<li>imap()</li>
-<li>starmap()</li>
-<li>tee()</li>
-<li>takewhile()</li>
-<li>izip()</li>
-<li>izip_longest()</li>
-</ul>
-
-<p><strong>chain</strong><br/>
-chain 的使用形式如下：<br/>
-<code>chain(iterable1, iterable2, iterable3, ...)</code><br/>
-chain 接收多个可迭代对象作为参数，将它们『连接』起来，作为一个新的迭代器返回。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import chain
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in chain([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]):
-...     print item
-...
-1
-2
-3
-a
-b
-c
+<pre><code>list1 = [10]
+list2 = [123]
+list3 = [&#39;a&#39;]
 </code></pre>
 
-<p>chain 还有一个常见的用法：<br/>
-<code>chain.from_iterable(iterable)</code><br/>
-接收一个可迭代对象作为参数，返回一个迭代器：</p>
+<p>下面dis库是python(默认的CPython)自带的一个库,可以用来分析字节码。</p>
 
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import chain
-&gt;&gt;&gt;
-&gt;&gt;&gt; string = chain.from_iterable(&#39;ABCD&#39;)
-&gt;&gt;&gt; string.next()
-&#39;A&#39;
+<pre><code class="language-python">import dis
+dis.dis(extendList)
 </code></pre>
 
-<p><strong>compress</strong><br/>
-compress 的使用形式如下：<br/>
-<code>compress(data, selectors)</code><br/>
-compress 可用于对数据进行筛选，当 selectors 的某个元素为 true 时，则保留 data 对应位置的元素，否则去除：</p>
+<pre><code>  2           0 LOAD_FAST                1 (list)
+              2 LOAD_METHOD              0 (append)
+              4 LOAD_FAST                0 (val)
+              6 CALL_METHOD              1
+              8 POP_TOP
 
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import compress
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1, 0, 1]))
-[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;, &#39;F&#39;]
-&gt;&gt;&gt; list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1]))
-[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;]
-&gt;&gt;&gt; list(compress(&#39;ABCDEF&#39;, [True, False, True]))
-[&#39;A&#39;, &#39;C&#39;]
+  3          10 LOAD_FAST                1 (list)
+             12 RETURN_VALUE
 </code></pre>
 
-<p><strong>dropwhile</strong><br/>
-dropwhile 的使用形式如下：<br/>
-<code>dropwhile(predicate, iterable)</code><br/>
-其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则丢弃该元素，否则返回该项及所有后续项。<br/>
-&lt;-朕的朱批 -&gt; predicate 断言，断定。 注意其返回项是丢弃元素判定失败后的后续项</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import dropwhile
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(dropwhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
-[6, 2, 1]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(dropwhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
-[2, 1, 6, 5, 4]
-</code></pre>
-
-<p><strong>groupby</strong><br/>
-groupby 用于对序列进行分组，它的使用形式如下：<br/>
-<code>groupby(iterable[, keyfunc])</code><br/>
-其中，iterable 是一个可迭代对象，keyfunc 是分组函数，用于对 iterable 的连续项进行分组，如果不指定，则默认对 iterable 中的连续相同项进行分组，返回一个 (key, sub-iterator) 的迭代器。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import groupby
-&gt;&gt;&gt;
-&gt;&gt;&gt; for key, value_iter in groupby(&#39;aaabbbaaccd&#39;):
-...     print key, &#39;:&#39;, list(value_iter)
-...
-a : [&#39;a&#39;, &#39;a&#39;, &#39;a&#39;]
-b : [&#39;b&#39;, &#39;b&#39;, &#39;b&#39;]
-a : [&#39;a&#39;, &#39;a&#39;]
-c : [&#39;c&#39;, &#39;c&#39;]
-d : [&#39;d&#39;]
-&gt;&gt;&gt;
-&gt;&gt;&gt; data = [&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;, &#39;dd&#39;, &#39;eee&#39;, &#39;f&#39;]
-&gt;&gt;&gt; for key, value_iter in groupby(data, len):    # 使用 len 函数作为分组函数
-...     print key, &#39;:&#39;, list(value_iter)
-...
-1 : [&#39;a&#39;]
-2 : [&#39;bb&#39;]
-3 : [&#39;ccc&#39;]
-2 : [&#39;dd&#39;]
-3 : [&#39;eee&#39;]
-1 : [&#39;f&#39;]
-&gt;&gt;&gt;
-&gt;&gt;&gt; data = [&#39;a&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;ddd&#39;, &#39;eee&#39;, &#39;f&#39;]
-&gt;&gt;&gt; for key, value_iter in groupby(data, len):
-...     print key, &#39;:&#39;, list(value_iter)
-...
-1 : [&#39;a&#39;]
-2 : [&#39;bb&#39;, &#39;cc&#39;]
-3 : [&#39;ddd&#39;, &#39;eee&#39;]
-1 : [&#39;f&#39;]
-</code></pre>
-
-<p><strong>ifilter</strong><br/>
-ifilter 的使用形式如下：<br/>
-<code>ifilter(function or None, sequence)</code><br/>
-将 iterable 中 function(item) 为 True 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 True 的项。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import ifilter
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(ifilter(lambda x: x &lt; 6, range(10)))
-[0, 1, 2, 3, 4, 5]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(ifilter(None, [0, 1, 2, 0, 3, 4]))
-[1, 2, 3, 4]
-</code></pre>
-
-<p><strong>ifilterfalse</strong><br/>
-ifilterfalse 的使用形式和 ifilter 类似，它将 iterable 中 function(item) 为 False 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 False 的项。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import ifilterfalse
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(ifilterfalse(lambda x: x &lt; 6, range(10)))
-[6, 7, 8, 9]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(ifilter(None, [0, 1, 2, 0, 3, 4]))
-[0, 0]
-</code></pre>
-
-<p><strong>islice</strong><br/>
-islice 是切片选择，它的使用形式如下：<br/>
-<code>islice(iterable, [start,] stop [, step])</code><br/>
-其中，iterable 是可迭代对象，start 是开始索引，stop 是结束索引，step 是步长，start 和 step 可选。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import count, islice
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(islice([10, 6, 2, 8, 1, 3, 9], 5))
-[10, 6, 2, 8, 1]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(islice(count(), 6))
-[0, 1, 2, 3, 4, 5]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(islice(count(), 3, 10))
-[3, 4, 5, 6, 7, 8, 9]
-&gt;&gt;&gt; list(islice(count(), 3, 10 ,2))
-[3, 5, 7, 9]
-</code></pre>
-
-<p>&lt;-朕的朱批 -&gt;似乎没啥用<br/>
-<strong>imap</strong><br/>
-imap 类似 map 操作，它的使用形式如下：<br/>
-<code>imap(func, iter1, iter2, iter3, ...)</code><br/>
-imap 返回一个迭代器，元素为 func(i1, i2, i3, ...)，i1，i2 等分别来源于 iter, iter2。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import imap
-&gt;&gt;&gt;
-&gt;&gt;&gt; imap(str, [1, 2, 3, 4])
-&lt;itertools.imap object at 0x10556d050&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(imap(str, [1, 2, 3, 4]))
-[&#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(imap(pow, [2, 3, 10], [4, 2, 3]))
-[16, 9, 1000]
-</code></pre>
-
-<p><strong>tee</strong><br/>
-tee 的使用形式如下：<br/>
-<code>tee(iterable [,n])</code><br/>
-tee 用于从 iterable 创建 n 个独立的迭代器，以元组的形式返回，n 的默认值是 2。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import tee
-&gt;&gt;&gt;
-&gt;&gt;&gt; tee(&#39;abcd&#39;)   # n 默认为 2，创建两个独立的迭代器
-(&lt;itertools.tee object at 0x1049957e8&gt;, &lt;itertools.tee object at 0x104995878&gt;)
-&gt;&gt;&gt;
-&gt;&gt;&gt; iter1, iter2 = tee(&#39;abcde&#39;)
-&gt;&gt;&gt; list(iter1)
-[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-&gt;&gt;&gt; list(iter2)
-[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-&gt;&gt;&gt;
-&gt;&gt;&gt; tee(&#39;abc&#39;, 3)  # 创建三个独立的迭代器
-(&lt;itertools.tee object at 0x104995998&gt;, &lt;itertools.tee object at 0x1049959e0&gt;, &lt;itertools.tee object at 0x104995a28&gt;)
-</code></pre>
-
-<p><strong>takewhile</strong><br/>
-takewhile 的使用形式如下：<br/>
-<code>takewhile(predicate, iterable)</code><br/>
-其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则保留该元素，只要 predicate(item) 为 false，则立即停止迭代。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import takewhile
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(takewhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
-[1, 3]
-&gt;&gt;&gt; list(takewhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
-[]
-</code></pre>
-
-<p><strong>zip</strong><br/>
-izip 用于将多个可迭代对象对应位置的元素作为一个元组，将所有元组『组成』一个迭代器，并返回。它的使用形式如下：<br/>
-<code>izip(iter1, iter2, ..., iterN)</code><br/>
-如果某个可迭代对象不再生成值，则迭代停止。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import izip
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in izip(&#39;ABCD&#39;, &#39;xy&#39;):
-...     print item
-...
-(&#39;A&#39;, &#39;x&#39;)
-(&#39;B&#39;, &#39;y&#39;)
-&gt;&gt;&gt; for item in izip([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]):
-...     print item
-...
-(1, &#39;a&#39;)
-(2, &#39;b&#39;)
-(3, &#39;c&#39;)
-</code></pre>
-
-<p><strong>izip_longest</strong><br/>
-izip_longest 跟 izip 类似，但迭代过程会持续到所有可迭代对象的元素都被迭代完。它的形式如下：<br/>
-<code>izip_longest(iter1, iter2, ..., iterN, [fillvalue=None])</code><br/>
-如果有指定 fillvalue，则会用其填充缺失的值，否则为 None。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import izip_longest
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;):
-...     print item
-...
-(&#39;A&#39;, &#39;x&#39;)
-(&#39;B&#39;, &#39;y&#39;)
-(&#39;C&#39;, None)
-(&#39;D&#39;, None)
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;, fillvalue=&#39;-&#39;):
-...     print item
-...
-(&#39;A&#39;, &#39;x&#39;)
-(&#39;B&#39;, &#39;y&#39;)
-(&#39;C&#39;, &#39;-&#39;)
-(&#39;D&#39;, &#39;-&#39;)
-</code></pre>
-
-<p>&lt;-朕的朱批 -&gt; filevalue挺方便<br/>
-<strong>组合生成器</strong><br/>
-itertools 模块还提供了多个组合生成器函数，用于求序列的排列、组合等：</p>
-
-<ul>
-<li>product</li>
-<li>permutations</li>
-<li>combinations</li>
-<li>combinations_with_replacement</li>
-</ul>
-
-<p>&lt;-朕的朱批 -&gt; 排列组合必备良方<br/>
-<strong>product</strong><br/>
-product 用于求多个可迭代对象的笛卡尔积，它跟嵌套的 for 循环等价。它的一般使用形式如下：<br/>
-<code>product(iter1, iter2, ... iterN, [repeat=1])</code><br/>
-其中，repeat 是一个关键字参数，用于指定重复生成序列的次数，</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import product
-&gt;&gt;&gt;
-&gt;&gt;&gt; for item in product(&#39;ABCD&#39;, &#39;xy&#39;):
-...     print item
-...
-(&#39;A&#39;, &#39;x&#39;)
-(&#39;A&#39;, &#39;y&#39;)
-(&#39;B&#39;, &#39;x&#39;)
-(&#39;B&#39;, &#39;y&#39;)
-(&#39;C&#39;, &#39;x&#39;)
-(&#39;C&#39;, &#39;y&#39;)
-(&#39;D&#39;, &#39;x&#39;)
-(&#39;D&#39;, &#39;y&#39;)
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(product(&#39;ab&#39;, range(3)))
-[(&#39;a&#39;, 0), (&#39;a&#39;, 1), (&#39;a&#39;, 2), (&#39;b&#39;, 0), (&#39;b&#39;, 1), (&#39;b&#39;, 2)]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(product((0,1), (0,1), (0,1)))
-[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(product(&#39;ABC&#39;, repeat=2))
-[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;C&#39;)]
-&gt;&gt;&gt;
-</code></pre>
-
-<p><strong>permutations</strong><br/>
-permutations 用于生成一个排列，它的一般使用形式如下：<br/>
-<code>permutations(iterable[, r])</code><br/>
-其中，r 指定生成排列的元素的长度，如果不指定，则默认为可迭代对象的元素长度。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import permutations
-&gt;&gt;&gt;
-&gt;&gt;&gt; permutations(&#39;ABC&#39;, 2)
-&lt;itertools.permutations object at 0x1074d9c50&gt;
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(permutations(&#39;ABC&#39;, 2))
-[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;)]
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(permutations(&#39;ABC&#39;))
-[(&#39;A&#39;, &#39;B&#39;, &#39;C&#39;), (&#39;A&#39;, &#39;C&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;A&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;B&#39;, &#39;A&#39;)]
-&gt;&gt;&gt;
-</code></pre>
-
-<p><strong>combinations</strong><br/>
-combinations 用于求序列的组合，它的使用形式如下：<br/>
-<code>combinations(iterable, r)</code><br/>
-其中，r 指定生成组合的元素的长度。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import combinations
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(combinations(&#39;ABC&#39;, 2))
-[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;)]
-</code></pre>
-
-<p><strong>combinations_with_replacement</strong><br/>
-combinations_with_replacement 和 combinations 类似，但它生成的组合包含自身元素。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; from itertools import combinations_with_replacement
-&gt;&gt;&gt;
-&gt;&gt;&gt; list(combinations_with_replacement(&#39;ABC&#39;, 2))
-[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;C&#39;)]
-</code></pre>
-
-<p><strong>小结</strong></p>
-
-<p>itertools 模块提供了很多用于产生多种类型迭代器的函数，它们的返回值不是 list，而是迭代器。</p>
-
-<p><strong>参考链接</strong></p>
-
-<ul>
-<li>itertools — Functions creating iterators for efficient looping</li>
-<li>itertools – Iterator functions for efficient looping – Python Module of the Week</li>
-</ul>
+<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
 
                         
                       </div>
@@ -856,7 +257,7 @@ combinations_with_replacement 和 combinations 类似，但它生成的组合包
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/3/15 20:40 PM</span>
+                    <span class="date">2019/8/10 22:25 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -951,6 +352,18 @@ combinations_with_replacement 和 combinations 类似，但它生成的组合包
 	      
 		      
 			      <li class="post">
+			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15656215590319.html">Python常见的错误<十></a>
 			      </li>
 		     
@@ -964,18 +377,6 @@ combinations_with_replacement 和 combinations 类似，但它生成的组合包
 		      
 			      <li class="post">
 			        <a href="15655124251876.html">Python常见的错误<八></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655123624150.html">Python常见的错误<七></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15655122908336.html">Python常见的错误<六></a>
 			      </li>
 		     
 		  
