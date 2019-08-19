@@ -1,0 +1,892 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  Python Modules - 03 - Python itertools - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python Modules - 03 - Python itertools</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2019/8/19 20:21 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h4 id="toc_0">Module-1: itertools 模块总结</h4>
+
+<p>我们知道，迭代器的特点是：惰性求值（Lazy evaluation），即只有当迭代至某个值时，它才会被计算，这个特点使得迭代器特别适合于遍历大文件或无限集合等，因为我们不用一次性将它们存储在内存中。</p>
+
+<p>Python 内置的 itertools 模块包含了一系列用来产生不同类型迭代器的函数或类，这些函数的返回都是一个迭代器，我们可以通过 for 循环来遍历取值，也可以使用 next() 来取值。<br/><br/>
+itertools 模块提供的迭代器函数有以下几种类型：<br/>
+- 无限迭代器：生成一个无限序列，比如自然数序列 1, 2, 3, 4, ...；<br/>
+- 有限迭代器：接收一个或多个序列（sequence）作为参数，进行组合、分组和过滤等；<br/>
+- 组合生成器：序列的排列、组合，求序列的笛卡儿积等；</p>
+
+<pre><code class="language-python">import itertools
+</code></pre>
+
+<p><b>无限迭代器</b></p>
+
+<p>itertools 模块提供了三个函数（事实上，它们是类）用于生成一个无限序列迭代器：<br/>
+- count(firstval=0, step=1)创建一个从 firstval (默认值为 0) 开始，以 step (默认值为 1) 为步长的的无限整数迭代器<br/>
+- cycle(iterable)对 iterable 中的元素反复执行循环，返回迭代器<br/>
+- repeat(object [,times]反复生成 object，如果给定 times，则重复次数为 times，否则为无限</p>
+
+<ol>
+<li><b>count</b></li>
+</ol>
+
+<p>count() 接收两个参数，第一个参数指定开始值，默认为 0，第二个参数指定步长，默认为 1：</p>
+
+<pre><code class="language-python">nums = itertools.count()
+for i in nums:
+    if i &gt; 5:
+        break
+    print(i)
+</code></pre>
+
+<pre><code>0
+1
+2
+3
+4
+5
+</code></pre>
+
+<pre><code class="language-python">nums = itertools.count(10, 2)
+for i in nums:
+    if i &gt; 20:
+        break
+    print(i)
+</code></pre>
+
+<pre><code>10
+12
+14
+16
+18
+20
+</code></pre>
+
+<ol>
+<li><b>cycle</b></li>
+</ol>
+
+<p>cycle() 用于对 iterable 中的元素反复执行循环：</p>
+
+<pre><code class="language-python">cycle_strings = itertools.cycle(&#39;ABC&#39;)
+i = 1
+for string in cycle_strings:
+    if i == 10:
+        break
+    print(i, string)
+    i += 1
+</code></pre>
+
+<pre><code>1 A
+2 B
+3 C
+4 A
+5 B
+6 C
+7 A
+8 B
+9 C
+</code></pre>
+
+<ol>
+<li><b>repeat</b></li>
+</ol>
+
+<p>repeat() 用于反复生成一个 object：</p>
+
+<pre><code class="language-python">for item in itertools.repeat(&#39;hello world&#39;, 3):
+    print(item)
+</code></pre>
+
+<pre><code>hello world
+hello world
+hello world
+</code></pre>
+
+<p><b>有限迭代器</b></p>
+
+<p>itertools 模块提供了多个函数（类），接收一个或多个迭代对象作为参数，对它们进行组合、分组和过滤等：<br/>
+- chain()<br/>
+- compress()<br/>
+- dropwhile()<br/>
+- groupby()<br/>
+- ifilter()<br/>
+- ifilterfalse()<br/>
+- islice()<br/>
+- imap()<br/>
+- starmap()<br/>
+- tee()<br/>
+- takewhile()<br/>
+- izip()<br/>
+- izip_longest()</p>
+
+<ol>
+<li><b>chain</b></li>
+</ol>
+
+<p>chain 的使用形式如下：</p>
+
+<blockquote>
+<p>chain(iterable1, iterable2, iterable3, ...)     </p>
+</blockquote>
+
+<p>chain 接收多个可迭代对象作为参数，将它们『连接』起来，作为一个新的迭代器返回。</p>
+
+<pre><code class="language-python">from itertools import chain
+for item in chain([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]):
+    print(item)
+</code></pre>
+
+<pre><code>1
+2
+3
+a
+b
+c
+</code></pre>
+
+<p>chain 还有一个常见的用法：</p>
+
+<blockquote>
+<p>chain.from_iterable(iterable)</p>
+</blockquote>
+
+<p>接收一个可迭代对象作为参数，返回一个迭代器：</p>
+
+<pre><code class="language-python">#扁平列表
+a = [[1, 2], [3, 4], [5, 6]]
+b = list(chain.from_iterable(a))
+print(b)
+
+#还有个更有意思的扁平列表
+print(sum(a, []))
+
+str = chain.from_iterable(&#39;ABCDEF&#39;)
+# 注意python3是next(), python2是.next()
+print(next(str))
+</code></pre>
+
+<pre><code>[1, 2, 3, 4, 5, 6]
+[1, 2, 3, 4, 5, 6]
+A
+</code></pre>
+
+<ol>
+<li><b>compress</b></li>
+</ol>
+
+<p>compress 的使用形式如下：</p>
+
+<blockquote>
+<p>compress(data, selectors)</p>
+</blockquote>
+
+<p>compress 可用于对数据进行筛选，当 selectors 的某个元素为 true 时，则保留 data 对应位置的元素，否则去除：</p>
+
+<pre><code class="language-python">from itertools import compress
+a = list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1, 0, 1]))
+print(a)
+b = list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1]))
+print(b)
+c = list(compress(&#39;ABCDEF&#39;, [True, False, True]))
+print(c)
+</code></pre>
+
+<pre><code>[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;, &#39;F&#39;]
+[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;]
+[&#39;A&#39;, &#39;C&#39;]
+</code></pre>
+
+<ol>
+<li><b>dropwhile</b></li>
+</ol>
+
+<p>dropwhile 的使用形式如下：</p>
+
+<blockquote>
+<p>dropwhile(predicate, iterable)</p>
+</blockquote>
+
+<p>其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则丢弃该元素，否则返回该项及所有后续项。<br/><br/>
+predicate 断言，断定。 注意其返回项是丢弃元素判定失败后的后续项</p>
+
+<pre><code class="language-python">from itertools import dropwhile
+a = list(dropwhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
+print(a)
+b = list(dropwhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
+print(b)
+</code></pre>
+
+<pre><code>[6, 2, 1]
+[2, 1, 6, 5, 4]
+</code></pre>
+
+<ol>
+<li><b>groupby</b></li>
+</ol>
+
+<p>groupby 用于对序列进行分组，它的使用形式如下：</p>
+
+<blockquote>
+<p>groupby(iterable[, keyfunc])</p>
+</blockquote>
+
+<p>其中，iterable 是一个可迭代对象，keyfunc 是分组函数，用于对 iterable 的连续项进行分组，如果不指定，则默认对 iterable 中的连续相同项进行分组，返回一个 (key, sub-iterator) 的迭代器。</p>
+
+<pre><code class="language-python">from itertools import groupby
+for key, value_iter in groupby(&#39;aaabbbaaccd&#39;):
+    print(key, &#39;:&#39;, list(value_iter))
+print(&quot;================================&quot;)
+data = [&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;, &#39;dd&#39;, &#39;eee&#39;, &#39;f&#39;]
+for key, value_iter in groupby(data, len):   # 使用 len 函数作为分组函数
+    print(key, &#39;:&#39;, list(value_iter))
+print(&quot;================================&quot;)
+data = [&#39;a&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;ddd&#39;, &#39;eee&#39;, &#39;f&#39;]
+for key, value_iter in groupby(data, len):
+    print(key, &#39;:&#39;, list(value_iter))
+</code></pre>
+
+<pre><code>a : [&#39;a&#39;, &#39;a&#39;, &#39;a&#39;]
+b : [&#39;b&#39;, &#39;b&#39;, &#39;b&#39;]
+a : [&#39;a&#39;, &#39;a&#39;]
+c : [&#39;c&#39;, &#39;c&#39;]
+d : [&#39;d&#39;]
+================================
+1 : [&#39;a&#39;]
+2 : [&#39;bb&#39;]
+3 : [&#39;ccc&#39;]
+2 : [&#39;dd&#39;]
+3 : [&#39;eee&#39;]
+1 : [&#39;f&#39;]
+================================
+1 : [&#39;a&#39;]
+2 : [&#39;bb&#39;, &#39;cc&#39;]
+3 : [&#39;ddd&#39;, &#39;eee&#39;]
+1 : [&#39;f&#39;]
+</code></pre>
+
+<ol>
+<li><b>ifilter</b> (Python3已不再提供)</li>
+</ol>
+
+<p>ifilter 的使用形式如下：</p>
+
+<blockquote>
+<p>ifilter(function or None, sequence)</p>
+</blockquote>
+
+<p>将 iterable 中 function(item) 为 True 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 True 的项。</p>
+
+<pre><code class="language-python">#from itertools import ifilter          # Python3已经不再提供，python3使用filter()
+
+#a = list(ifilter(lambda x: x &lt; 6, range(10)))
+a = list(filter(lambda x: x &lt; 6, range(10)))
+print(a)
+#b = list(ifilter(None, [0, 1, 2, 0, 3, 4]))
+b = list(filter(None, [0, 1, 2, 0, 3, 4]))
+print(b)
+</code></pre>
+
+<pre><code>[0, 1, 2, 3, 4, 5]
+[1, 2, 3, 4]
+</code></pre>
+
+<ol>
+<li><b>ifilterfalse</b> (Python3已不再提供)</li>
+</ol>
+
+<p>ifilterfalse 的使用形式和 ifilter 类似，它将 iterable 中 function(item) 为 False 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 False 的项。</p>
+
+<pre><code class="language-python">#from itertools import ifilterfalse
+#list(ifilterfalse(lambda x: x &lt; 6, range(10)))
+#[6, 7, 8, 9]
+#list(ifilter(None, [0, 1, 2, 0, 3, 4]))
+#[0, 0]
+</code></pre>
+
+<ol>
+<li><b>islice</b></li>
+</ol>
+
+<p>islice 是切片选择，它的使用形式如下：</p>
+
+<blockquote>
+<p>islice(iterable, [start,] stop [, step])</p>
+</blockquote>
+
+<p>其中，iterable 是可迭代对象，start 是开始索引，stop 是结束索引，step 是步长，start 和 step 可选。</p>
+
+<pre><code class="language-python">from itertools import count, islice
+a = list(islice([10, 6, 2, 8, 1, 3, 9], 5))
+print(a)
+b = list(islice(count(), 6))
+print(b)
+c = list(islice(count(), 3, 10))
+print(c)
+d = list(islice(count(), 3, 10 ,2))
+print(d)
+</code></pre>
+
+<pre><code>[10, 6, 2, 8, 1]
+[0, 1, 2, 3, 4, 5]
+[3, 4, 5, 6, 7, 8, 9]
+[3, 5, 7, 9]
+</code></pre>
+
+<ol>
+<li><b>imap</b> (Python3已不再提供) </li>
+</ol>
+
+<p>imap 类似 map 操作，它的使用形式如下：</p>
+
+<blockquote>
+<p>imap(func, iter1, iter2, iter3, ...)</p>
+</blockquote>
+
+<p>imap 返回一个迭代器，元素为 func(i1, i2, i3, ...)，i1，i2 等分别来源于 iter, iter2。</p>
+
+<pre><code class="language-python">#from itertools import imap
+#print(imap(str, [1, 2, 3, 4]))
+#&lt;itertools.imap object at 0x10556d050&gt;
+#print(list(imap(str, [1, 2, 3, 4])))
+#[&#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;]
+#print(list(imap(pow, [2, 3, 10], [4, 2, 3])))
+#[16, 9, 1000]
+</code></pre>
+
+<ol>
+<li><b>tee</b></li>
+</ol>
+
+<p>tee 的使用形式如下：</p>
+
+<blockquote>
+<p>tee(iterable [,n])</p>
+</blockquote>
+
+<p>tee 用于从 iterable 创建 n 个独立的迭代器，以元组的形式返回，n 的默认值是 2。</p>
+
+<pre><code class="language-python">from itertools import tee
+print(tee(&#39;abcd&#39;))   # n 默认为 2，创建两个独立的迭代器
+iter1, iter2 = tee(&#39;abcde&#39;)
+print(list(iter1))
+print(list(iter2))
+print(tee(&#39;abc&#39;, 3))  # 创建三个独立的迭代器
+</code></pre>
+
+<pre><code>(&lt;itertools._tee object at 0x000001F91721CF88&gt;, &lt;itertools._tee object at 0x000001F917221788&gt;)
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+(&lt;itertools._tee object at 0x000001F917221848&gt;, &lt;itertools._tee object at 0x000001F917221608&gt;, &lt;itertools._tee object at 0x000001F917221888&gt;)
+</code></pre>
+
+<ol>
+<li><b>takewhile</b></li>
+</ol>
+
+<p>takewhile 的使用形式如下：</p>
+
+<blockquote>
+<p>takewhile(predicate, iterable)</p>
+</blockquote>
+
+<p>其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则保留该元素，只要 predicate(item) 为 false，则立即停止迭代。</p>
+
+<pre><code class="language-python">from itertools import takewhile
+a = list(takewhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
+print(a)
+b = list(takewhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
+print(b)
+</code></pre>
+
+<pre><code>[1, 3]
+[]
+</code></pre>
+
+<ol>
+<li><b>zip</b> (Python3已不再提供) </li>
+</ol>
+
+<p>izip 用于将多个可迭代对象对应位置的元素作为一个元组，将所有元组『组成』一个迭代器，并返回。它的使用形式如下：</p>
+
+<blockquote>
+<p>izip(iter1, iter2, ..., iterN)</p>
+</blockquote>
+
+<p>如果某个可迭代对象不再生成值，则迭代停止。</p>
+
+<pre><code class="language-python">#from itertools import izip
+#for item in izip(&#39;ABCD&#39;, &#39;xy&#39;):
+#    print(item)    
+#for item in izip([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]):
+#    print(item)
+</code></pre>
+
+<ol>
+<li><b>izip_longest</b> (Python3已不再提供) </li>
+</ol>
+
+<p>izip_longest 跟 izip 类似，但迭代过程会持续到所有可迭代对象的元素都被迭代完。它的形式如下：</p>
+
+<blockquote>
+<p>izip_longest(iter1, iter2, ..., iterN, [fillvalue=None])</p>
+</blockquote>
+
+<p>如果有指定 fillvalue，则会用其填充缺失的值，否则为 None。</p>
+
+<pre><code class="language-python">#from itertools import izip_longest
+#for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;):
+#    print(item)
+#for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;, fillvalue=&#39;-&#39;):
+#    print(item)
+
+####output:
+#(&#39;A&#39;, &#39;x&#39;)
+#(&#39;B&#39;, &#39;y&#39;)
+#(&#39;C&#39;, None)
+#(&#39;D&#39;, None)
+
+#(&#39;A&#39;, &#39;x&#39;)
+#(&#39;B&#39;, &#39;y&#39;)
+#(&#39;C&#39;, &#39;-&#39;)
+#(&#39;D&#39;, &#39;-&#39;)
+</code></pre>
+
+<p><b>组合生成器</b></p>
+
+<p>itertools 模块还提供了多个组合生成器函数，用于求序列的排列、组合等：<br/><br/>
+- product<br/>
+- permutations<br/>
+- combinations<br/>
+- combinations_with_replacement    </p>
+
+<p>这些都是排列组合必备良方</p>
+
+<ol>
+<li><b>product</b></li>
+</ol>
+
+<p>product 用于求多个可迭代对象的笛卡尔积，它跟嵌套的 for 循环等价。它的一般使用形式如下：</p>
+
+<blockquote>
+<p>product(iter1, iter2, ... iterN, [repeat=1])</p>
+</blockquote>
+
+<p>其中，repeat 是一个关键字参数，用于指定重复生成序列的次数，</p>
+
+<pre><code class="language-python">from itertools import product
+for item in product(&#39;ABCD&#39;, &#39;xy&#39;):
+    print(item)
+</code></pre>
+
+<pre><code>(&#39;A&#39;, &#39;x&#39;)
+(&#39;A&#39;, &#39;y&#39;)
+(&#39;B&#39;, &#39;x&#39;)
+(&#39;B&#39;, &#39;y&#39;)
+(&#39;C&#39;, &#39;x&#39;)
+(&#39;C&#39;, &#39;y&#39;)
+(&#39;D&#39;, &#39;x&#39;)
+(&#39;D&#39;, &#39;y&#39;)
+</code></pre>
+
+<pre><code class="language-python">a = list(product(&#39;ab&#39;, range(3)))
+print(a)
+</code></pre>
+
+<pre><code>[(&#39;a&#39;, 0), (&#39;a&#39;, 1), (&#39;a&#39;, 2), (&#39;b&#39;, 0), (&#39;b&#39;, 1), (&#39;b&#39;, 2)]
+</code></pre>
+
+<pre><code class="language-python">b = list(product((0,1), (0,1), (0,1)))
+print(b)
+</code></pre>
+
+<pre><code>[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+</code></pre>
+
+<pre><code class="language-python">c = list(product(&#39;ABC&#39;, repeat=2))
+print(c)
+</code></pre>
+
+<pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;C&#39;)]
+</code></pre>
+
+<ol>
+<li><b>permutations</b></li>
+</ol>
+
+<p>permutations 用于生成一个排列，它的一般使用形式如下：</p>
+
+<blockquote>
+<p>permutations(iterable[, r])</p>
+</blockquote>
+
+<p>其中，r 指定生成排列的元素的长度，如果不指定，则默认为可迭代对象的元素长度。</p>
+
+<pre><code class="language-python">from itertools import permutations
+a = permutations(&#39;ABC&#39;, 2)
+print(a)
+b = list(permutations(&#39;ABC&#39;, 2))
+print(b)
+c = list(permutations(&#39;ABC&#39;))
+print(c)
+</code></pre>
+
+<pre><code>&lt;itertools.permutations object at 0x000001F9171C7DB0&gt;
+[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;)]
+[(&#39;A&#39;, &#39;B&#39;, &#39;C&#39;), (&#39;A&#39;, &#39;C&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;A&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;B&#39;, &#39;A&#39;)]
+</code></pre>
+
+<ol>
+<li><b>combinations</b></li>
+</ol>
+
+<p>combinations 用于求序列的组合，它的使用形式如下：</p>
+
+<blockquote>
+<p>combinations(iterable, r)</p>
+</blockquote>
+
+<p>其中，r 指定生成组合的元素的长度。</p>
+
+<pre><code class="language-python">from itertools import combinations
+list(combinations(&#39;ABC&#39;, 2))
+</code></pre>
+
+<pre><code>[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;)]
+</code></pre>
+
+<ol>
+<li><b>combinations_with_replacement</b></li>
+</ol>
+
+<p>combinations_with_replacement 和 combinations 类似，但它生成的组合包含自身元素。</p>
+
+<pre><code class="language-python">from itertools import combinations_with_replacement
+list(combinations_with_replacement(&#39;ABC&#39;, 2))
+</code></pre>
+
+<pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;C&#39;)]
+</code></pre>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15662171970710.html" 
+          title="Next Post: Python Modules - 02 - Python collections">Python Modules - 02 - Python collections &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>

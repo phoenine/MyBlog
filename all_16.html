@@ -107,62 +107,24 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14896702983964.html">
+                <a class="clearlink" href="15095429404216.html">
                 
-                  <h1>继承与多态</h1>
+                  <h1>通过MWeb上传Blog</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">static关键字</h3>
+                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
 
 <ol>
-<li><p>C语言中的static</p>
-
-<ul>
-<li>修饰局部变量</li>
-<li>修饰全局变量</li>
-<li>修饰函数</li>
-</ul></li>
-<li><p>OC中的static关键字</p>
-
-<ul>
-<li>static不能修饰属性，也不能修饰方法</li>
-<li>static可以修饰方法中的局部变量</li>
-</ul>
-
-<p>如果方法中的局部变量被static修饰，那么这个变量就会变成静态变量，存储在常量区，当方法执行完毕不会被回收。下次再执行这个方法的时候，直接使用而不用再次声明。<br/>
-<img src="media/14896702983964/14896706781899.jpg" alt=""/></p>
-
-<ul>
-<li>如果方法的返回值是当前类的对象，那么方法的返回值就写为instanceType</li>
-</ul></li>
-<li><p>什么时候用到static<br/>
-<img src="media/14896702983964/14896717656421.jpg" alt=""/></p></li>
+<li><p>新增分类 -&gt; CSDN Blog</p></li>
+<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
 </ol>
 
-<h3 id="toc_1">self关键字</h3>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
+3. 生成网站，并推送到博客</p>
 
-<ul>
-<li>self是一个指针；</li>
-<li>在对象方法中self指向当前对象；</li>
-<li><p>在类方法中self指向当前类；</p></li>
-<li><p>作用：</p>
-
-<ul>
-<li>可以显式的访问当前对象的属性； self -&gt; 属性</li>
-<li>可以使用self来调用当前对象的其他的对象方法；</li>
-</ul></li>
-</ul>
-
-<h3 id="toc_2">私有属性和私有方法</h3>
-
-<ul>
-<li>将属性定义在@implementation之中和将属性定义在@interface之中并标记为@private唯一的区别： 提示和不提示</li>
-<li>都不能被外界访问</li>
-<li>方法不写声明，只写实现，那么这个方法就是一个私有方法；</li>
-<li>私有方法只能在本类的其他方法中调用，不能被外界调用</li>
-</ul>
+<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
 
                         
                       </div>
@@ -171,10 +133,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/3/16 21:18 PM</span>
+                    <span class="date">2017/11/1 21:29 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -188,53 +150,167 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14885942470746.html">
+                <a class="clearlink" href="14991719231835.html">
                 
-                  <h1>类方法与对象方法</h1>
+                  <h1>自定义控件</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">对象方法</h4>
+                        	<h3 id="toc_0">UIView的封装</h3>
 
-<ul>
-<li>调用：如果想要调用对象方法就必须先创建对象，通过对象名来调用</li>
-<li>声明：使用‘-’号</li>
-</ul>
+<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
+* 目的：封装空间内部的细节，不让外界关心</p>
 
-<h4 id="toc_1">类方法</h4>
+<h3 id="toc_1">UIView的封装有两种方式</h3>
 
-<ul>
-<li>调用：类方法的调用不依赖于对象，如果要调用类方法，不需要去创建对象，直接通过类名来调用。</li>
-<li>声明：使用‘+’号</li>
-<li>在类方法中不能直接访问属性</li>
-<li>属性是在对象创建的时候，跟随着对象一起创建在对象之中</li>
-<li>类第一次被访问的时候，会做类加载，是把类的带啊存储在代码段</li>
-<li>节约空间，提高效率</li>
-<li>如果方法不需要直接访问属性，也不需要直接调用其他的对象方法，则可以定义为类方法</li>
-</ul>
+<p>通过纯代码封装：<br/>
+1. 新建一个继承UIView的类<br/>
+2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
+3. 在initWithFrame:方法中添加子控件<br/>
+4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
+5. 提供一个模型属性，重写模型属性的set方法<br/>
+6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
+UIView的封装代码如下：</p>
 
-<h4 id="toc_2">类方法规范</h4>
+<pre><code> /**
+  *  CustomView.h文件
+  */
 
-<ul>
-<li>如果写一个类，可以为这个类提供一个和类同名的类方法；</li>
-</ul>
+ // 步骤1 新建一个继承UIView的类
+ #import &lt;UIKit/UIKit.h&gt;
+ @class CustomModel;
+ @interface CustomView : UIView
+ // 在这里为了方便，可以自行添加构造方法，方便使用
+ // 步骤5 提供一个`模型`属性，重写模型属性的set方法
+ @property (nonatomic, strong) CustomModel *model;
+ @end
+</code></pre>
 
-<h4 id="toc_3">NSString最常用的类方法</h4>
+<pre><code>/**
+ *  CustomView.m文件
+ */
+ #import &quot;CustomView.h&quot;
+ #import &quot;CustomModel.h&quot;
+ @interface CustomView ()
+ // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
+ @property (nonatomic, weak) UIImageView *iconImageView;
+ @property (nonatomic, weak) UILabel *nameLabel;
+ @end
 
-<p>instanceType 作为返回值 代表返回的是当前类的对象<br/>
-<img src="media/14885942470746/14888085422135.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888090342021.jpg" alt=""/></p>
+ @implementation CustomView
+ // 步骤3 在initWithFrame:方法中添加子控件
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+     if (self = [super initWithFrame:frame]) {
+     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
+     UIImageView *iconImageView = [[UIImageView alloc] init];
+     self.iconImageView = iconImageView;
+     [self addSubview:iconImageView];
 
-<h4 id="toc_4">NSString最常用的对象方法</h4>
+     UILabel *nameLabel = [[UILabel alloc] init];
+     // 设置子控件的属性
+     nameLabel.textAlignment = NSTextAlignmentCenter;
+     nameLabel.font = [UIFont systemFontOfSize:10];
+     self.nameLabel = nameLabel;
+     [self addSubview:nameLabel];
+     }
+     return self;
+ }
 
-<p><img src="media/14885942470746/14888092424014.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888094300096.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888095451151.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888099962376.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888102494936.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892006938627.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892007099870.jpg" alt=""/></p>
+ // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
+ - (void)layoutSubviews
+ {
+     [super layoutSubviews];
+
+     CGFloat iconImageViewX = 0;
+     CGFloat iconImageViewY = 0;
+     CGFloat iconImageViewW = self.bounds.size.width;
+     CGFloat iconImageViewH = 80;
+     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
+
+     CGFloat nameLabelX = 0;
+     CGFloat nameLabelY = iconImageViewH;
+     CGFloat nameLabelW = iconImageViewW;
+     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
+     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
+ }
+
+ // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
+ - (void)setModel:(CustomModel *)model
+ {
+     _model = model;
+     self.iconImageView.image = [UIImage imageNamed:model.icon];
+     self.nameLabel.text = model.name;
+ }
+ @end
+</code></pre>
+
+<p>layoutSubviews在以下情况下会被调用：<br/>
+1. init初始化不会触发layoutSubviews<br/>
+2. addSubview会触发layoutSubviews<br/>
+3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
+4. 滚动一个UIScrollView会触发layoutSubviews<br/>
+5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
+6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
+
+<p>模型代码如下：</p>
+
+<pre><code> /**
+  *  CustomModel.h文件
+  */
+ #import &lt;Foundation/Foundation.h&gt;
+
+ @interface CustomModel : NSObject
+    /**
+     *  名字
+     */
+ @property (nonatomic, copy) NSString *name;
+    /**
+     *  图片
+     */
+ @property (nonatomic, copy) NSString *icon;
+
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
+
+ @end
+</code></pre>
+
+<pre><code> /**
+  *  CustomModel.m文件
+  */
+ #import &quot;CustomModel.h&quot;
+
+ @implementation CustomModel
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
+ {
+     return [[self alloc] initWithName:name icon:icon];
+ }
+
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
+ {
+     if (self = [super init]) {
+         self.name = name;
+         self.icon = icon;
+     }
+     return self;
+ }
+ @end
+</code></pre>
+
+<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
+
+<pre><code>// 创建自定义的View
+ CustomView *customView = [[CustomView alloc] init];
+// 设置数据
+ CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
+ customView.model = model;
+// 设置frame
+ customView.frame = CGRectMake(100, 100, 67, 100);
+// 添加子控件
+ [self.view addSubview:customView];
+</code></pre>
 
                         
                       </div>
@@ -243,10 +319,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/3/4 10:24 AM</span>
+                    <span class="date">2017/7/4 20:38 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -338,31 +414,31 @@
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

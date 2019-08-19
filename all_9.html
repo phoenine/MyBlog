@@ -107,121 +107,77 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15161070375181.html">
+                <a class="clearlink" href="15654471089883.html">
                 
-                  <h1>Auto Migrate Tools(v2.0)</h1>
+                  <h1>Python常见的错误<一></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>更新了下脚本：<br/>
-还是有些问题：<br/>
-1. 如果有其他Project的node怎么处理？<br/>
-2. 如果有自己的其他node怎么处理？</p>
+                        	<h4 id="toc_0">常见错误1: 滥用表达式作为函数参数的默认值</h4>
 
-<pre><code class="language-sh">#!/bin/bash
+<p>Python允许为函数的参数提供默认的可选值。尽管这是语言的一大特色，但是它可能会导致一些易变默认值的混乱。<br/><br/>
+一个常见的错误是认为函数每次不提供可选参数调用时，会将可选参数将设置为默认指定值。例如下面这段代码：</p>
 
-function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
-function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
-function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
-function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
+<pre><code class="language-python">def extendList(val, list=[]):
+    list.append(val)
+    return list
 
-COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-UE_NODE_LIST=`nova list | grep ei | awk &#39;{print $4}&#39;`
-UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
-OTHER_NODE_LIST=`nova list --fields name | grep -v ei | awk &#39;NR&gt;2&#39; | awk &#39;{print $4}&#39; | awk &#39;{if(length!=0) print $0}&#39;`
-OPTIMAL_COMPUTE=&#39;&#39;
-INFERIOR_COMPUTE=&#39;&#39;
-INIT_USED=8.0
+list1 = extendList(10)
+list2 = extendList(123,[])
+list3 = extendList(&#39;a&#39;)a
 
-for COMPUTER in $COMPUTER_LIST
-    do
-        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
-        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
-            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
-            OPTIMAL_COMPUTER=$COMPUTER
-            break
-        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
-            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
-            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$CPUS_USED
-                INFERIOR_COMPUTE=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            fi
-        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
-            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
-            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
-            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
-            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
-            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$USED_RATE
-                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
-                INFERIOR_COMPUTE=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            else
-                continue
-            fi
-        else
-            echo__red &quot;This computer node is full.&quot;
-        fi
-    done
-    echo &quot;===========Finally the chosen computer is : 1. $OPTIMAL_COMPUTER  2. $INFERIOR_COMPUTE.==============&quot;
+print(&quot;list1 = %s&quot; % list1)
+print(&quot;list2 = %s&quot; % list2)
+print(&quot;list3 = %s&quot; % list3)
+</code></pre>
 
-for INSTANCE_NAME in $OTHER_NODE_LIST
-        do
-            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
-            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
-            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
-                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
-                OPTIMAL_COMPUTER=$UE_COMPUTE
-                break
-            else
-                continue
-            fi
-        done
-    echo__red &quot;All UE instance are not stand alone.&quot;
+<pre><code>list1 = [10, &#39;a&#39;]
+list2 = [123]
+list3 = [10, &#39;a&#39;]
+</code></pre>
 
-for INSTANCE_NAME in $UE_NODE_LIST
-        do
-            UE_COMPUTE=`nova list --fields name,host,wrs-res:topology | grep $INSTANCE_NAME | awk &#39;{print $6}&#39;`
-            CPUS_USED=`nova hypervisor-show $UE_COMPUTE | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-            echo__blue &quot;$UE_COMPUTE node&#39;s vcpus_used is :  $CPUS_USED&quot;
-            if [[ $(echo &quot;$CPUS_USED == 8.0&quot;|bc) = 1 ]];then
-                echo__blue &quot;Greate! $UE_COMPUTE is a optimal computer.&quot;
-                OPTIMAL_COMPUTER=$UE_COMPUTE
-                break
-            else
-                continue
-            fi
-        done
-    echo__red &quot;All other instance are not stand alone.&quot;
+<p>很多人都会误认为list1=[10]，list3=[‘a’]，因为他们以为每次extendList被调用时，列表参数的默认值都将被设置为[]。<br/><br/>
+但实际上的情况是，<b> 函数参数的默认列表只在函数被定义的那一刻创建一次。</b><br/><br/>
+当extendList被没有指定特定参数list调用时，这组list的值随后将被使用。这是因为<u>带有默认参数的表达式在函数被定义的时候被计算，不是在调用的时候被计算。</u><br/><br/>
+因此list1和list3是在同一个默认列表上进行操作（计算）的。<br/><br/>
+而list2是在一个分离的列表上进行操作（计算）的。（通过传递一个自有的空列表作为列表参数的数值）。<br/>
+extendList的定义可以作如下修改:</p>
 
-echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
-if [[ -z &quot;$OPTIMAL_COMPUTER&quot; ]];then
-    for UE_NODE in $UE_NODE_LIST
-        do
-            nova live-migration $UE_NODE $OPTIMAL_COMPUTER
-            sleep 5
-            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-                echo &quot;Still migrating, please wait...&quot;
-                sleep 5     
-            fi
-        done
-else
-    for UE_NODE in $UE_NODE_LIST
-        do
-            nova live-migration $UE_NODE $INFERIOR_COMPUTE
-            sleep 5
-            if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-                echo &quot;Still migrating, please wait...&quot;
-                sleep 5     
-            fi
-        done   
-fi
+<pre><code class="language-python">def extendList_2(val, list=None):
+    if list is None:
+        list = []
+    list.append(val)
+    return list
 
-echo__green &quot;Live migration is successfully.&quot;
+list1 = extendList_2(10)
+list2 = extendList_2(123,[])
+list3 = extendList_2(&#39;a&#39;)
+
+print(&quot;list1 = %s&quot; % list1)
+print(&quot;list2 = %s&quot; % list2)
+print(&quot;list3 = %s&quot; % list3)
+</code></pre>
+
+<pre><code>list1 = [10]
+list2 = [123]
+list3 = [&#39;a&#39;]
+</code></pre>
+
+<p>下面dis库是python(默认的CPython)自带的一个库,可以用来分析字节码。</p>
+
+<pre><code class="language-python">import dis
+dis.dis(extendList)
+</code></pre>
+
+<pre><code>  2           0 LOAD_FAST                1 (list)
+              2 LOAD_METHOD              0 (append)
+              4 LOAD_FAST                0 (val)
+              6 CALL_METHOD              1
+              8 POP_TOP
+
+  3          10 LOAD_FAST                1 (list)
+             12 RETURN_VALUE
 </code></pre>
 
                         
@@ -231,10 +187,10 @@ echo__green &quot;Live migration is successfully.&quot;
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/1/16 20:50 PM</span>
+                    <span class="date">2019/8/10 22:25 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -248,202 +204,270 @@ echo__green &quot;Live migration is successfully.&quot;
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15156751072902.html">
+                <a class="clearlink" href="15211187332796.html">
                 
-                  <h1>Python对象的浅拷贝与深拷贝</h1>
+                  <h1>Python 陷阱与缺陷列表</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>我们知道，对象赋值实际上是简单的对象引用。也就是说，当你创建了一个对象，然后把它赋值给另外一个变量的时候，Python并没有拷贝这个对象，而是拷贝了这个对象的引用。<br/>
-举例说明：</p>
+                        	<p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
 
-<pre><code class="language-python">x = 3.14
-y = x
+<pre><code class="language-python">&gt;&gt;&gt; a=1
+&gt;&gt;&gt; def func():
+...     a+=1
+...     print a
+...
+&gt;&gt;&gt; func()
+Traceback (most recent call last):
+File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+File &quot;&lt;stdin&gt;&quot;, line 2, in func
+UnboundLocalError: local variable &#39;a&#39; referenced before assignment
 </code></pre>
 
-<p>语句<code>x = 3.14</code>创建了一个浮点型对象并将其引用赋值给x。<br/>
-x是第一个引用。<br/>
-语句<code>y = x</code>创建了一个指向同一对象的别名y，而事实上并没有为y创建一个新对象(该对象引用计数变成了2)。<br/>
-<img src="media/15156751072902/15156757071783.jpg" alt=""/></p>
+<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
 
-<h3 id="toc_0">对象赋值</h3>
+<p>对于“UnboundLocalError”,还有更高级的版本：</p>
 
-<p>直接看一段代码：</p>
-
-<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
-wilber = will
-print id(will)
-print will
-print [id(ele) for ele in will]
-print id(wilber)
-print wilber
-print [id(ele) for ele in wilber]
-
-will[0] = &quot;Wilber&quot;
-will[2].append(&quot;CSS&quot;)
-print id(will)
-print will
-print [id(ele) for ele in will]
-print id(wilber)
-print wilber
-print [id(ele) for ele in wilber]
+<pre><code class="language-python">import random
+ 
+def func(ok):
+    if ok:
+        a = random.random()
+    else:
+        import random
+        a = random.randint(1, 10)
+    return a
+ 
+func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
 </code></pre>
 
-<p>代码的输出为：<br/>
-<img src="media/15156751072902/15156770585054.png" alt=""/></p>
+<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
 
-<p>下面来分析一下这段代码：</p>
+<p>那么Python中哪些真正算得上陷阱呢？</p>
 
-<ul>
-<li>首先，创建了一个名为will的变量，这个变量指向一个list对象，从第一张图中可以看到所有对象的地址（每次运行，结果可能不同）</li>
-<li>然后，通过will变量对wilber变量进行赋值，那么wilber变量将指向will变量对应的对象（内存地址），也就是说&quot;wilber is will&quot;，&quot;wilber[i] is will[i]&quot;
+<p><strong>第一：以mutable对象作为默认参数</strong></p>
 
-<ul>
-<li>可以理解为，Python中，对象的赋值都是进行对象引用（内存地址）传递</li>
-</ul></li>
-<li>第三张图中，由于will和wilber指向同一个对象，所以对will的任何修改都会体现在wilber上
+<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
 
-<ul>
-<li>这里需要注意的一点是，str是不可变类型，所以当修改的时候会替换旧的对象，产生一个新的地址39758496
-<img src="media/15156751072902/15156771227464.png" alt=""/></li>
-</ul></li>
-</ul>
-
-<h3 id="toc_1">浅拷贝</h3>
-
-<p>下面就来看看浅拷贝的结果：</p>
-
-<pre><code class="language-python">import copy
-
-will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
-wilber = copy.copy(will)
-
-print id(will)
-print will
-print [id(ele) for ele in will]
-print id(wilber)
-print wilber
-print [id(ele) for ele in wilber]
-
-will[0] = &quot;Wilber&quot;
-will[2].append(&quot;CSS&quot;)
-print id(will)
-print will
-print [id(ele) for ele in will]
-print id(wilber)
-print wilber
-print [id(ele) for ele in wilber]
+<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
+...     lst.append(1)
+...     return lst
+...
+&gt;&gt;&gt; f()
+[1]
+&gt;&gt;&gt; f()
+[1, 1]
 </code></pre>
 
-<p>代码的输出结果如下：<br/>
-<img src="media/15156751072902/15156771638072.png" alt=""/><br/>
-分析一下这段代码：</p>
+<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
+<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
+&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
 
-<ul>
-<li>首先，依然使用一个will变量，指向一个list类型的对象</li>
-<li>然后，通过copy模块里面的浅拷贝函数copy()，对will指向的对象进行浅拷贝，然后浅拷贝生成的新对象赋值给wilber变量
+<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
 
-<ul>
-<li>浅拷贝会创建一个新的对象，这个例子中&quot;wilber is not will&quot;</li>
-<li>但是，对于对象中的元素，浅拷贝就只会使用原始元素的引用（内存地址），也就是说&quot;wilber[i] is will[i]&quot;</li>
-</ul></li>
-<li>当对will进行修改的时候
-
-<ul>
-<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
-<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，所以will的修改结果会相应的反应到wilber上
-<img src="media/15156751072902/15156771821899.png" alt=""/>
-总结一下，当我们使用下面的操作的时候，会产生浅拷贝的效果：</li>
-</ul></li>
-<li>使用切片[:]操作</li>
-<li>使用工厂函数（如list/dir/set）</li>
-<li>使用copy模块中的copy()函数
-例如：</li>
-</ul>
-
-<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
-willber = will[:]
-wiww = list(will)
+<pre><code class="language-python">&gt;&gt;&gt; import time
+&gt;&gt;&gt; def report(when=time.time()):
+... return when
+...
+&gt;&gt;&gt; report()
+1500113234.487932
+&gt;&gt;&gt; report()
+1500113234.487932
 </code></pre>
 
-<h3 id="toc_2">深拷贝</h3>
+<p>python docoment 给出了标准的解决办法：<br/>
+<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
 
-<p>最后来看看深拷贝：</p>
-
-<pre><code class="language-python">import copy
-
-will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
-wilber = copy.deepcopy(will)
-
-print id(will)
-print will
-print [id(ele) for ele in will]
-print id(wilber)
-print wilber
-print [id(ele) for ele in wilber]
-
-will[0] = &quot;Wilber&quot;
-will[2].append(&quot;CSS&quot;)
-print id(will)
-print will
-print [id(ele) for ele in will]
-print id(wilber)
-print wilber
-print [id(ele) for ele in wilber]
+<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
+...  if when is None:
+...  when = time.time()
+... return when
+...
+&gt;&gt;&gt; report()
+1500113446.746997
+&gt;&gt;&gt; report()
+1500113448.552873
 </code></pre>
 
-<p>代码的输出结果如下：<br/>
-<img src="media/15156751072902/15156773634373.png" alt=""/></p>
+<p><strong>第二: x += y vs x = x + y</strong><br/>
+一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
 
-<p>分析一下这段代码：</p>
+<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
+2 
+&gt;&gt;&gt; x=1;x = x+1;print x
+2
+&gt;&gt;&gt; x=[1];x+=[2];print x
+[1, 2]
+&gt;&gt;&gt; x=[1];x=x+[2];print x
+[1, 2]
+</code></pre>
 
-<ul>
-<li>首先，同样使用一个will变量，指向一个list类型的对象</li>
-<li>然后，通过copy模块里面的深拷贝函数deepcopy()，对will指向的对象进行深拷贝，然后深拷贝生成的新对象赋值给wilber变量
+<p>呃，被光速打脸了？</p>
 
-<ul>
-<li>跟浅拷贝类似，深拷贝也会创建一个新的对象，这个例子中&quot;wilber is not will&quot; </li>
-<li>但是，对于对象中的元素，深拷贝都会重新生成一份（有特殊情况，下面会说明），而不是简单的使用原始元素的引用（内存地址）
+<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
+4357132800
+4357132728
+&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
+4357132800
+4357132800
+</code></pre>
 
-<ul>
-<li>例子中will的第三个元素指向39737304，而wilber的第三个元素是一个全新的对象39773088，也就是说，&quot;wilber[2] is not will[2]&quot;</li>
-</ul></li>
-</ul></li>
-<li>当对will进行修改的时候
+<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
 
-<ul>
-<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
-<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，但是由于&quot;wilber[2] is not will[2]&quot;，所以will的修改不会影响wilber
-<img src="media/15156751072902/15156773891985.png" alt=""/></li>
-</ul></li>
-</ul>
+<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
 
-<h3 id="toc_3">拷贝的特殊情况</h3>
+<pre><code class="language-python">import dis
 
-<p>其实，对于拷贝有一些特殊情况：</p>
+def foo(x, y):
+    x += y
 
-<ul>
-<li>对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有拷贝这一说
+def foo2(x, y):
+    x = x + y
 
-<ul>
-<li>也就是说，对于这些类型，&quot;obj is copy.copy(obj)&quot; 、&quot;obj is copy.deepcopy(obj)&quot;</li>
-</ul></li>
-<li>如果元祖变量只包含原子类型对象，则不能深拷贝，看下面的例子
-<img src="media/15156751072902/15156774222287.png" alt=""/></li>
-</ul>
+print dis.dis(foo)
+print dis.dis(foo2)
+</code></pre>
 
-<h3 id="toc_4">总结</h3>
+<p>输出结果如下：</p>
 
-<p>本文介绍了对象的赋值和拷贝，以及它们之间的差异：<br/>
-* Python中对象的赋值都是进行对象引用（内存地址）传递<br/>
-* 使用copy.copy()，可以进行对象的浅拷贝，它复制了对象，但对于对象中的元素，依然使用原始的引用.<br/>
-* 如果需要复制一个容器对象，以及它里面的所有元素（包含元素的子元素），可以使用copy.deepcopy()进行深拷贝<br/>
-* 对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有被拷贝一说<br/>
-* 如果元祖变量只包含原子类型对象，则不能深拷贝.</p>
+<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 INPLACE_ADD         
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
 
-<p>文章引用：<br/>
-<a href=""></a><a href="https://www.cnblogs.com/wilber2013/p/4645353.html">https://www.cnblogs.com/wilber2013/p/4645353.html</a></p>
+77            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 BINARY_ADD          
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+</code></pre>
+
+<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
+更多内容可以参考：<br/>
+<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
+
+<p><strong>第三，神奇的小括号–()</strong><br/>
+小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;tuple&#39;&gt;
+&gt;&gt;&gt; type(())
+&lt;type &#39;tuple&#39;&gt;
+</code></pre>
+
+<p>但如果只有一个元素呢</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p><strong>第四：生成一个元素是列表的列表</strong><br/>
+这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
+很简单嘛：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
+&gt;&gt;&gt; a
+[[], [], [], [], [], [], [], [], [], []]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a[0] 
+[10]
+</code></pre>
+
+<p>看起来很不错，简单明了，but</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a[1]
+[10]
+&gt;&gt;&gt; a
+[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
+</code></pre>
+
+<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a
+[[10], [], [], [], [], [], [], [], [], []]
+</code></pre>
+
+<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
+列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
+... for idx, elem in enumerate(lst):
+... if elem % 3 == 0:
+... del lst[idx]
+</code></pre>
+
+<p>测试一下，</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 4, 5]
+</code></pre>
+
+<p>好像没什么错，不过这只是运气好</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 6, 5, 4]
+</code></pre>
+
+<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
+如果逻辑比较简单，使用list comprehension是不错的注意<br/>
+&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
+修改方法很简单：</p>
+
+<pre><code class="language-python">def mod_list(lst):
+    new_lst = []
+    for elem in lst:
+        if elem % 3 != 0:
+            new_lst.append(elem)
+    return new_lst
+
+lst = [1, 2, 3, 4, 5, 6]
+s = mod_list(lst)
+print s
+
+lst = [1, 2, 3, 6, 5, 4]
+s = mod_list(lst)
+print s
+</code></pre>
+
+<p><strong>第六，闭包与lambda</strong><br/>
+这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+...  return [lambda x:i*x for i in range(5)]
+...
+&gt;&gt;&gt; for multiplier in create_multipliers():
+... print multiplier(2)
+...
+</code></pre>
+
+<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
+
+<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
+解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+... return [lambda x, i = i:i*x for i in range(5)]
+...
+</code></pre>
 
                         
                       </div>
@@ -452,7 +476,7 @@ print [id(ele) for ele in wilber]
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2018/1/11 20:51 PM</span>
+                    <span class="date">2018/3/15 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -547,31 +571,31 @@ print [id(ele) for ele in wilber]
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

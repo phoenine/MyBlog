@@ -107,24 +107,40 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15095429404216.html">
+                <a class="clearlink" href="15142967450536.html">
                 
-                  <h1>通过MWeb上传Blog</h1>
+                  <h1>Pyhton变量变换原理</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h6 id="toc_0">你所需要做的，仅仅是：</h6>
+                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
 
-<ol>
-<li><p>新增分类 -&gt; CSDN Blog</p></li>
-<li><p>右击编辑 -&gt; 高级设置 -&gt; 发布服务， 选择MetaWeblog API</p></li>
-</ol>
+<pre><code class="language-C">tmp = x;
+x = y;
+y = tmp;
+</code></pre>
 
-<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.30.08.png" alt="屏幕快照 2017-11-01 21.30.08"/><br/>
-3. 生成网站，并推送到博客</p>
+<p>而在python中，则无需中间变量即可实现：</p>
 
-<p><img src="media/15095429404216/%E5%B1%8F%E5%B9%95%E5%BF%AB%E7%85%A7%202017-11-01%2021.41.21.png" alt="屏幕快照 2017-11-01 21.41.21"/></p>
+<pre><code class="language-python">x , y = y, x
+</code></pre>
+
+<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
+将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
+
+<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
+</code></pre>
+
+<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
+
+<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
+</code></pre>
+
+<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
+接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
+运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
+<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
 
                         
                       </div>
@@ -133,7 +149,7 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/11/1 21:29 PM</span>
+                    <span class="date">2017/12/26 21:59 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -150,167 +166,36 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14991719231835.html">
+                <a class="clearlink" href="15142936231027.html">
                 
-                  <h1>自定义控件</h1>
+                  <h1>Python Unittest与Mock</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIView的封装</h3>
+                        	<p><strong>unittest</strong><br/>
+python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
+python unittest的框架如下： <br/>
+<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
+基本使用方法如下：</p>
 
-<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
-* 目的：封装空间内部的细节，不让外界关心</p>
+<ol>
+<li>import unittest module</li>
+<li>定义一个继承自unittest.TestCase的测试用例类。</li>
+<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
+<li>定义测试用例，名字需要以test开头。</li>
+<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
+<li>调用unittest.main()启动测试</li>
+<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
+</ol>
 
-<h3 id="toc_1">UIView的封装有两种方式</h3>
+<p>这里举个简单的例子说明：<br/>
+<img src="media/15142936231027/15142939572020.png" alt=""/></p>
 
-<p>通过纯代码封装：<br/>
-1. 新建一个继承UIView的类<br/>
-2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
-3. 在initWithFrame:方法中添加子控件<br/>
-4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
-5. 提供一个模型属性，重写模型属性的set方法<br/>
-6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
-UIView的封装代码如下：</p>
+<p>常用的断言：<br/>
+<img src="media/15142936231027/15142939778044.png" alt=""/></p>
 
-<pre><code> /**
-  *  CustomView.h文件
-  */
-
- // 步骤1 新建一个继承UIView的类
- #import &lt;UIKit/UIKit.h&gt;
- @class CustomModel;
- @interface CustomView : UIView
- // 在这里为了方便，可以自行添加构造方法，方便使用
- // 步骤5 提供一个`模型`属性，重写模型属性的set方法
- @property (nonatomic, strong) CustomModel *model;
- @end
-</code></pre>
-
-<pre><code>/**
- *  CustomView.m文件
- */
- #import &quot;CustomView.h&quot;
- #import &quot;CustomModel.h&quot;
- @interface CustomView ()
- // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
- @property (nonatomic, weak) UIImageView *iconImageView;
- @property (nonatomic, weak) UILabel *nameLabel;
- @end
-
- @implementation CustomView
- // 步骤3 在initWithFrame:方法中添加子控件
- - (instancetype)initWithFrame:(CGRect)frame
- {
-     if (self = [super initWithFrame:frame]) {
-     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
-     UIImageView *iconImageView = [[UIImageView alloc] init];
-     self.iconImageView = iconImageView;
-     [self addSubview:iconImageView];
-
-     UILabel *nameLabel = [[UILabel alloc] init];
-     // 设置子控件的属性
-     nameLabel.textAlignment = NSTextAlignmentCenter;
-     nameLabel.font = [UIFont systemFontOfSize:10];
-     self.nameLabel = nameLabel;
-     [self addSubview:nameLabel];
-     }
-     return self;
- }
-
- // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
- - (void)layoutSubviews
- {
-     [super layoutSubviews];
-
-     CGFloat iconImageViewX = 0;
-     CGFloat iconImageViewY = 0;
-     CGFloat iconImageViewW = self.bounds.size.width;
-     CGFloat iconImageViewH = 80;
-     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
-
-     CGFloat nameLabelX = 0;
-     CGFloat nameLabelY = iconImageViewH;
-     CGFloat nameLabelW = iconImageViewW;
-     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
-     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
- }
-
- // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
- - (void)setModel:(CustomModel *)model
- {
-     _model = model;
-     self.iconImageView.image = [UIImage imageNamed:model.icon];
-     self.nameLabel.text = model.name;
- }
- @end
-</code></pre>
-
-<p>layoutSubviews在以下情况下会被调用：<br/>
-1. init初始化不会触发layoutSubviews<br/>
-2. addSubview会触发layoutSubviews<br/>
-3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
-4. 滚动一个UIScrollView会触发layoutSubviews<br/>
-5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
-6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
-
-<p>模型代码如下：</p>
-
-<pre><code> /**
-  *  CustomModel.h文件
-  */
- #import &lt;Foundation/Foundation.h&gt;
-
- @interface CustomModel : NSObject
-    /**
-     *  名字
-     */
- @property (nonatomic, copy) NSString *name;
-    /**
-     *  图片
-     */
- @property (nonatomic, copy) NSString *icon;
-
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
-
- @end
-</code></pre>
-
-<pre><code> /**
-  *  CustomModel.m文件
-  */
- #import &quot;CustomModel.h&quot;
-
- @implementation CustomModel
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
- {
-     return [[self alloc] initWithName:name icon:icon];
- }
-
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
- {
-     if (self = [super init]) {
-         self.name = name;
-         self.icon = icon;
-     }
-     return self;
- }
- @end
-</code></pre>
-
-<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
-
-<pre><code>// 创建自定义的View
- CustomView *customView = [[CustomView alloc] init];
-// 设置数据
- CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
- customView.model = model;
-// 设置frame
- customView.frame = CGRectMake(100, 100, 67, 100);
-// 添加子控件
- [self.view addSubview:customView];
-</code></pre>
+<p><strong>Mock</strong></p>
 
                         
                       </div>
@@ -319,10 +204,10 @@ UIView的封装代码如下：</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/7/4 20:38 PM</span>
+                    <span class="date">2017/12/26 21:7 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -414,31 +299,31 @@ UIView的封装代码如下：</p>
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

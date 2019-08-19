@@ -127,47 +127,84 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <h4 id="toc_0">常见错误9: 误用__del__方法</h4>
+      <h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
 
-<p>假设你有一个名为 calledmod.py 的文件：</p>
+<p>请看下面这个 filefoo.py:</p>
 
-<pre><code class="language-python">import foo
+<pre><code class="language-python">import sys
 
-class Bar(object):
-           ...
-    def __del__(self):
-        foo.cleanup(self.myhandle)
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
+
+bad()
 </code></pre>
 
-<p>并且有一个名为 another_mod.py 的文件：</p>
+<p>在Python 2中运行正常：</p>
 
-<pre><code class="language-python">import mod
-mybar = mod.Bar()
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
 </code></pre>
 
-<p>你会得到一个 AttributeError 的异常。<br/><br/>
-为什么呢？因为，正如这里所说<br/><br/>
-<a href="https://mail.python.org/pipermail/python-bugs-list/2009-January/069209.html">https://mail.python.org/pipermail/python-bugs-list/2009-January/069209.html</a><br/><br/>
-当解释器退出的时候，模块中的全局变量都被设置成了 None。所以，在上面这个例子中，当 <strong>del</strong> 被调用时，foo 已经被设置成了None。<br/><br/>
-解决方法是使用 atexit.register() 代替。<br/><br/>
-<a href="https://docs.python.org/2/library/atexit.html">https://docs.python.org/2/library/atexit.html</a><br/><br/>
-用这种方式，当你的程序结束执行时（意思是正常退出），你注册的处理程序会在解释器退出之前执行。<br/><br/>
-了解了这些，我们可以将上面 mod.py 的代码修改成下面的这样。</p>
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
 
-<pre><code class="language-python">import foo
-import atexit
-
-def cleanup(handle):
-    foo.cleanup(handle)
-
-
-class Bar(object):
-    def __init__(self):
-        ...
-        atexit.register(cleanup, self.myhandle)
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
 </code></pre>
 
-<p>这种实现方式提供了一个整洁并且可信赖的方法用来在程序退出之前做一些清理工作。很显然，它是由foo.cleanup 来决定对绑定在 self.myhandle 上对象做些什么处理工作的，但是这就是你想要的。</p>
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
+
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
+</code></pre>
 
 
     
@@ -268,31 +305,31 @@ class Bar(object):
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

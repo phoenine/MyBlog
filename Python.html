@@ -107,130 +107,574 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15657075853367.html">
+                <a class="clearlink" href="15662172714318.html">
                 
-                  <h1>Python常见的错误<十二></h1>
+                  <h1>Python Modules - 03 - Python itertools</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
+                        	<h4 id="toc_0">Module-1: itertools 模块总结</h4>
 
-<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
-a = 3<br/><br/>
-b = 3<br/><br/>
-而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
-a = b = c = 3<br/><br/>
-我们来看看这段代码输出的是什么？</p>
+<p>我们知道，迭代器的特点是：惰性求值（Lazy evaluation），即只有当迭代至某个值时，它才会被计算，这个特点使得迭代器特别适合于遍历大文件或无限集合等，因为我们不用一次性将它们存储在内存中。</p>
 
-<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
-i = 0
-i = s[i] = 3
-print(i)
-print(s)
+<p>Python 内置的 itertools 模块包含了一系列用来产生不同类型迭代器的函数或类，这些函数的返回都是一个迭代器，我们可以通过 for 循环来遍历取值，也可以使用 next() 来取值。<br/><br/>
+itertools 模块提供的迭代器函数有以下几种类型：<br/>
+- 无限迭代器：生成一个无限序列，比如自然数序列 1, 2, 3, 4, ...；<br/>
+- 有限迭代器：接收一个或多个序列（sequence）作为参数，进行组合、分组和过滤等；<br/>
+- 组合生成器：序列的排列、组合，求序列的笛卡儿积等；</p>
+
+<pre><code class="language-python">import itertools
 </code></pre>
 
-<pre><code>3
-[1, 2, 3, 3, 5, 6]
-</code></pre>
+<p><b>无限迭代器</b></p>
 
-<p>i 的值: 3<br/><br/>
----这个好解释<br/><br/>
-s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
-？？？<br/><br/>
-s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
+<p>itertools 模块提供了三个函数（事实上，它们是类）用于生成一个无限序列迭代器：<br/>
+- count(firstval=0, step=1)创建一个从 firstval (默认值为 0) 开始，以 step (默认值为 1) 为步长的的无限整数迭代器<br/>
+- cycle(iterable)对 iterable 中的元素反复执行循环，返回迭代器<br/>
+- repeat(object [,times]反复生成 object，如果给定 times，则重复次数为 times，否则为无限</p>
 
-<pre><code class="language-python">def test():
-    s = [1, 2, 3, 4, 5, 6] 
-    i = 0
-    i = s[i] = 3
+<ol>
+<li><b>count</b></li>
+</ol>
+
+<p>count() 接收两个参数，第一个参数指定开始值，默认为 0，第二个参数指定步长，默认为 1：</p>
+
+<pre><code class="language-python">nums = itertools.count()
+for i in nums:
+    if i &gt; 5:
+        break
     print(i)
-    print(s)
-
-import dis
-dis.dis(test)
 </code></pre>
 
-<pre><code>  2           0 LOAD_CONST               1 (1)
-              2 LOAD_CONST               2 (2)
-              4 LOAD_CONST               3 (3)
-              6 LOAD_CONST               4 (4)
-              8 LOAD_CONST               5 (5)
-             10 LOAD_CONST               6 (6)
-             12 BUILD_LIST               6
-             14 STORE_FAST               0 (s)
-
-  3          16 LOAD_CONST               7 (0)
-             18 STORE_FAST               1 (i)
-
-  4          20 LOAD_CONST               3 (3)
-             22 DUP_TOP
-             24 STORE_FAST               1 (i)
-             26 LOAD_FAST                0 (s)
-             28 LOAD_FAST                1 (i)
-             30 STORE_SUBSCR
-
-  5          32 LOAD_GLOBAL              0 (print)
-             34 LOAD_FAST                1 (i)
-             36 CALL_FUNCTION            1
-             38 POP_TOP
-
-  6          40 LOAD_GLOBAL              0 (print)
-             42 LOAD_FAST                0 (s)
-             44 CALL_FUNCTION            1
-             46 POP_TOP
-             48 LOAD_CONST               0 (None)
-             50 RETURN_VALUE
+<pre><code>0
+1
+2
+3
+4
+5
 </code></pre>
 
-<p>解释如下：<br/><br/>
-第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
-第1~2行简单解释下:<br/><br/>
-分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
-第3行:<br/><br/>
-LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:  </p>
-
-<pre><code>//取自 python/ceval.c 
-PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)  
-{
-        ... (省略)  
-        TARGET_NOARG(DUP_TOP)  
-        {  
-            v = TOP();    // 复制运行栈帧的顶部值  
-            Py_INCREF(v); // 增加引用计数  
-            PUSH(v);      // 再压入运行栈帧  
-            FAST_DISPATCH();  
-        }  
-        ... (省略)  
-}  
-
+<pre><code class="language-python">nums = itertools.count(10, 2)
+for i in nums:
+    if i &gt; 20:
+        break
+    print(i)
 </code></pre>
 
-<p>DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:</p>
-
-<pre><code>         24 STORE_FAST               1 (i)
-         26 LOAD_FAST                0 (s)
-         28 LOAD_FAST                1 (i)
-         30 STORE_SUBSCR
+<pre><code>10
+12
+14
+16
+18
+20
 </code></pre>
 
-<p>果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+<ol>
+<li><b>cycle</b></li>
+</ol>
 
-<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
-这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+<p>cycle() 用于对 iterable 中的元素反复执行循环：</p>
 
-<p>a = s = 3<br/><br/>
-等价于:<br/><br/>
-a = (s = 3)<br/><br/>
-也就是 s=3 返回3, 再赋值给a  </p>
+<pre><code class="language-python">cycle_strings = itertools.cycle(&#39;ABC&#39;)
+i = 1
+for string in cycle_strings:
+    if i == 10:
+        break
+    print(i, string)
+    i += 1
+</code></pre>
 
-<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
-希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+<pre><code>1 A
+2 B
+3 C
+4 A
+5 B
+6 C
+7 A
+8 B
+9 C
+</code></pre>
 
-<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
-a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
-Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
-参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
+<ol>
+<li><b>repeat</b></li>
+</ol>
+
+<p>repeat() 用于反复生成一个 object：</p>
+
+<pre><code class="language-python">for item in itertools.repeat(&#39;hello world&#39;, 3):
+    print(item)
+</code></pre>
+
+<pre><code>hello world
+hello world
+hello world
+</code></pre>
+
+<p><b>有限迭代器</b></p>
+
+<p>itertools 模块提供了多个函数（类），接收一个或多个迭代对象作为参数，对它们进行组合、分组和过滤等：<br/>
+- chain()<br/>
+- compress()<br/>
+- dropwhile()<br/>
+- groupby()<br/>
+- ifilter()<br/>
+- ifilterfalse()<br/>
+- islice()<br/>
+- imap()<br/>
+- starmap()<br/>
+- tee()<br/>
+- takewhile()<br/>
+- izip()<br/>
+- izip_longest()</p>
+
+<ol>
+<li><b>chain</b></li>
+</ol>
+
+<p>chain 的使用形式如下：</p>
+
+<blockquote>
+<p>chain(iterable1, iterable2, iterable3, ...)     </p>
+</blockquote>
+
+<p>chain 接收多个可迭代对象作为参数，将它们『连接』起来，作为一个新的迭代器返回。</p>
+
+<pre><code class="language-python">from itertools import chain
+for item in chain([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]):
+    print(item)
+</code></pre>
+
+<pre><code>1
+2
+3
+a
+b
+c
+</code></pre>
+
+<p>chain 还有一个常见的用法：</p>
+
+<blockquote>
+<p>chain.from_iterable(iterable)</p>
+</blockquote>
+
+<p>接收一个可迭代对象作为参数，返回一个迭代器：</p>
+
+<pre><code class="language-python">#扁平列表
+a = [[1, 2], [3, 4], [5, 6]]
+b = list(chain.from_iterable(a))
+print(b)
+
+#还有个更有意思的扁平列表
+print(sum(a, []))
+
+str = chain.from_iterable(&#39;ABCDEF&#39;)
+# 注意python3是next(), python2是.next()
+print(next(str))
+</code></pre>
+
+<pre><code>[1, 2, 3, 4, 5, 6]
+[1, 2, 3, 4, 5, 6]
+A
+</code></pre>
+
+<ol>
+<li><b>compress</b></li>
+</ol>
+
+<p>compress 的使用形式如下：</p>
+
+<blockquote>
+<p>compress(data, selectors)</p>
+</blockquote>
+
+<p>compress 可用于对数据进行筛选，当 selectors 的某个元素为 true 时，则保留 data 对应位置的元素，否则去除：</p>
+
+<pre><code class="language-python">from itertools import compress
+a = list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1, 0, 1]))
+print(a)
+b = list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1]))
+print(b)
+c = list(compress(&#39;ABCDEF&#39;, [True, False, True]))
+print(c)
+</code></pre>
+
+<pre><code>[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;, &#39;F&#39;]
+[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;]
+[&#39;A&#39;, &#39;C&#39;]
+</code></pre>
+
+<ol>
+<li><b>dropwhile</b></li>
+</ol>
+
+<p>dropwhile 的使用形式如下：</p>
+
+<blockquote>
+<p>dropwhile(predicate, iterable)</p>
+</blockquote>
+
+<p>其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则丢弃该元素，否则返回该项及所有后续项。<br/><br/>
+predicate 断言，断定。 注意其返回项是丢弃元素判定失败后的后续项</p>
+
+<pre><code class="language-python">from itertools import dropwhile
+a = list(dropwhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
+print(a)
+b = list(dropwhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
+print(b)
+</code></pre>
+
+<pre><code>[6, 2, 1]
+[2, 1, 6, 5, 4]
+</code></pre>
+
+<ol>
+<li><b>groupby</b></li>
+</ol>
+
+<p>groupby 用于对序列进行分组，它的使用形式如下：</p>
+
+<blockquote>
+<p>groupby(iterable[, keyfunc])</p>
+</blockquote>
+
+<p>其中，iterable 是一个可迭代对象，keyfunc 是分组函数，用于对 iterable 的连续项进行分组，如果不指定，则默认对 iterable 中的连续相同项进行分组，返回一个 (key, sub-iterator) 的迭代器。</p>
+
+<pre><code class="language-python">from itertools import groupby
+for key, value_iter in groupby(&#39;aaabbbaaccd&#39;):
+    print(key, &#39;:&#39;, list(value_iter))
+print(&quot;================================&quot;)
+data = [&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;, &#39;dd&#39;, &#39;eee&#39;, &#39;f&#39;]
+for key, value_iter in groupby(data, len):   # 使用 len 函数作为分组函数
+    print(key, &#39;:&#39;, list(value_iter))
+print(&quot;================================&quot;)
+data = [&#39;a&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;ddd&#39;, &#39;eee&#39;, &#39;f&#39;]
+for key, value_iter in groupby(data, len):
+    print(key, &#39;:&#39;, list(value_iter))
+</code></pre>
+
+<pre><code>a : [&#39;a&#39;, &#39;a&#39;, &#39;a&#39;]
+b : [&#39;b&#39;, &#39;b&#39;, &#39;b&#39;]
+a : [&#39;a&#39;, &#39;a&#39;]
+c : [&#39;c&#39;, &#39;c&#39;]
+d : [&#39;d&#39;]
+================================
+1 : [&#39;a&#39;]
+2 : [&#39;bb&#39;]
+3 : [&#39;ccc&#39;]
+2 : [&#39;dd&#39;]
+3 : [&#39;eee&#39;]
+1 : [&#39;f&#39;]
+================================
+1 : [&#39;a&#39;]
+2 : [&#39;bb&#39;, &#39;cc&#39;]
+3 : [&#39;ddd&#39;, &#39;eee&#39;]
+1 : [&#39;f&#39;]
+</code></pre>
+
+<ol>
+<li><b>ifilter</b> (Python3已不再提供)</li>
+</ol>
+
+<p>ifilter 的使用形式如下：</p>
+
+<blockquote>
+<p>ifilter(function or None, sequence)</p>
+</blockquote>
+
+<p>将 iterable 中 function(item) 为 True 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 True 的项。</p>
+
+<pre><code class="language-python">#from itertools import ifilter          # Python3已经不再提供，python3使用filter()
+
+#a = list(ifilter(lambda x: x &lt; 6, range(10)))
+a = list(filter(lambda x: x &lt; 6, range(10)))
+print(a)
+#b = list(ifilter(None, [0, 1, 2, 0, 3, 4]))
+b = list(filter(None, [0, 1, 2, 0, 3, 4]))
+print(b)
+</code></pre>
+
+<pre><code>[0, 1, 2, 3, 4, 5]
+[1, 2, 3, 4]
+</code></pre>
+
+<ol>
+<li><b>ifilterfalse</b> (Python3已不再提供)</li>
+</ol>
+
+<p>ifilterfalse 的使用形式和 ifilter 类似，它将 iterable 中 function(item) 为 False 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 False 的项。</p>
+
+<pre><code class="language-python">#from itertools import ifilterfalse
+#list(ifilterfalse(lambda x: x &lt; 6, range(10)))
+#[6, 7, 8, 9]
+#list(ifilter(None, [0, 1, 2, 0, 3, 4]))
+#[0, 0]
+</code></pre>
+
+<ol>
+<li><b>islice</b></li>
+</ol>
+
+<p>islice 是切片选择，它的使用形式如下：</p>
+
+<blockquote>
+<p>islice(iterable, [start,] stop [, step])</p>
+</blockquote>
+
+<p>其中，iterable 是可迭代对象，start 是开始索引，stop 是结束索引，step 是步长，start 和 step 可选。</p>
+
+<pre><code class="language-python">from itertools import count, islice
+a = list(islice([10, 6, 2, 8, 1, 3, 9], 5))
+print(a)
+b = list(islice(count(), 6))
+print(b)
+c = list(islice(count(), 3, 10))
+print(c)
+d = list(islice(count(), 3, 10 ,2))
+print(d)
+</code></pre>
+
+<pre><code>[10, 6, 2, 8, 1]
+[0, 1, 2, 3, 4, 5]
+[3, 4, 5, 6, 7, 8, 9]
+[3, 5, 7, 9]
+</code></pre>
+
+<ol>
+<li><b>imap</b> (Python3已不再提供) </li>
+</ol>
+
+<p>imap 类似 map 操作，它的使用形式如下：</p>
+
+<blockquote>
+<p>imap(func, iter1, iter2, iter3, ...)</p>
+</blockquote>
+
+<p>imap 返回一个迭代器，元素为 func(i1, i2, i3, ...)，i1，i2 等分别来源于 iter, iter2。</p>
+
+<pre><code class="language-python">#from itertools import imap
+#print(imap(str, [1, 2, 3, 4]))
+#&lt;itertools.imap object at 0x10556d050&gt;
+#print(list(imap(str, [1, 2, 3, 4])))
+#[&#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;]
+#print(list(imap(pow, [2, 3, 10], [4, 2, 3])))
+#[16, 9, 1000]
+</code></pre>
+
+<ol>
+<li><b>tee</b></li>
+</ol>
+
+<p>tee 的使用形式如下：</p>
+
+<blockquote>
+<p>tee(iterable [,n])</p>
+</blockquote>
+
+<p>tee 用于从 iterable 创建 n 个独立的迭代器，以元组的形式返回，n 的默认值是 2。</p>
+
+<pre><code class="language-python">from itertools import tee
+print(tee(&#39;abcd&#39;))   # n 默认为 2，创建两个独立的迭代器
+iter1, iter2 = tee(&#39;abcde&#39;)
+print(list(iter1))
+print(list(iter2))
+print(tee(&#39;abc&#39;, 3))  # 创建三个独立的迭代器
+</code></pre>
+
+<pre><code>(&lt;itertools._tee object at 0x000001F91721CF88&gt;, &lt;itertools._tee object at 0x000001F917221788&gt;)
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+(&lt;itertools._tee object at 0x000001F917221848&gt;, &lt;itertools._tee object at 0x000001F917221608&gt;, &lt;itertools._tee object at 0x000001F917221888&gt;)
+</code></pre>
+
+<ol>
+<li><b>takewhile</b></li>
+</ol>
+
+<p>takewhile 的使用形式如下：</p>
+
+<blockquote>
+<p>takewhile(predicate, iterable)</p>
+</blockquote>
+
+<p>其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则保留该元素，只要 predicate(item) 为 false，则立即停止迭代。</p>
+
+<pre><code class="language-python">from itertools import takewhile
+a = list(takewhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
+print(a)
+b = list(takewhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
+print(b)
+</code></pre>
+
+<pre><code>[1, 3]
+[]
+</code></pre>
+
+<ol>
+<li><b>zip</b> (Python3已不再提供) </li>
+</ol>
+
+<p>izip 用于将多个可迭代对象对应位置的元素作为一个元组，将所有元组『组成』一个迭代器，并返回。它的使用形式如下：</p>
+
+<blockquote>
+<p>izip(iter1, iter2, ..., iterN)</p>
+</blockquote>
+
+<p>如果某个可迭代对象不再生成值，则迭代停止。</p>
+
+<pre><code class="language-python">#from itertools import izip
+#for item in izip(&#39;ABCD&#39;, &#39;xy&#39;):
+#    print(item)    
+#for item in izip([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]):
+#    print(item)
+</code></pre>
+
+<ol>
+<li><b>izip_longest</b> (Python3已不再提供) </li>
+</ol>
+
+<p>izip_longest 跟 izip 类似，但迭代过程会持续到所有可迭代对象的元素都被迭代完。它的形式如下：</p>
+
+<blockquote>
+<p>izip_longest(iter1, iter2, ..., iterN, [fillvalue=None])</p>
+</blockquote>
+
+<p>如果有指定 fillvalue，则会用其填充缺失的值，否则为 None。</p>
+
+<pre><code class="language-python">#from itertools import izip_longest
+#for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;):
+#    print(item)
+#for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;, fillvalue=&#39;-&#39;):
+#    print(item)
+
+####output:
+#(&#39;A&#39;, &#39;x&#39;)
+#(&#39;B&#39;, &#39;y&#39;)
+#(&#39;C&#39;, None)
+#(&#39;D&#39;, None)
+
+#(&#39;A&#39;, &#39;x&#39;)
+#(&#39;B&#39;, &#39;y&#39;)
+#(&#39;C&#39;, &#39;-&#39;)
+#(&#39;D&#39;, &#39;-&#39;)
+</code></pre>
+
+<p><b>组合生成器</b></p>
+
+<p>itertools 模块还提供了多个组合生成器函数，用于求序列的排列、组合等：<br/><br/>
+- product<br/>
+- permutations<br/>
+- combinations<br/>
+- combinations_with_replacement    </p>
+
+<p>这些都是排列组合必备良方</p>
+
+<ol>
+<li><b>product</b></li>
+</ol>
+
+<p>product 用于求多个可迭代对象的笛卡尔积，它跟嵌套的 for 循环等价。它的一般使用形式如下：</p>
+
+<blockquote>
+<p>product(iter1, iter2, ... iterN, [repeat=1])</p>
+</blockquote>
+
+<p>其中，repeat 是一个关键字参数，用于指定重复生成序列的次数，</p>
+
+<pre><code class="language-python">from itertools import product
+for item in product(&#39;ABCD&#39;, &#39;xy&#39;):
+    print(item)
+</code></pre>
+
+<pre><code>(&#39;A&#39;, &#39;x&#39;)
+(&#39;A&#39;, &#39;y&#39;)
+(&#39;B&#39;, &#39;x&#39;)
+(&#39;B&#39;, &#39;y&#39;)
+(&#39;C&#39;, &#39;x&#39;)
+(&#39;C&#39;, &#39;y&#39;)
+(&#39;D&#39;, &#39;x&#39;)
+(&#39;D&#39;, &#39;y&#39;)
+</code></pre>
+
+<pre><code class="language-python">a = list(product(&#39;ab&#39;, range(3)))
+print(a)
+</code></pre>
+
+<pre><code>[(&#39;a&#39;, 0), (&#39;a&#39;, 1), (&#39;a&#39;, 2), (&#39;b&#39;, 0), (&#39;b&#39;, 1), (&#39;b&#39;, 2)]
+</code></pre>
+
+<pre><code class="language-python">b = list(product((0,1), (0,1), (0,1)))
+print(b)
+</code></pre>
+
+<pre><code>[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
+</code></pre>
+
+<pre><code class="language-python">c = list(product(&#39;ABC&#39;, repeat=2))
+print(c)
+</code></pre>
+
+<pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;C&#39;)]
+</code></pre>
+
+<ol>
+<li><b>permutations</b></li>
+</ol>
+
+<p>permutations 用于生成一个排列，它的一般使用形式如下：</p>
+
+<blockquote>
+<p>permutations(iterable[, r])</p>
+</blockquote>
+
+<p>其中，r 指定生成排列的元素的长度，如果不指定，则默认为可迭代对象的元素长度。</p>
+
+<pre><code class="language-python">from itertools import permutations
+a = permutations(&#39;ABC&#39;, 2)
+print(a)
+b = list(permutations(&#39;ABC&#39;, 2))
+print(b)
+c = list(permutations(&#39;ABC&#39;))
+print(c)
+</code></pre>
+
+<pre><code>&lt;itertools.permutations object at 0x000001F9171C7DB0&gt;
+[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;)]
+[(&#39;A&#39;, &#39;B&#39;, &#39;C&#39;), (&#39;A&#39;, &#39;C&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;A&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;B&#39;, &#39;A&#39;)]
+</code></pre>
+
+<ol>
+<li><b>combinations</b></li>
+</ol>
+
+<p>combinations 用于求序列的组合，它的使用形式如下：</p>
+
+<blockquote>
+<p>combinations(iterable, r)</p>
+</blockquote>
+
+<p>其中，r 指定生成组合的元素的长度。</p>
+
+<pre><code class="language-python">from itertools import combinations
+list(combinations(&#39;ABC&#39;, 2))
+</code></pre>
+
+<pre><code>[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;)]
+</code></pre>
+
+<ol>
+<li><b>combinations_with_replacement</b></li>
+</ol>
+
+<p>combinations_with_replacement 和 combinations 类似，但它生成的组合包含自身元素。</p>
+
+<pre><code class="language-python">from itertools import combinations_with_replacement
+list(combinations_with_replacement(&#39;ABC&#39;, 2))
+</code></pre>
+
+<pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;C&#39;)]
+</code></pre>
 
                         
                       </div>
@@ -239,7 +683,7 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/13 22:46 PM</span>
+                    <span class="date">2019/8/19 20:21 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -256,74 +700,378 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15657061085965.html">
+                <a class="clearlink" href="15662171970710.html">
                 
-                  <h1>Python常见的错误<十一></h1>
+                  <h1>Python Modules - 02 - Python collections</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误11: 列表的缺陷</h4>
+                        	<h4 id="toc_0">Module-1: collections 模块总结</h4>
 
-<p>来看看下面代码的输出结果将是什么？</p>
+<p>Python为我们提供了4种基本的数据结构：list, tuple, dict, set，但是在处理数据量较大的情形的时候，这4种数据结构就明显过于单一了，比如list作为单向链表在某些情形插入的效率会比较低，有时候我们也需要维护一个有序的dict。所以这个时候我们就要用到Python标准库为我们提供的collections包了，它提供了多个有用的集合类，熟练掌握这些集合类，不仅可以让我们让写出的代码更加Pythonic，也可以提高我们程序的运行效率。</p>
 
-<p>下面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
-例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
-然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
-这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
+<ol>
+<li><b>defaultdict的使用</b></li>
+</ol>
 
-<pre><code class="language-python">list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-print(list[10:])
-print(list[10])
+<p>defaultdict(default_factory)在普通的dict(字典)之上添加了default_factory，使得key(键)不存在时会自动生成相应类型的value(值)，default_factory参数可以指定成list, set, int等各种合法类型。</p>
+
+<pre><code class="language-python">from collections import defaultdict
+s = [(&#39;red&#39;, 1), (&#39;blue&#39;, 2), (&#39;red&#39;, 3), (&#39;blue&#39;, 4), (&#39;red&#39;, 1), (&#39;blue&#39;, 4)]
 </code></pre>
 
-<pre><code>[]
+<p>我们现在有上面这样一组list(列表)，虽然我们有6组数据，但是仔细观察后发现其实我们只有两种color(颜色)，但是每一个color对应多个值。现在我们想要将这个list转换成一个dict(字典)，这个dict的key(键)对应一种color，dict的value(值)设置为一个list存放color对应的多个值。我们可以使用defaultdict(list)来解决这个问题。</p>
 
-
-
----------------------------------------------------------------------------
-
-IndexError                                Traceback (most recent call last)
-
-&lt;ipython-input-5-7b4a48b0e416&gt; in &lt;module&gt;
-      1 list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-      2 print(list[10:])
-----&gt; 3 print(list[10])
-
-
-IndexError: list index out of range
+<pre><code class="language-python">d = defaultdict(list)
+for k, v in s:
+    d[k].append(v)
+print(d)
 </code></pre>
 
-<p>我们再来看看这段代码，猜想一下，输出是什么？</p>
-
-<pre><code class="language-python">list = [ [ ] ] * 5
-print(list)  # output?
-list[0].append(10)
-print(list)  # output?
-list[1].append(20)
-print(list)   # output?
-list.append(30)
-print(list)   # output?
+<pre><code>defaultdict(&lt;class &#39;list&#39;&gt;, {&#39;red&#39;: [1, 3, 1], &#39;blue&#39;: [2, 4, 4]})
 </code></pre>
 
-<pre><code>[[], [], [], [], []]
-[[10], [10], [10], [10], [10]]
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]
+<p>上面这个例子中有一些不完美的地方，比如说{‘blue’: [2, 4, 4], ‘red’: [1, 3, 1]}这个defaultdict中blue颜色中包含两个4，red颜色中包含两个1，但是我们不希望含有重复的元素，这个时候可以考虑使用defaultdict(set)来解决这个问题。set(集合)相比list(列表)的不同之处在于set中不允许存在相同的元素。</p>
+
+<pre><code class="language-python">d = defaultdict(set)
+for k, v in s:
+    d[k].add(v)
+print(d) 
 </code></pre>
 
-<p>解释如下：<br/><br/>
-第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了5个空列表。<br/><br/>
-然而，理解表达式list=[ [ ] ] * 5的关键一点是它不是创造一个包含五个独立列表的列表，而是它是一个<b>创建了包含对同一个列表五次引用的列表。</b><br/><br/>
-只有了解了这一点，我们才能更好的理解接下来的输出结果。<br/><br/>
-list[0].append(10) 将10附加在第一个列表上。<br/>
-但由于所有5个列表是引用的同一个列表，所以这个结果将是：<br/><br/>
-[[10], [10], [10], [10], [10]]。<br/><br/>
-同理，list[1].append(20)将20附加在第二个列表上。但同样由于5个列表是引用的同一个列表，所以输出结果现在是：<br/><br/>
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
-作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
+<pre><code>defaultdict(&lt;class &#39;set&#39;&gt;, {&#39;red&#39;: {1, 3}, &#39;blue&#39;: {2, 4}})
+</code></pre>
 
-<pre><code class="language-python">
+<p>通过使用defaultdict(int)的形式我们来统计一个字符串中每个字符出现的个数。</p>
+
+<pre><code class="language-python">s = &#39;hello world&#39;
+d = defaultdict(int)
+for k in s:
+    d[k] += 1
+print(d)
+</code></pre>
+
+<pre><code>defaultdict(&lt;class &#39;int&#39;&gt;, {&#39;h&#39;: 1, &#39;e&#39;: 1, &#39;l&#39;: 3, &#39;o&#39;: 2, &#39; &#39;: 1, &#39;w&#39;: 1, &#39;r&#39;: 1, &#39;d&#39;: 1})
+</code></pre>
+
+<ol>
+<li><b>OrderedDict的使用</b></li>
+</ol>
+
+<p>我们知道默认的dict(字典)是无序的，但是在某些情形我们需要保持dict的有序性，这个时候可以使用OrderedDict，它是dict的一个subclass(子类)，但是在dict的基础上保持了dict的有序型，下面我们来看一下使用方法。</p>
+
+<pre><code class="language-python">from collections import OrderedDict
+d = {&#39;banana&#39;: 3, &#39;apple&#39;: 4, &#39;pear&#39;: 1, &#39;orange&#39;: 2}
+</code></pre>
+
+<p>这是一个无序的dict(字典)，现在我们可以使用OrderedDict来让这个dict变得有序。</p>
+
+<pre><code class="language-python"># 将d按照key来排序
+a = OrderedDict(sorted(d.items(), key=lambda t: t[0]))
+print(a)
+# 将d按照value来排序
+b = OrderedDict(sorted(d.items(), key=lambda t: t[1]))
+print(b)
+# 将d按照key的长度来排序
+c = OrderedDict(sorted(d.items(), key=lambda t: len(t[0])))
+print(c)
+</code></pre>
+
+<pre><code>OrderedDict([(&#39;apple&#39;, 4), (&#39;banana&#39;, 3), (&#39;orange&#39;, 2), (&#39;pear&#39;, 1)])
+OrderedDict([(&#39;pear&#39;, 1), (&#39;orange&#39;, 2), (&#39;banana&#39;, 3), (&#39;apple&#39;, 4)])
+OrderedDict([(&#39;pear&#39;, 1), (&#39;apple&#39;, 4), (&#39;banana&#39;, 3), (&#39;orange&#39;, 2)])
+</code></pre>
+
+<p>使用popitem(last=True)方法可以让我们按照LIFO(先进后出)的顺序删除dict中的key-value，即删除最后一个插入的键值对，如果last=False就按照FIFO(先进先出)删除dict中key-value。</p>
+
+<pre><code class="language-python">d = {&#39;banana&#39;: 3, &#39;apple&#39;: 4, &#39;pear&#39;: 1, &#39;orange&#39;: 2}
+# 将d按照key来排序
+d = OrderedDict(sorted(d.items(), key=lambda t: t[0]))
+print(d)
+# 使用popitem()方法来移除最后一个key-value对
+print(d.popitem())
+# 使用popitem(last=False)来移除第一个key-value对
+print(d.popitem(last=False))
+</code></pre>
+
+<pre><code>OrderedDict([(&#39;apple&#39;, 4), (&#39;banana&#39;, 3), (&#39;orange&#39;, 2), (&#39;pear&#39;, 1)])
+(&#39;pear&#39;, 1)
+(&#39;apple&#39;, 4)
+</code></pre>
+
+<p>使用move_to_end(key, last=True)来改变有序的OrderedDict对象的key-value顺序，通过这个方法我们可以将排序好的OrderedDict对象中的任意一个key-value插入到字典的开头或者结尾。</p>
+
+<pre><code class="language-python">d = OrderedDict.fromkeys(&#39;abcde&#39;)
+print(d)
+# 将key为b的key-value对移动到dict的最后
+d.move_to_end(&#39;b&#39;)
+print(d)
+print(&#39;&#39;.join(d.keys()))
+# 将key为b的key-value对移动到dict的最前面
+d.move_to_end(&#39;b&#39;, last=False)
+print(&#39;&#39;.join(d.keys()))
+</code></pre>
+
+<pre><code>OrderedDict([(&#39;a&#39;, None), (&#39;b&#39;, None), (&#39;c&#39;, None), (&#39;d&#39;, None), (&#39;e&#39;, None)])
+OrderedDict([(&#39;a&#39;, None), (&#39;c&#39;, None), (&#39;d&#39;, None), (&#39;e&#39;, None), (&#39;b&#39;, None)])
+acdeb
+bacde
+</code></pre>
+
+<ol>
+<li><b>deque的使用</b></li>
+</ol>
+
+<p>list存储数据的优势在于按找索引查找元素会很快，但是插入和删除元素就很慢了，因为它是是单链表的数据结构。deque是为了高效实现插入和删除操作的双向列表，适合用于队列和栈，而且线程安全。</p>
+
+<p>list只提供了append和pop方法来从list的尾部插入/删除元素，但是deque新增了appendleft/popleft允许我们高效的在元素的开头来插入/删除元素。而且使用deque在队列两端添加（append）或弹出（pop）元素的算法复杂度大约是O(1)，但是对于list对象改变列表长度和数据位置的操作例如 pop(0)和insert(0, v)操作的复杂度高达O(n)。由于对deque的操作和list基本一致，这里就不重复了。</p>
+
+<pre><code class="language-python">from collections import deque
+d1=deque()
+d1.extend(&#39;abcdefg&#39;)
+print(&#39;extend: %s&#39;% d1)
+d1.append(&#39;h&#39;)
+print(&#39;append: %s&#39;% d1)
+
+d2=deque()
+d2.extendleft(range(6))
+print(&#39;extendleft: %s&#39;% d2)
+d2.appendleft(6)
+print(&#39;appendleft: %s&#39;% d2)
+</code></pre>
+
+<pre><code>extend: deque([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;])
+append: deque([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;])
+extendleft: deque([5, 4, 3, 2, 1, 0])
+appendleft: deque([6, 5, 4, 3, 2, 1, 0])
+</code></pre>
+
+<p>从输出的结果，我们可以看到，append默认从集合的右边增加数组元素，而另一个appendleft可以从集合的左边增加元素</p>
+
+<p>与append和appendleft方法对应的还有pop和popleft方法分别用于从集合中取出元素，看下面的例子:</p>
+
+<pre><code class="language-python">print(&quot;From the right:&quot;)  
+d = deque(&#39;abcdefg&#39;)  
+while True:  
+    try:  
+        print(d.pop())
+    except IndexError:  
+        break  
+
+print(&#39;\n From the left:&#39;)  
+d = deque(range(6))  
+while True:  
+    try:  
+        print(d.popleft())  
+    except IndexError:  
+        break  
+</code></pre>
+
+<pre><code>From the right:
+g
+f
+e
+d
+c
+b
+a
+
+ From the left:
+0
+1
+2
+3
+4
+5
+</code></pre>
+
+<p>最后值得一提的是，deque是线程安全的，也就是说你可以同时从deque集合的左边和右边进行操作而不会有影响，看下面的代码：</p>
+
+<pre><code class="language-python">import collections  
+import threading  
+import time  
+candle = collections.deque(range(5))  
+def burn(direction,nextSource):  
+    while True:  
+        try:  
+            next=nextSource()  
+        except IndexError:  
+            break  
+        else:  
+            print(&#39;%s : %s&#39; % (direction,next))  
+            time.sleep(0.1)  
+    print(&quot;done %s&quot; % direction)  
+    return  
+
+left=threading.Thread(target=burn,args=(&#39;left&#39;,candle.popleft))  
+right=threading.Thread(target=burn,args=(&#39;right&#39;,candle.pop))  
+  
+left.start()  
+right.start() 
+
+left.join()  
+right.join()
+</code></pre>
+
+<pre><code>left : 0
+right : 4
+left : 1
+right : 3
+left : 2
+done right
+done left
+</code></pre>
+
+<ol>
+<li><b>ChainMap的使用</b></li>
+</ol>
+
+<p>ChainMap用来将多个dict(字典)组成一个list(只是比喻)，可以理解成合并多个字典，但和update不同，而且效率更高。  </p>
+
+<pre><code class="language-python">from collections import ChainMap
+a = {&quot;x&quot;:1, &quot;z&quot;:3}
+b = {&quot;y&quot;:2, &quot;z&quot;:4}
+# 构造一个ChainMap对象
+m = ChainMap(a, b)
+print(m)
+print(&quot;x: {}, y: {}, z: {}&quot;.format(m[&quot;x&quot;], m[&quot;y&quot;], m[&quot;z&quot;]))
+
+# 将m变成一个list
+print(m.maps)
+
+# ChainMap进行修改的时候总是只会对第一个字典进行修改
+m[&quot;z&quot;] = 4
+print(m)
+m.pop(&#39;z&#39;)
+print(m)
+
+# 从m复制一个ChainMap对象，更新这个复制的对象并不会对m造成影响
+m2 = m.new_child()
+m2[&#39;z&#39;] = &#39;f&#39;
+print(m[&#39;z&#39;])
+print(m2.parents)
+</code></pre>
+
+<pre><code>ChainMap({&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+x: 1, y: 2, z: 3
+[{&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4}]
+ChainMap({&#39;x&#39;: 1, &#39;z&#39;: 4}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+ChainMap({&#39;x&#39;: 1}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+4
+ChainMap({&#39;x&#39;: 1}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+</code></pre>
+
+<p>从原理上面讲，ChainMap实际上是把放入的字典存储在一个队列中，当进行字典的增加删除等操作只会在第一个字典上进行，当进行查找的时候会依次查找，new_child()方法实质上是在列表的第一个元素前放入一个字典，默认是{}，而parents是去掉了列表开头的元素。也正是因为底层是列表实现的，所以实际上ChainMap查询的字典实际上还是原来的字典的引用</p>
+
+<pre><code class="language-python">a = {&quot;x&quot;:1, &quot;z&quot;:3}
+b = {&quot;y&quot;:2, &quot;z&quot;:4}
+c = ChainMap(a,b)
+print(c)
+print(c.maps)
+print(c.parents)
+print(c.parents.maps)
+print(c.parents.parents)
+</code></pre>
+
+<pre><code>ChainMap({&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+[{&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4}]
+ChainMap({&#39;y&#39;: 2, &#39;z&#39;: 4})
+[{&#39;y&#39;: 2, &#39;z&#39;: 4}]
+ChainMap({})
+</code></pre>
+
+<ol>
+<li><b>Counter的使用</b></li>
+</ol>
+
+<p>Counter也是dict的一个subclass，它是一个无序容器，可以看做一个计数器，用来统计相关元素出现的个数。</p>
+
+<pre><code class="language-python">from collections import Counter
+cnt = Counter()
+# 统计列表中元素出现的个数
+for word in [&#39;red&#39;, &#39;blue&#39;, &#39;red&#39;, &#39;green&#39;, &#39;blue&#39;, &#39;blue&#39;]:
+    cnt[word] += 1
+print(cnt)
+
+# 统计字符串中元素出现的个数
+cnt = Counter()
+for ch in &#39;hello&#39;:
+    cnt[ch] = cnt[ch] + 1
+print(cnt)
+</code></pre>
+
+<pre><code>Counter({&#39;blue&#39;: 3, &#39;red&#39;: 2, &#39;green&#39;: 1})
+Counter({&#39;l&#39;: 2, &#39;h&#39;: 1, &#39;e&#39;: 1, &#39;o&#39;: 1})
+</code></pre>
+
+<p>使用elements()方法按照元素的出现次数返回一个iterator(迭代器)，元素以任意的顺序返回，如果元素的计数小于1，将忽略它。</p>
+
+<pre><code class="language-python">c = Counter(a=4, b=2, c=0, d=-2)
+print(c)
+d = c.elements()
+print(next(d))
+print(sorted(c.elements()))
+</code></pre>
+
+<pre><code>Counter({&#39;a&#39;: 4, &#39;b&#39;: 2, &#39;c&#39;: 0, &#39;d&#39;: -2})
+a
+[&#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;b&#39;, &#39;b&#39;]
+</code></pre>
+
+<p>使用most_common(n)返回一个list, list中包含Counter对象中出现最多前n个元素。</p>
+
+<pre><code class="language-python">c = Counter(&#39;abracadabra&#39;)
+print(c)
+print(c.most_common(3))
+</code></pre>
+
+<pre><code>Counter({&#39;a&#39;: 5, &#39;b&#39;: 2, &#39;r&#39;: 2, &#39;c&#39;: 1, &#39;d&#39;: 1})
+[(&#39;a&#39;, 5), (&#39;b&#39;, 2), (&#39;r&#39;, 2)]
+</code></pre>
+
+<ol>
+<li><b>namedtuple的使用</b></li>
+</ol>
+
+<p>Python中存储系列数据，比较常见的数据类型有list，除此之外，还有tuple数据类型。相比与list，tuple中的元素不可修改，在映射中可以当键使用。tuple元组的item只能通过index访问，collections模块的namedtuple子类不仅可以使用item的index访问item，还可以通过item的name进行访问。可以将namedtuple理解为c中的struct结构，其首先将各个item命名，然后对每个item赋予数据。<br/><br/>
+使用namedtuple(typename, field_names)命名tuple中的元素来使程序更具可读性。</p>
+
+<pre><code class="language-python">from collections import namedtuple
+Point = namedtuple(&#39;PointExtension&#39;, [&#39;x&#39;, &#39;y&#39;])
+p = Point(1, 2)
+print(p.__class__.__name__)
+print(p.x)
+print(p.y)
+</code></pre>
+
+<pre><code>PointExtension
+1
+2
+</code></pre>
+
+<pre><code class="language-python">from collections import namedtuple  
+  
+websites = [  
+    (&#39;Sohu&#39;, &#39;http://www.sohu.com/&#39;, u&#39;Zhang Chaoyang&#39;),  
+    (&#39;Sina&#39;, &#39;http://www.sina.com.cn/&#39;, u&#39;Wang Zhidong&#39;),  
+    (&#39;163&#39;, &#39;http://www.163.com/&#39;, u&#39;Ding Lei&#39;)  
+]  
+  
+Website = namedtuple(&#39;Website&#39;, [&#39;name&#39;, &#39;url&#39;, &#39;founder&#39;])
+  
+for website in websites:  
+    website = Website._make(website)  
+    print(website)
+    print(website.name)
+</code></pre>
+
+<pre><code>Website(name=&#39;Sohu&#39;, url=&#39;http://www.sohu.com/&#39;, founder=&#39;Zhang Chaoyang&#39;)
+Sohu
+Website(name=&#39;Sina&#39;, url=&#39;http://www.sina.com.cn/&#39;, founder=&#39;Wang Zhidong&#39;)
+Sina
+Website(name=&#39;163&#39;, url=&#39;http://www.163.com/&#39;, founder=&#39;Ding Lei&#39;)
+163
 </code></pre>
 
                         
@@ -333,7 +1081,7 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/13 22:21 PM</span>
+                    <span class="date">2019/8/19 20:19 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -428,31 +1176,31 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

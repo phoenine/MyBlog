@@ -107,94 +107,170 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655124251876.html">
+                <a class="clearlink" href="15662166109209.html">
                 
-                  <h1>Python常见的错误<八></h1>
+                  <h1>Python常见的错误<十五></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+                        	<h4 id="toc_0">常见错误15: 描述符的坑</h4>
 
-<p>请看下面这个 filefoo.py:</p>
+<p>我想写一个 Exam 类，其属性 math 为 [0,100] 的整数，若赋值时不在此范围内则抛出异常，我决定用描述符来实现这个需求。</p>
 
-<pre><code class="language-python">import sys
-
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-
-def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        print(&#39;value error&#39;)
-    print(e)
-
-bad()
+<pre><code class="language-python">class Grade(object):
+    def __init__(self):
+        self._score = 0
+    def __get__(self, instance, owner):
+        return self._score
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            self._score = value
+        else:
+            raise ValueError(&#39;grade must be between 0 and 100.&#39;)
 </code></pre>
 
-<p>在Python 2中运行正常：</p>
-
-<pre><code class="language-python">$ python foo.py 1
-key error
-1
-$ python foo.py 2
-value error
-2
+<pre><code class="language-python">class Exam(object):
+    math = Grade()
+    def __init__(self, math):
+        self.math = math
 </code></pre>
 
-<p>但是，现在让我们把它在Python 3中运行一下：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
-key error
-Traceback (most recent call last):
-  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
-    bad()
-  File &quot;foo.py&quot;, line 17, in bad
-    print(e)
-UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+<pre><code class="language-python">lucy = Exam(math=90)
+print(lucy.math)
+snake = Exam(math=75)
+print(snake.math)
+snake.math = 120
 </code></pre>
 
-<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+<pre><code>90
+75
 
-<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
 
-<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
 
-<pre><code class="language-python">import sys
+---------------------------------------------------------------------------
 
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-        
-def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        exception = e
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        exception = e
-        print(&#39;value error&#39;)
-    print(exception)
+ValueError                                Traceback (most recent call last)
 
-sys.argv.append(1)
-good()
-sys.argv.append(2)
-good()
+&lt;ipython-input-9-d59603acfa1c&gt; in &lt;module&gt;
+      3 snake = Exam(math=75)
+      4 print(snake.math)
+----&gt; 5 snake.math = 120
+
+
+&lt;ipython-input-7-edf3703e2b81&gt; in __set__(self, instance, value)
+      8             self._score = value
+      9         else:
+---&gt; 10             raise ValueError(&#39;grade must be between 0 and 100.&#39;)
+
+
+ValueError: grade must be between 0 and 100.
 </code></pre>
 
-<pre><code class="language-python">
+<p>看起来一切正常。不过这里面有个巨大的问题，尝试说明是什么问题？<br/><br/>
+为了解决这个问题，我改写了 Grade 描述符如下：<br/><br/>
+不过这样会导致更大的问题，请问该怎么解决这个问题？</p>
+
+<pre><code class="language-python">class Gradee(object):
+    def __init__(self):
+        self._grade_pool = {}
+    def __get__(self, instance, owner):
+        return self._grade_pool.get(instance, None)
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            _grade_pool = self.__dict__.setdefault(&#39;_grade_pool&#39;, {})
+            _grade_pool[instance] = value
+        else:
+            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
 </code></pre>
+
+<pre><code class="language-python">class Exam(object):
+    grammer = Gradee()
+    def __init__(self, grammer):
+        self.grammer = grammer
+</code></pre>
+
+<pre><code class="language-python">lucy = Exam(grammer=90)
+print(lucy.grammer)
+snake = Exam(grammer=75)
+print(snake.grammer)
+snake.grammer = 120
+</code></pre>
+
+<pre><code>90
+75
+
+
+
+---------------------------------------------------------------------------
+
+ValueError                                Traceback (most recent call last)
+
+&lt;ipython-input-12-1302d1b3a522&gt; in &lt;module&gt;
+      3 snake = Exam(grammer=75)
+      4 print(snake.grammer)
+----&gt; 5 snake.grammer = 120
+
+
+&lt;ipython-input-10-aa15607fb158&gt; in __set__(self, instance, value)
+      9             _grade_pool[instance] = value
+     10         else:
+---&gt; 11             raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+
+
+ValueError: fuuuuuuuuuck!!
+</code></pre>
+
+<ol>
+<li><p>第一个问题的其实很简单，如果你再运行一次 print ( lucy.math ) 你就会发现，输出值是 75 ，那么这是为什么呢？这就要先从 Python 的调用机制说起了。<br/><br/>
+我们如果调用一个属性，那么其顺序是优先从实例的 __dict__ 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。<br/><br/>
+好的，现在回到我们的问题。<br/><br/>
+我们发现，在我们的类 Exam 中，其 self.math 的调用过程是，首先在实例化后的实例的 __dict__ 中进行查找，没有找到，接着往上一级，在我们的类 Exam 中进行查找，好的找到了，返回。<br/><br/>
+那么这意味着，我们对于 self.math 的所有操作都是对于类变量 math 的操作。因此造成变量污染的问题。那么该则怎么解决呢？<br/><br/>
+很多同志可能会说，恩，在 __set__ 函数中将值设置到具体的实例字典不就行了。<br/><br/>
+那么这样可不可以呢？<br/><br/>
+答案是，很明显不得行啊，至于为什么，就涉及到我们 Python 描述符的机制了，描述符指的是实现了描述符协议的特殊的类，三个描述符协议指的是 __get__ , __set__ , __delete__ 以及 Python 3.6 中新增的 __set_name__ 方法，其中实现了__get__ 以及 __set__ / __delete__ / __set_name__ 的是 <b>Data descriptors</b> ，而只实现了 __get__ 的是 <b>Non-Data descriptor</b> 。<br/><br/>
+那么有什么区别呢，前面说了， <b>我们如果调用一个属性，那么其顺序是优先从实例的 <strong>dict</strong> 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。</b><br/><br/>
+但是，这里没有考虑描述符的因素进去，如果将描述符因素考虑进去，那么正确的表述应该是我们如果调用一个属性，那么其顺序是优先从实例的 __dict__ 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。其中如果在类实例字典中的该属性是一个 Data descriptors ，那么无论实例字典中存在该属性与否，无条件走描述符协议进行调用，在类实例字典中的该属性是一个 Non - Data descriptors ，那么优先调用实例字典中的属性值而不触发描述符协议，如果实例字典中不存在该属性值，那么触发 Non - Data descriptor 的描述符协议。回到之前的问题，我们即使在 __set__ 将具体的属性写入实例字典中，但是由于类字典中存在着 Data descriptors，因此，我们在调用 math 属性时，依旧会触发描述符协议。</p></li>
+<li><p>经过改良的做法，利用 dict 的 key 唯一性，将具体的值与实例进行绑定，但是同时带来了内存泄露的问题。<br/><br/>
+那么为什么会造成内存泄露呢，首先复习下我们的 dict 的特性， dict 最重要的一个特性，就是凡可 hash 的对象皆可为 key ， dict 通过利用的 hash 值的唯一性（严格意义上来讲并不是唯一，而是其 hash 值碰撞几率极小，近似认定其唯一）来保证 key 的不重复性。<br/><br/>
+同时（敲黑板，重点来了），<br/><br/>
+dict 中的 key 引用是强引用类型，会造成对应对象的引用计数的增加，可能造成对象无法被 gc ，从而产生内存泄露。<br/><br/>
+那么这里该怎么解决呢？两种方法 第一种：  </p></li>
+</ol>
+
+<pre><code class="language-python">class Grad(object):
+    def __init__(self):
+        import weakref
+        self._grade_pool = weakref.WeakKeyDictionary()
+    def __get__(self, instance, owner):
+        return self._grade_pool.get(instance, None)
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            _grade_pool = self.__dict__.setdefault(&#39;_grade_pool&#39;, {})
+            _grade_pool[instance] = value
+        else:
+            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+</code></pre>
+
+<p>weakref 库中的 WeakKeyDictionary 所产生的字典的 key 对于对象的引用是弱引用类型，其不会造成内存引用计数的增加，因此不会造成内存泄露。<br/><br/>
+同理，如果我们为了避免 value 对于对象的强引用，我们可以使用 WeakValueDictionary 。 </p>
+
+<p>第二种：在 Python 3.6 中，实现的 PEP 487 提案，为描述符新增加了一个协议，我们可以用其来绑定对应的对象：</p>
+
+<pre><code class="language-python">class Grad(object):
+    def __get__(self, instance, owner):
+        return instance.__dict__[self.key]
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            instance.__dict__[self.key] = value
+        else:
+            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+    def __set_name__(self, owner, name):
+        self.key = name
+</code></pre>
+
+<p>这道题涉及的东西比较多，这里给出一点参考链接， invoking-descriptors , Descriptor HowTo Guide , PEP 487 , what`s new in Python 3.6 。</p>
 
                         
                       </div>
@@ -203,7 +279,7 @@ good()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:33 PM</span>
+                    <span class="date">2019/8/19 20:10 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -220,62 +296,79 @@ good()
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655123624150.html">
+                <a class="clearlink" href="15662165783528.html">
                 
-                  <h1>Python常见的错误<七></h1>
+                  <h1>Python常见的错误<十四></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误7: 创建循环依赖模块</h4>
+                        	<h4 id="toc_0">常见错误14: Python 调用机制</h4>
 
-<p>让我们假设你有两个文件，a.py 和 b.py，他们之间相互引用，如下所示：</p>
+<p>我们知道 __call__ 方法可以用来重载圆括号调用，好的，以为问题就这么简单？ Naive ！</p>
 
-<pre><code class="language-python">import b
-
-def f():
-    return b.x
-print(f())
+<pre><code class="language-python">class A(object):
+    def __call__(self):
+        print(&quot;invoking __call__ from A!&quot;)
 </code></pre>
 
-<pre><code class="language-python">import a
-
-x = 1
-def g():
-    print(a.f())
+<pre><code class="language-python">a = A()
+a()
 </code></pre>
 
-<p>首先，让我们尝试引入 a.py：</p>
-
-<pre><code class="language-python">import a
+<pre><code>invoking __call__ from A!
 </code></pre>
 
-<p>可以正常工作。这也许是你感到很奇怪。毕竟，我们确实在这里引入了一个循环依赖的模块，我们推测这样会出问题的，不是吗？<br/><br/>
-答案就是在Python中，仅仅引入一个循环依赖的模块是没有问题的。如果一个模块已经被引入了，Python并不会去再次引入它。但是，根据每个模块要访问其他模块中的函数和变量位置的不同，就很可能会遇到问题。<br/><br/>
-所以，回到我们这个例子，当我们引入 a.py 时，再引入 b.py 不会产生任何问题，因为当引入的时候，b.py 不需要 a.py 中定义任何东西。b.py 中唯一引用 a.py 中的东西是调用 a.f()。 但是那个调用是发生在g() 中的，并且 a.py 和 b.py 中都没有调用 g()。所以运行正常。<br/><br/>
-但是，如果我们尝试去引入b.py 会发生什么呢？（在这之前不引入a.py），如下所示:</p>
+<p>现在我们可以看到 a() 似乎等价于 a.__call__() ,看起来很 Easy 对吧，好的，我现在想作死，又写出了如下的代码:</p>
 
-<pre><code class="language-python">import b
+<pre><code class="language-python">a.__call__ = lambda: &quot;invoking __call__ from lambda&quot;
+print(a.__call__())
+a()
 </code></pre>
 
-<p>啊哦。 出问题了！此处的问题是，在引入b.py的过程中，Python尝试去引入 a.py，但是a.py 要调用f()，而f() 有尝试去访问 b.x。但是此时 b.x 还没有被定义呢。所以发生了 AttributeError 异常。</p>
-
-<p>至少，解决这个问题很简单，只需修改b.py，使其在g()中引入 a.py：</p>
-
-<pre><code class="language-python">x = 1
-
-def g():
-    import a    # 只有当g()被调用的时候才会引入a
-    print a.f()
+<pre><code>invoking __call__ from lambda
+invoking __call__ from A!
 </code></pre>
 
-<p>现在，当我们再引入b，没有任何问题：</p>
+<p>为什么 a() 没有调用出 a.__call__()</p>
 
-<pre><code class="language-python">&gt;&gt;&gt; import b
-&gt;&gt;&gt; b.g()
-1    # Printed a first time since module &#39;a&#39; calls &#39;print f()&#39; at the end
-1    # Printed a second time, this one is our call to &#39;g&#39;
+<p>原因在于，在 Python 中，新式类（ new class  )的内建特殊方法，和实例的属性字典是相互隔离的，具体可以看看 Python 官方文档对于这一情况的说明:</p>
+
+<blockquote>
+<p>For new - style classes , implicit invocations of special methods are only guaranteed to work correctly if defined on an object &#39; s type , not in the object &#39; s instance dictionary. <br/>
+That behaviour is the reason why the following code raises an exception  ( unlike the equivalent example with old - style classes ):</p>
+</blockquote>
+
+<p>同时官方也给出了一个例子：</p>
+
+<pre><code class="language-python">class C(object):
+    pass
+
+c = C()
+c.__len__ = lambda: 5
+len(c)
 </code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+TypeError                                 Traceback (most recent call last)
+
+&lt;ipython-input-4-7039f902a29c&gt; in &lt;module&gt;
+      4 c = C()
+      5 c.__len__ = lambda: 5
+----&gt; 6 len(c)
+
+
+TypeError: object of type &#39;C&#39; has no len()
+</code></pre>
+
+<pre><code class="language-python">c.__len__()
+</code></pre>
+
+<pre><code>5
+</code></pre>
+
+<p>回到我们的例子上来，当我们在执行 a.__call__ = lambda :&quot; invoking __call__ from lambda &quot; 时，的确在我们在 a.__dict__ 中新增加了一个 key 为 __call__ 的 item ，但是当我们执行 a () 时，因为涉及特殊方法的调用，因此我们的调用过程不会从 a.__dict__ 中寻找属性，而是从 tyee ( a ). __dict__ 中寻找属性。因此，就会出现如上所述的情况。</p>
 
                         
                       </div>
@@ -284,7 +377,7 @@ def g():
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:32 PM</span>
+                    <span class="date">2019/8/19 20:9 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -379,31 +472,31 @@ def g():
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

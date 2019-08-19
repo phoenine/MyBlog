@@ -201,33 +201,26 @@ dis.dis(test)
 第1~2行简单解释下:<br/><br/>
 分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
 第3行:<br/><br/>
-LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:  </p>
-
-<pre><code>//取自 python/ceval.c 
-PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)  
-{
-        ... (省略)  
-        TARGET_NOARG(DUP_TOP)  
-        {  
-            v = TOP();    // 复制运行栈帧的顶部值  
-            Py_INCREF(v); // 增加引用计数  
-            PUSH(v);      // 再压入运行栈帧  
-            FAST_DISPATCH();  
-        }  
-        ... (省略)  
-}  
-
-</code></pre>
-
-<p>DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:</p>
-
-<pre><code>         24 STORE_FAST               1 (i)
-         26 LOAD_FAST                0 (s)
-         28 LOAD_FAST                1 (i)
-         30 STORE_SUBSCR
-</code></pre>
-
-<p>果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:<br/><br/>
+//取自 python/ceval.c <br/>
+PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)<br/><br/>
+{<br/>
+        ... (省略)<br/><br/>
+        TARGET_NOARG(DUP_TOP)<br/><br/>
+        {<br/><br/>
+            v = TOP();    // 复制运行栈帧的顶部值<br/><br/>
+            Py_INCREF(v); // 增加引用计数<br/><br/>
+            PUSH(v);      // 再压入运行栈帧<br/><br/>
+            FAST_DISPATCH();<br/><br/>
+        }<br/><br/>
+        ... (省略)<br/><br/>
+}<br/><br/>
+DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:<br/>
+             24 STORE_FAST               1 (i)<br/>
+             26 LOAD_FAST                0 (s)<br/>
+             28 LOAD_FAST                1 (i)<br/>
+             30 STORE_SUBSCR<br/>
+果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
 
 <p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
 这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
@@ -253,6 +246,9 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
       <div class="row">
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15662165446488.html" 
+          title="Previous Post: Python常见的错误<十三>">&laquo; Python常见的错误<十三></a>
       
         </p>
         </div>
@@ -341,31 +337,31 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

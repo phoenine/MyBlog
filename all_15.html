@@ -107,127 +107,144 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14965374170472.html">
+                <a class="clearlink" href="15137747318292.html">
                 
-                  <h1>UIView</h1>
+                  <h1>Python格式化输出与format函数</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIView常见属性</h3>
+                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
 
-<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
-* 获取自己的父控件对象</p>
+<p><strong>打印整数</strong></p>
 
-<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
-* 获取自己的子控件对象</p>
+<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
 
-<p><code>@property(nonatomic) NSInteger tag;</code><br/>
-* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
-
-<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
-* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
-
-<p><code>@property(nonatomic) CGRect frame;</code><br/>
-* 控件矩形框在父控件中的位置和尺寸</p>
-
-<p><code>@property(nonatomic) CGRect bounds;</code><br/>
-* 控件矩形框的位置和尺寸</p>
-
-<p><code>@property(nonatomic) CGPoint center;</code><br/>
-* 控件重点的位置</p>
-
-<pre><code>#import &quot;ViewController.h&quot;
-
-@interface ViewController ()
-
-@property(weak, nonatomic) UILabel *lable;
-
-@end
-
-@implementation ViewController
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    UILabel *lable = [[UILabel alloc] init];
-    lable.frame = CGRectMake(200, 100, 100, 60);
-    lable.backgroundColor = [UIColor redColor];
-    [self.view addSubview:lable];
-    self.lable = lable;
-}
-
-- (IBAction)bounds {
-    self.lable.bounds = CGRectMake(0, 0, 200, 40);
-}
-
-- (IBAction)center {
-    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
-}
-@end
-
+&gt;&gt;&gt; I&#39;m number 20  
 </code></pre>
 
-<h3 id="toc_1">常见的方法</h3>
+<p><strong>打印浮点数(默认)</strong></p>
 
-<pre><code>-(void)loadView{
-    [super loadView];
-}
+<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
 
--(void)viewDidLoad{
-    [super viewDidLoad];
-} 
-
--(void)didReceiveMemoryWarning{
-    [super didReceiveMemoryWarning];
-}
+&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
 </code></pre>
 
-<h5 id="toc_2">viewDidLoad</h5>
+<p><strong>打印浮点数(指定位数)</strong></p>
 
-<ul>
-<li>系统调用</li>
-<li>controller的View加载完毕的时候调用</li>
-<li>控件的初始化，数据的初始化(懒加载)</li>
-</ul>
+<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
 
-<h5 id="toc_3">didReceiveMemoryWarning</h5>
-
-<ul>
-<li>系统调用</li>
-<li>当控制器接受到内存警告调用</li>
-<li>去除一些不必要的内存，去除耗时的内存</li>
-</ul>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-//    NSLog(@&quot;%@&quot;, self.greenView.superview);
-//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
-//    NSLog(@&quot;%@&quot;, self.view.subviews);
-    UISwitch *sw = [[UISwitch alloc] init];
-    [sw setHighlighted:true];
-    [self.view addSubview:sw];
-    [sw removeFromSuperview];
-}
+&gt;&gt;&gt; His height is 1.73 m 
 </code></pre>
 
-<h5 id="toc_4">addSubview</h5>
+<p><strong>打印字符串</strong></p>
 
-<ul>
-<li>添加一个子控件
-##### removeFromSuperview</li>
-<li>从父控件中移除
-##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
-<li>根据一个tag找出对应的控件</li>
-<li>不推荐使用tag
+<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
 
-<ul>
-<li>tag的效率差</li>
-<li>tag容易乱</li>
-</ul></li>
-</ul>
+&gt;&gt;&gt; My name is terry 
+</code></pre>
+
+<p><strong>打印指定占位符宽度</strong></p>
+
+<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
+
+&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
+</code></pre>
+
+<p><strong>打印指定占位符(左对齐)</strong></p>
+
+<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
+
+&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
+</code></pre>
+
+<p><strong>打印指定占位符(前导0)</strong></p>
+
+<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
+
+&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
+</code></pre>
+
+<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
+用法主要包含以下几类：</p>
+
+<p><strong>通过位置</strong><br/>
+字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
+
+<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
+
+&gt;&gt;&gt; aaa,bbb,aaa  
+</code></pre>
+
+<p><strong>通过关键字参数</strong></p>
+
+<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
+
+&gt;&gt;&gt; Terry,18  
+</code></pre>
+
+<p><strong>通过对象属性</strong></p>
+
+<pre><code class="language-python">class Person:
+    def __init__(self,name,age):
+        self.name = name
+        self.age = age
+
+    def __str__(self):
+        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
+
+print str(Person(&#39;Terry&#39;,18))
+
+&gt;&gt;&gt; This guy is Terry,he is 18 old.
+</code></pre>
+
+<p><strong>通过下标</strong></p>
+
+<pre><code class="language-python">person = [&#39;Terry&#39;,18]
+print(&#39;{0[0]},{0[1]}&#39;.format(person))
+
+&gt;&gt;&gt; Terry,18
+</code></pre>
+
+<p><strong>通过格式</strong><br/>
+如上面的前导0：</p>
+
+<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
+
+&gt;&gt;&gt; 00000189
+&gt;&gt;&gt;      189
+&gt;&gt;&gt; aaaaa189
+</code></pre>
+
+<p>以及浮点数：</p>
+
+<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
+
+&gt;&gt;&gt; 321.33
+</code></pre>
+
+<p><strong>其他类型</strong><br/>
+主要就是二进制b、十进制d、八进制o、十六进制x:</p>
+
+<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
+print(&#39;{:d}&#39;.format(46))
+print(&#39;{:o}&#39;.format(46))
+print(&#39;{:x}&#39;.format(46))
+
+&gt;&gt;&gt; 101110
+&gt;&gt;&gt; 46
+&gt;&gt;&gt; 56
+&gt;&gt;&gt; 2e
+</code></pre>
+
+<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
+
+<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
+
+&gt;&gt;&gt; 99,988,844,333
+</code></pre>
 
                         
                       </div>
@@ -236,10 +253,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/6/4 8:50 AM</span>
+                    <span class="date">2017/12/20 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -253,229 +270,59 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14950245211652.html">
+                <a class="clearlink" href="15096259430881.html">
                 
-                  <h1>Block</h1>
+                  <h1>python中的__name__和__main__</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<ul>
-<li>Block是一个数据类型；</li>
-</ul>
-
-<hr/>
-
-<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
-
-<hr/>
-
-<blockquote>
-<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
-</blockquote>
-
-<h3 id="toc_0">如何声明一个block变量</h3>
-
-<pre><code>void (^myBlock1)();
-int (^myBlock2)();
-int (^myBlock3)(int num1, int num2);
-</code></pre>
-
-<h3 id="toc_1">block变量的初始化</h3>
-
-<pre><code>void (^myBlock1)() = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-
-int (^myBlock2)() = ^int(){
-    int num1 = 10 + 20;
-    return num1;
-};
-
-int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<blockquote>
-<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
-</blockquote>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-int main(int argc, const char * argv[]) {
-    
-    void (^myBlock1)();
-    myBlock1 = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-    myBlock1();
-    
-    int (^myBlock2)() = ^int(){
-        int num1 = 10 + 20;
-        return num1;
-    };
-    int sum = myBlock2();
-    NSLog(@&quot;sum = %d&quot;, sum);
-    
-    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-        int num3 = num1 + num2;
-        return num3;
-    };
-    
-    int res = myblock3(10, 100);
-    NSLog(@&quot;res = %d&quot;, res);
-    
-    
-    return 0;
-}
-</code></pre>
-
-<h3 id="toc_2">block的简写</h3>
+                        	<p>对于大多数编译型编程语言来说， 如C、C++、Java等，都会有一个main函数来作为函数的入口。而python则有所不同，它基本属于脚本语言，即从脚本的第一行开始逐行解释运行，没有统一的入口。而&quot;if <strong>name</strong>==&quot;__main__&quot;:&quot; 这一句可以理解为主程序入口；<br/>
+python是使用缩进对齐的方式执行的，对于没有缩进的代码，会在载入时自动执行。另外代码除了直接执行外，还可以作为模块调用。为了区分执行和调用，python引入了内置属性：__name__。</p>
 
 <ol>
-<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
+<li>当代码被执行时，__name__的值为 ‘__main__’</li>
+<li>当代码被调用时，如果在模块中，__name__就表示模块名；如果在类中，__name__就表示类名。</li>
 </ol>
 
-<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
-void (^myBlock1)() = ^(){
-        NSLog(@&quot;test&quot;);
-    };
+<p>举个栗子：<br/>
+在test_1.py中写入如下代码：</p>
+
+<pre><code>print &quot;I&#39;m the first...&quot;
+
+def test():
+    print &quot;I&#39;m the second...&quot;
+
+print __name__
+if __name__ == &quot;__main__&quot;:
+    test()
+    print &quot;I&#39;m the third...&quot;
+else:
+    print &quot;I&#39;m the last...&quot;
 </code></pre>
 
-<ol>
-<li>如果代码段没有参数，代码段的（）也可以省略：</li>
-</ol>
+<p>直接执行test_1.py，会有如下结果：</p>
 
-<pre><code>int (^myBlock2)() = ^int{
-    int num1 = 10 + 20;
-    return num1;
-};
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_1.py
+I&#39;m the first...
+__main__
+I&#39;m the second...
+I&#39;m the third...
 </code></pre>
 
-<ol>
-<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
-</ol>
+<p>可以看出，此时__name__的值为‘__main__’ ，<br/>
+而作为调用来执行时：<br/>
+<code>from test_1 import test</code><br/>
+会有如下结果：</p>
 
-<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
+<pre><code>C:\Python27\python.exe D:/userdata/f7yang/workspace/Python_test/test_libraries/test_study_10/test_2.py
+I&#39;m the first...
+test_1
+I&#39;m the last...
 </code></pre>
 
-<ol>
-<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
-</ol>
-
-<ul>
-<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
-<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
-</ul>
-
-<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-    
-int result = myBlock4(20, 30);
-NSLog(@&quot;result is %d&quot;, result);
-</code></pre>
-
-<h3 id="toc_3">简化block的定义</h3>
-
-<ol>
-<li>typedef: 将block定义为一个短类型。</li>
-</ol>
-
-<pre><code>typedef void (^NewType)();
-NewType block1 = ^void(){
-    NSLog(@&quot;Hello&quot;);
-};
-block1();
-</code></pre>
-
-<ul>
-<li>block内部可以取外部的局部变量和全局变量的值</li>
-<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
-<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
-</ul>
-
-<h3 id="toc_4">block作为函数的参数</h3>
-
-<ol>
-<li>可以在函数中声明一个指定格式的block：</li>
-</ol>
-
-<pre><code>void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>使用typedef简化定义：</li>
-</ol>
-
-<pre><code>typedef void (^NewBlock) ();
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>如何调用：</li>
-</ol>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-typedef void (^NewBlock) ();
-
-void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-int main(int argc, const char * argv[]) {
-
-    NewBlock type = ^{
-        NSLog(@&quot;hahahah&quot;);
-    };
-    
-    test_2(type);
-    
-    test_2(^{
-        NSLog(@&quot;hahahah&quot;);
-    });
-    
-    return 0;
-}
-</code></pre>
-
-<p>在这个状态下直接敲回车：<br/>
-<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
-可以转换成：<br/>
-<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
-然后直接补充代码即可：<br/>
-<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
-
-<blockquote>
-<p>将block作为函数的参数可以实现什么效果？</p>
-</blockquote>
-
-<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
-</code></pre>
+<p>此时__name__的值为test_1，即模块的名字 。 <br/>
+其实简而言之，自动执行类似自己称呼自己，调用则类似别人称呼自己，如是而已。</p>
 
                         
                       </div>
@@ -484,10 +331,10 @@ int main(int argc, const char * argv[]) {
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/5/17 20:35 PM</span>
+                    <span class="date">2017/11/2 20:32 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -579,31 +426,31 @@ int main(int argc, const char * argv[]) {
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

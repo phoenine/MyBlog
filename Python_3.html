@@ -107,95 +107,107 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655122908336.html">
+                <a class="clearlink" href="15662165446488.html">
                 
-                  <h1>Python常见的错误<六></h1>
+                  <h1>Python常见的错误<十三></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h5 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h5>
+                        	<h4 id="toc_0">常见错误13: 装饰器</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>我想写一个类装饰器用来度量函数/方法运行时间：</p>
 
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x : i * x for i in range(5)]
+<pre><code class="language-python">import time
 
-for multiplier in create_multipliers():
-    print(multiplier(2))
+class Timeit(object):
+    def __init__(self, func):
+        self._wrapped = func
+    
+    def __call__(self, *args, **kws):
+        start_time = time.time()
+        result = self._wrapped(*args, **kws)
+        print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
+        return result
 </code></pre>
 
-<pre><code>8
-8
-8
-8
-8
+<p>希望这个装饰器能够运行在普通函数上：</p>
+
+<pre><code class="language-python">@Timeit
+def func():
+    time.sleep(1)
+    return &quot;invoking function func&quot;
 </code></pre>
 
-<p>你也许希望获得下面的输出结果：<br/><br/>
-0<br/><br/>
-2<br/><br/>
-4<br/><br/>
-6<br/><br/>
-8<br/><br/>
-惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
-<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
-因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
-解决的办法有很多：</p>
+<p>这个装饰器能够运行在普通函数上：</p>
 
-<p>第一种办法是用Python的生成器：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    for i in range(5): yield lambda x : i * x
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
+<pre><code class="language-python">func()
 </code></pre>
 
-<pre><code>0
-2
-4
-6
-8
+<pre><code>elapsed time is 1.0005531311035156 
+
+
+
+
+
+&#39;invoking function func&#39;
 </code></pre>
 
-<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
-在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
+<p>但是运行在方法上会报错，为什么？</p>
 
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x, i=i : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
+<pre><code class="language-python">class A(object):
+    @Timeit
+    def func(self):
+        time.sleep(1)
+        return &#39;invoking method func&#39;
 </code></pre>
 
-<pre><code>0
-2
-4
-6
-8
+<pre><code class="language-python">a = A()
+a.func()
 </code></pre>
 
-<p>还有种替代的方案是，使用偏函数：</p>
+<pre><code>---------------------------------------------------------------------------
 
-<pre><code class="language-python">from functools import partial
-from operator import mul
-def create_multipliers():
-    return [partial(mul, i) for i in range(5)]
+TypeError                                 Traceback (most recent call last)
 
-for multiplier in create_multipliers():
-    print(multiplier(2))
+&lt;ipython-input-27-27f4a5f7197a&gt; in &lt;module&gt;
+      1 a = A()
+----&gt; 2 a.func()
+
+
+&lt;ipython-input-25-0a38ed0ff6ce&gt; in __call__(self, *args, **kws)
+      7     def __call__(self, *args, **kws):
+      8         start_time = time.time()
+----&gt; 9         result = self._wrapped(*args, **kws)
+     10         print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
+     11         return result
+
+
+TypeError: func() missing 1 required positional argument: &#39;self&#39;
 </code></pre>
 
-<pre><code>0
-2
-4
-6
-8
+<p>使用类装饰器后，在调用 func 函数的过程中其对应的 instance 并不会传递给 __call__ 方法，造成其 mehtod unbound ,那么解决方法是什么呢？</p>
+
+<pre><code class="language-python">class Timeite(object):
+    def __init__(self, func):
+        self.func = func
+    def __call__(self, *args, **kws):
+        print(&#39;invoking Timer&#39;)
+    def __get__(self, instance, owner):
+        return lambda *args, **kws: self.func(instance, *args, **kws)
 </code></pre>
 
-<pre><code class="language-python">
+<pre><code class="language-python">class A(object):
+    @Timeite
+    def func(self):
+        time.sleep(1)
+        return &#39;invoking method func&#39;
+    
+a = A()
+a.func()
+</code></pre>
+
+<pre><code>&#39;invoking method func&#39;
 </code></pre>
 
                         
@@ -205,7 +217,7 @@ for multiplier in create_multipliers():
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:31 PM</span>
+                    <span class="date">2019/8/19 20:9 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -222,55 +234,123 @@ for multiplier in create_multipliers():
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655122526636.html">
+                <a class="clearlink" href="15657075853367.html">
                 
-                  <h1>Python常见的错误<五></h1>
+                  <h1>Python常见的错误<十二></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误5: 当迭代时修改一个列表（List）</h4>
+                        	<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
+a = 3<br/><br/>
+b = 3<br/><br/>
+而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
+a = b = c = 3<br/><br/>
+我们来看看这段代码输出的是什么？</p>
 
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-for i in range(len(numbers)):
-     if odd(numbers[i]):
-            del numbers[i]
+<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
+i = 0
+i = s[i] = 3
+print(i)
+print(s)
 </code></pre>
 
-<pre><code>---------------------------------------------------------------------------
-
-IndexError                                Traceback (most recent call last)
-
-&lt;ipython-input-1-c259828f5d17&gt; in &lt;module&gt;
-      2 numbers = [n for n in range(10)]
-      3 for i in range(len(numbers)):
-----&gt; 4      if odd(numbers[i]):
-      5             del numbers[i]
-
-
-IndexError: list index out of range
+<pre><code>3
+[1, 2, 3, 3, 5, 6]
 </code></pre>
 
-<p>当迭代的时候，从一个 列表或者数组中删除元素，对于任何有经验的开发者来说，这是一个众所周知的错误。尽管上面的例子非常明显，但是许多高级开发者在更复杂的代码中也并非是故意而为之的。<br/>
-幸运的是，Python包含大量简洁优雅的编程范例，若使用得当，能大大简化和精炼代码。<br/><br/>
-这样的好处是能得到更简化和更精简的代码，能更好的避免程序中出现当迭代时修改一个列表这样的bug。一个这样的范例是递推式列表（list comprehensions）。<br/><br/>
-<a href="https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps">https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps</a><br/><br/>
-而且，递推式列表（list comprehensions）针对这个问题是特别有用的，通过更改上文中的实现，得到一段极佳的代码：</p>
+<p>i 的值: 3<br/><br/>
+---这个好解释<br/><br/>
+s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
+？？？<br/><br/>
+s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
 
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-numbers[:] = [n for n in numbers if not odd(n)]  # ahh, the beauty of it all
-numbers
+<pre><code class="language-python">def test():
+    s = [1, 2, 3, 4, 5, 6] 
+    i = 0
+    i = s[i] = 3
+    print(i)
+    print(s)
+
+import dis
+dis.dis(test)
 </code></pre>
 
-<pre><code>[0, 2, 4, 6, 8]
+<pre><code>  2           0 LOAD_CONST               1 (1)
+              2 LOAD_CONST               2 (2)
+              4 LOAD_CONST               3 (3)
+              6 LOAD_CONST               4 (4)
+              8 LOAD_CONST               5 (5)
+             10 LOAD_CONST               6 (6)
+             12 BUILD_LIST               6
+             14 STORE_FAST               0 (s)
+
+  3          16 LOAD_CONST               7 (0)
+             18 STORE_FAST               1 (i)
+
+  4          20 LOAD_CONST               3 (3)
+             22 DUP_TOP
+             24 STORE_FAST               1 (i)
+             26 LOAD_FAST                0 (s)
+             28 LOAD_FAST                1 (i)
+             30 STORE_SUBSCR
+
+  5          32 LOAD_GLOBAL              0 (print)
+             34 LOAD_FAST                1 (i)
+             36 CALL_FUNCTION            1
+             38 POP_TOP
+
+  6          40 LOAD_GLOBAL              0 (print)
+             42 LOAD_FAST                0 (s)
+             44 CALL_FUNCTION            1
+             46 POP_TOP
+             48 LOAD_CONST               0 (None)
+             50 RETURN_VALUE
 </code></pre>
 
-<pre><code class="language-python">
-</code></pre>
+<p>解释如下：<br/><br/>
+第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
+第1~2行简单解释下:<br/><br/>
+分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
+第3行:<br/><br/>
+LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:<br/><br/>
+//取自 python/ceval.c <br/>
+PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)<br/><br/>
+{<br/>
+        ... (省略)<br/><br/>
+        TARGET_NOARG(DUP_TOP)<br/><br/>
+        {<br/><br/>
+            v = TOP();    // 复制运行栈帧的顶部值<br/><br/>
+            Py_INCREF(v); // 增加引用计数<br/><br/>
+            PUSH(v);      // 再压入运行栈帧<br/><br/>
+            FAST_DISPATCH();<br/><br/>
+        }<br/><br/>
+        ... (省略)<br/><br/>
+}<br/><br/>
+DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:<br/>
+             24 STORE_FAST               1 (i)<br/>
+             26 LOAD_FAST                0 (s)<br/>
+             28 LOAD_FAST                1 (i)<br/>
+             30 STORE_SUBSCR<br/>
+果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+
+<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
+这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+
+<p>a = s = 3<br/><br/>
+等价于:<br/><br/>
+a = (s = 3)<br/><br/>
+也就是 s=3 返回3, 再赋值给a  </p>
+
+<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
+希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+
+<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
+a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
+Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
+参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
 
                         
                       </div>
@@ -279,7 +359,7 @@ numbers
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:30 PM</span>
+                    <span class="date">2019/8/13 22:46 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -374,31 +454,31 @@ numbers
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

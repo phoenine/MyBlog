@@ -208,6 +208,68 @@ UnboundLocalError: local variable &#39;lst&#39; referenced before assignment
 要知道， lst += [5] 是 lst = lst + [5] 的缩写，我们试图对 lst 进行赋值操作（Python把他当成了局部变量）。<br/><br/>
 此外，我们对 lst 进行的赋值操作是基于 lst 自身（这再一次被Python当成了局部变量），但此时还未定义。因此出错！</p>
 
+<p>下面我们再来看看这个作用域的问题。<br/><br/>
+看看下面的代码为什么报错？</p>
+
+<pre><code class="language-python">class A(object):
+    x = 1
+    gen = (x for _ in range(10))
+
+print(list(A.gen))
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+NameError                                 Traceback (most recent call last)
+
+&lt;ipython-input-7-7c568240446a&gt; in &lt;module&gt;
+      3     gen = (x for _ in range(10))
+      4 
+----&gt; 5 print(list(A.gen))
+
+
+&lt;ipython-input-7-7c568240446a&gt; in &lt;genexpr&gt;(.0)
+      1 class A(object):
+      2     x = 1
+----&gt; 3     gen = (x for _ in range(10))
+      4 
+      5 print(list(A.gen))
+
+
+NameError: name &#39;x&#39; is not defined
+</code></pre>
+
+<p>这个问题是变量作用域问题，在 gen =( x for _ in xrange (10)) 中 gen 是一个 generator ,在 generator 中变量有自己的一套作用域，与其余作用域空间相互隔离。<br/><br/>
+因此，将会出现这样的 NameError:name &#39; x &#39; is not defined 的问题，那么解决方案是什么呢？答案是：用 lambda 。</p>
+
+<pre><code class="language-python">class A(object):
+    x = 1
+    gen = (lambda x: (x for _ in range(10)))(x)
+
+print(list(A.gen))
+</code></pre>
+
+<pre><code>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+</code></pre>
+
+<p>或者这样</p>
+
+<pre><code class="language-python">class A(object):
+    x = 1
+    gen = (A.x for _ in range(10))
+
+print(list(A.gen))
+</code></pre>
+
+<pre><code>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+</code></pre>
+
+<blockquote>
+<p>The scope of names defined in a class block is limited to the class block ;<br/><br/>
+It does not extend to the code blocks of methods - this includes comprehensions and generator expressions since they are implemented using a function scope.<br/><br/>
+This means that the following will fail :</p>
+</blockquote>
+
 
     
 
@@ -307,31 +369,31 @@ UnboundLocalError: local variable &#39;lst&#39; referenced before assignment
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

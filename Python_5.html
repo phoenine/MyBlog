@@ -107,48 +107,90 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655120913106.html">
+                <a class="clearlink" href="15655124741455.html">
                 
-                  <h1>Python常见的错误<二></h1>
+                  <h1>Python常见的错误<九></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误2: 错误地使用类变量</h4>
+                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>请看下面这个 filefoo.py:</p>
 
-<pre><code class="language-python">class A(object):
-    x = 1
+<pre><code class="language-python">import sys
 
-class B(A):
-    pass
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
 
-class C(A):
-    pass
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
 
-print(A.x, B.x, C.x)
-B.x = 2
-print(A.x, B.x, C.x)
-A.x = 3
-print(A.x, B.x, C.x)
+bad()
 </code></pre>
 
-<pre><code>1 1 1
-1 2 1
-3 2 3
+<p>在Python 2中运行正常：</p>
+
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
 </code></pre>
 
-<p>WTF?? 我们只改了A.x，为什么C.x也改了?<br/><br/>
-在Python中，<b>类变量在内部当做字典来处理，其遵循常被引用的方法解析顺序（MRO）</b>。<br/><br/>
-一个变量名如果没有在当前类下的字典中被发现，则会在更高级的类（如它的父类）中尽心搜索直到引用的变量名被找到。（如果引用变量名在自身类和更高级类中没有找到，将会引发一个属性错误）。<br/><br/>
-所以在上面的代码中，由于class C中的x属性没有找到，它会向上找它的基类（尽管Python支持多重继承，但上面的例子中只有A）。<br/><br/>
-如果它的任何一个子类被覆写了值（例如说，当我们执行语句B.x = 2）,这个值只在子类中进行了修改。所以第二个打印语句输出结果是1 2 1。<br/><br/>
-如果这个值在父类中进行了修改，（例如说，当我们执行语句A.x = 3）,这个改变将会影响那些还没有覆写子类的值（在这个例子中就是C），所以第三打印语句输出结果是3 2 3。换句话说，class C中没有它自己的x属性，其独立于A。因此，C.x事实上是A.x的引用。  </p>
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
 
-<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+</code></pre>
 
-<pre><code class="language-python">
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
+
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
 </code></pre>
 
                         
@@ -158,7 +200,7 @@ print(A.x, B.x, C.x)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:28 PM</span>
+                    <span class="date">2019/8/11 16:34 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -175,80 +217,91 @@ print(A.x, B.x, C.x)
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15654471089883.html">
+                <a class="clearlink" href="15655124251876.html">
                 
-                  <h1>Python常见的错误<一></h1>
+                  <h1>Python常见的错误<八></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误1: 滥用表达式作为函数参数的默认值</h4>
+                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
 
-<p>Python允许为函数的参数提供默认的可选值。尽管这是语言的一大特色，但是它可能会导致一些易变默认值的混乱。<br/><br/>
-一个常见的错误是认为函数每次不提供可选参数调用时，会将可选参数将设置为默认指定值。例如下面这段代码：</p>
+<p>请看下面这个 filefoo.py:</p>
 
-<pre><code class="language-python">def extendList(val, list=[]):
-    list.append(val)
-    return list
+<pre><code class="language-python">import sys
 
-list1 = extendList(10)
-list2 = extendList(123,[])
-list3 = extendList(&#39;a&#39;)
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
 
-print(&quot;list1 = %s&quot; % list1)
-print(&quot;list2 = %s&quot; % list2)
-print(&quot;list3 = %s&quot; % list3)
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
+
+bad()
 </code></pre>
 
-<pre><code>list1 = [10, &#39;a&#39;]
-list2 = [123]
-list3 = [10, &#39;a&#39;]
+<p>在Python 2中运行正常：</p>
+
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
 </code></pre>
 
-<p>很多人都会误认为list1=[10]，list3=[‘a’]，因为他们以为每次extendList被调用时，列表参数的默认值都将被设置为[]。<br/><br/>
-但实际上的情况是，<b> 函数参数的默认列表只在函数被定义的那一刻创建一次。</b><br/><br/>
-当extendList被没有指定特定参数list调用时，这组list的值随后将被使用。这是因为<u>带有默认参数的表达式在函数被定义的时候被计算，不是在调用的时候被计算。</u><br/><br/>
-因此list1和list3是在同一个默认列表上进行操作（计算）的。<br/><br/>
-而list2是在一个分离的列表上进行操作（计算）的。（通过传递一个自有的空列表作为列表参数的数值）。<br/>
-extendList的定义可以作如下修改:</p>
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
 
-<pre><code class="language-python">def extendList_2(val, list=None):
-    if list is None:
-        list = []
-    list.append(val)
-    return list
-
-list1 = extendList_2(10)
-list2 = extendList_2(123,[])
-list3 = extendList_2(&#39;a&#39;)
-
-print(&quot;list1 = %s&quot; % list1)
-print(&quot;list2 = %s&quot; % list2)
-print(&quot;list3 = %s&quot; % list3)
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
 </code></pre>
 
-<pre><code>list1 = [10]
-list2 = [123]
-list3 = [&#39;a&#39;]
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
+
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
 </code></pre>
-
-<p>下面dis库是python(默认的CPython)自带的一个库,可以用来分析字节码。</p>
-
-<pre><code class="language-python">import dis
-dis.dis(extendList)
-</code></pre>
-
-<pre><code>  2           0 LOAD_FAST                1 (list)
-              2 LOAD_METHOD              0 (append)
-              4 LOAD_FAST                0 (val)
-              6 CALL_METHOD              1
-              8 POP_TOP
-
-  3          10 LOAD_FAST                1 (list)
-             12 RETURN_VALUE
-</code></pre>
-
-<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
 
                         
                       </div>
@@ -257,7 +310,7 @@ dis.dis(extendList)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/10 22:25 PM</span>
+                    <span class="date">2019/8/11 16:33 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -352,31 +405,31 @@ dis.dis(extendList)
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

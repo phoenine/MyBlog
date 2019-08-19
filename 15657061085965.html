@@ -131,11 +131,6 @@
 
 <p>来看看下面代码的输出结果将是什么？</p>
 
-<p>下面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
-例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
-然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
-这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
-
 <pre><code class="language-python">list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
 print(list[10:])
 print(list[10])
@@ -157,6 +152,11 @@ IndexError                                Traceback (most recent call last)
 
 IndexError: list index out of range
 </code></pre>
+
+<p>上面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
+例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
+然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
+这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
 
 <p>我们再来看看这段代码，猜想一下，输出是什么？</p>
 
@@ -186,9 +186,6 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
 同理，list[1].append(20)将20附加在第二个列表上。但同样由于5个列表是引用的同一个列表，所以输出结果现在是：<br/><br/>
 [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
 作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
-
-<pre><code class="language-python">
-</code></pre>
 
 
     
@@ -289,31 +286,31 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

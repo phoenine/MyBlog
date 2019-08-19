@@ -107,57 +107,118 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15656215590319.html">
+                <a class="clearlink" href="15662171354673.html">
                 
-                  <h1>Python常见的错误<十></h1>
+                  <h1>Python Modules - 01 - Python random</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误10: 浮点与整除</h4>
+                        	<h4 id="toc_0">Module-1: random 模块总结</h4>
 
-<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
+<p>Python中的random模块用于生成随机数。下面介绍一下random模块中最常用的几个函数。</p>
 
-<pre><code class="language-python">def div1(x,y):
-    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
-def div2(x,y):
-    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
-div1(5,2)
-div1(5.,2)
-div2(5,2)
-div2(5.,2.)
+<pre><code class="language-python">import random
 </code></pre>
 
-<pre><code>5/2 = 2.5
-5.0/2 = 2.5
-5//2 = 2
-5.0//2.0 = 2.0
+<ol>
+<li><b>random.random</b></li>
+</ol>
+
+<p>random.random()用于生成一个0到1的随机符点数: 0 &lt;= n &lt; 1.0</p>
+
+<pre><code class="language-python">a = random.random()
+print(a)
 </code></pre>
 
-<p>在Python3下结果会有怎样的不同？<br/><br/>
-在Python2中，上述代码输出将是<br/><br/>
-5/2 = 2<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
-
-<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
-注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
-
-<pre><code class="language-python">from future import division
+<pre><code>0.6898048215526792
 </code></pre>
 
-<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
-然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
-因此，在Python3中，将会是如下结果：<br/><br/>
-5/2 = 2.5<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
+<ol>
+<li><b>random.uniform</b></li>
+</ol>
 
-<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
+<p>random.uniform的函数原型为：random.uniform(a, b)，用于生成一个指定范围内的随机符点数，两个参数其中一个是上限，一个是下限。如果a &gt; b，则生成的随机数n: b &lt;= n &lt;= a。如果 a &lt;b， 则 a &lt;= n &lt;= b。</p>
 
-<pre><code class="language-python">
+<pre><code class="language-python">a = random.uniform(1000, 18888)
+print(a)
+b = random.uniform(1000, 18888)
+print(b)
+</code></pre>
+
+<pre><code>8052.755100232027
+2137.3131503870227
+</code></pre>
+
+<ol>
+<li><b>random.randint</b></li>
+</ol>
+
+<p>random.randint()的函数原型为：random.randint(a, b)，用于生成一个指定范围内的整数。其中参数a是下限，参数b是上限，生成的随机数n: a &lt;= n &lt;= b</p>
+
+<pre><code class="language-python">a = random.randint(10, 20)
+print(a)
+</code></pre>
+
+<pre><code>18
+</code></pre>
+
+<ol>
+<li><b>random.randrange</b></li>
+</ol>
+
+<p>random.randrange的函数原型为：random.randrange(start, stop, step)，从指定范围内，按指定基数递增的集合中获取一个随机数。   </p>
+
+<pre><code class="language-python">a = random.randrange(10, 20, 3)         #在[10，13， 16， 19]中选择
+print(a)
+</code></pre>
+
+<pre><code>10
+</code></pre>
+
+<ol>
+<li><b>random.choice</b></li>
+</ol>
+
+<p>random.choice从序列中获取一个随机元素。其函数原型为：random.choice(sequence)，参数sequence表示一个有序类型。<br/><br/>
+这里要说明 一下：sequence在python不是一种特定的类型，而是泛指一系列的类型。list, tuple, 字符串都属于sequence。</p>
+
+<pre><code class="language-python">a = &quot;mylittlepolly&quot;
+print(random.choice(a))
+b = [&#39;sun&#39;, &#39;moon&#39;, &#39;star&#39;]
+print(random.choice(b))
+</code></pre>
+
+<pre><code>l
+moon
+</code></pre>
+
+<ol>
+<li><b>random.shuffle</b></li>
+</ol>
+
+<p>random.shuffle的函数原型为：random.shuffle(x[, random])，用于将一个列表中的元素打乱。</p>
+
+<pre><code class="language-python">a = [&quot;Python&quot;, &quot;is&quot;, &quot;powerful&quot;, &quot;simple&quot;, &quot;and so on...&quot;]
+random.shuffle(a)
+print(a)
+</code></pre>
+
+<pre><code>[&#39;and so on...&#39;, &#39;simple&#39;, &#39;powerful&#39;, &#39;Python&#39;, &#39;is&#39;]
+</code></pre>
+
+<ol>
+<li><b>random.sample</b></li>
+</ol>
+
+<p>random.sample的函数原型为：random.sample(sequence, k)，从指定序列中随机获取指定长度的片断。sample函数不会修改原有序列。</p>
+
+<pre><code class="language-python">a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+b = random.sample(a, 5)
+print(b)
+</code></pre>
+
+<pre><code>[9, 8, 1, 7, 3]
 </code></pre>
 
                         
@@ -167,7 +228,7 @@ div2(5.,2.)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/12 22:52 PM</span>
+                    <span class="date">2019/8/19 20:18 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -184,54 +245,126 @@ div2(5.,2.)
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655124741455.html">
+                <a class="clearlink" href="15662167164116.html">
                 
-                  <h1>Python常见的错误<九></h1>
+                  <h1>Python常见的错误<十六></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误9: 误用__del__方法</h4>
+                        	<h4 id="toc_0">常见错误16: Python 特殊方法</h4>
 
-<p>假设你有一个名为 calledmod.py 的文件：</p>
+<p>我写了一个通过重载 <b> new </b> 方法来实现单例模式的类。</p>
 
-<pre><code class="language-python">import foo
-
-class Bar(object):
-           ...
-    def __del__(self):
-        foo.cleanup(self.myhandle)
+<pre><code class="language-python">class Singleton(object):
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance:
+            return cls._instance
+        cls._isntance = cv = object.__new__(cls, *args, **kwargs)
+        return cv
 </code></pre>
 
-<p>并且有一个名为 another_mod.py 的文件：</p>
-
-<pre><code class="language-python">import mod
-mybar = mod.Bar()
+<pre><code class="language-python">sin1 = Singleton()
+sin2 = Singleton()
+print(sin1 is sin2)
 </code></pre>
 
-<p>你会得到一个 AttributeError 的异常。<br/><br/>
-为什么呢？因为，正如这里所说<br/><br/>
-<a href="https://mail.python.org/pipermail/python-bugs-list/2009-January/069209.html">https://mail.python.org/pipermail/python-bugs-list/2009-January/069209.html</a><br/><br/>
-当解释器退出的时候，模块中的全局变量都被设置成了 None。所以，在上面这个例子中，当 <strong>del</strong> 被调用时，foo 已经被设置成了None。<br/><br/>
-解决方法是使用 atexit.register() 代替。<br/><br/>
-<a href="https://docs.python.org/2/library/atexit.html">https://docs.python.org/2/library/atexit.html</a><br/><br/>
-用这种方式，当你的程序结束执行时（意思是正常退出），你注册的处理程序会在解释器退出之前执行。<br/><br/>
-了解了这些，我们可以将上面 mod.py 的代码修改成下面的这样。</p>
-
-<pre><code class="language-python">import foo
-import atexit
-
-def cleanup(handle):
-    foo.cleanup(handle)
-
-
-class Bar(object):
-    def __init__(self):
-        ...
-        atexit.register(cleanup, self.myhandle)
+<pre><code>False
 </code></pre>
 
-<p>这种实现方式提供了一个整洁并且可信赖的方法用来在程序退出之前做一些清理工作。很显然，它是由foo.cleanup 来决定对绑定在 self.myhandle 上对象做些什么处理工作的，但是这就是你想要的。</p>
+<p>现在我有一堆类要实现为单例模式，所以我打算照葫芦画瓢写一个<b>元类</b>，这样可以让代码复用：</p>
+
+<pre><code class="language-python">class SingleMeta(type):
+    def __init__(cls, name, bases, dict):
+        cls._instance = None
+        __new__o = cls.__new__
+        def __new__(cls, *args, **kwargs):
+            if cls._instance:
+                return cls._instance
+        cls._instance = cv = __new__o(cls, *args, **kwargs)
+        return cv
+    
+    cls.__new__ = __new__
+    
+class A(object):
+    __metaclass__ = SingleMeta
+
+a1 = A()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+NameError                                 Traceback (most recent call last)
+
+&lt;ipython-input-12-f4e661bbbe74&gt; in &lt;module&gt;
+----&gt; 1 class SingleMeta(type):
+      2     def __init__(cls, name, bases, dict):
+      3         cls._instance = None
+      4         __new__o = cls.__new__
+      5         def __new__(cls, *args, **kwargs):
+
+
+&lt;ipython-input-12-f4e661bbbe74&gt; in SingleMeta()
+      9         return cv
+     10 
+---&gt; 11     cls.__new__ = __new__
+     12 
+     13 class A(object):
+
+
+NameError: name &#39;__new__&#39; is not defined
+</code></pre>
+
+<p>哎呀，好气啊，为啥这会报错啊，我明明之前用这种方法给 <strong>getattribute</strong> 打补丁的，下面这段代码能够捕获一切属性调用并打印参数</p>
+
+<pre><code class="language-python">class TraceAttribute(type):
+    def __init__(cls, name, bases, dict):
+        __getattribute__o = cls.__getattribute__
+        def __getattribute__(self, *args, **kwargs):
+            print(&#39;__getattribute__:&#39;, args, kwargs)
+            return __getattribute__o(self, *args, **kwargs)
+        cls.__getattribute__ = __getattribute__
+
+class A(object):
+    __metaclass__ = TraceAttribute
+    a = 1
+    b = 2
+
+a = A()
+print(a.a)
+print(a.b)
+</code></pre>
+
+<pre><code>1
+2
+</code></pre>
+
+<p>试解释为什么给 <b> getattribute </b> 打补丁成功，而 <b> new </b> 打补丁失败。 如果我坚持使用元类给 <b> new </b> 打补丁来实现单例模式，应该怎么修改？ </p>
+
+<p>其实这是最气人的一点，类里的 <strong>new</strong> 是一个 staticmethod 因此替换的时候必须以 staticmethod 进行替换。答案如下：</p>
+
+<pre><code class="language-python">class SingleMeta(type):
+    def __init__(cls, name, bases, dict):
+        cls._instance = None
+        __new__o = cls.__new__
+    
+        @staticmethod
+        def __new__(cls, *args, **kwargs):
+            if cls._instance:
+                return cls._instance
+            cls._instance = cv = __new__o(cls, *args, **kwargs)
+            return cv
+        cls.__new__ = __new__
+    
+class A(object):
+    __metaclass__ = SingleMeta
+
+print(A() is A())
+</code></pre>
+
+<pre><code>False
+</code></pre>
 
                         
                       </div>
@@ -240,7 +373,7 @@ class Bar(object):
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:34 PM</span>
+                    <span class="date">2019/8/19 20:11 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -335,31 +468,31 @@ class Bar(object):
 	      
 		      
 			      <li class="post">
-			        <a href="15657075853367.html">Python常见的错误<十二></a>
+			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15657061085965.html">Python常见的错误<十一></a>
+			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15656215590319.html">Python常见的错误<十></a>
+			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124741455.html">Python常见的错误<九></a>
+			        <a href="15662167164116.html">Python常见的错误<十六></a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15655124251876.html">Python常见的错误<八></a>
+			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  
