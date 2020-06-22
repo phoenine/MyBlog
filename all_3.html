@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -107,107 +109,125 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15662165446488.html">
+                <a class="clearlink" href="15662167164116.html">
                 
-                  <h1>Python常见的错误<十三></h1>
+                  <h1>Python常见的错误<十六></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误13: 装饰器</h4>
+                        	<h4 id="toc_0">常见错误16: Python 特殊方法</h4>
 
-<p>我想写一个类装饰器用来度量函数/方法运行时间：</p>
+<p>我写了一个通过重载 <b> new </b> 方法来实现单例模式的类。</p>
 
-<pre><code class="language-python">import time
+<pre><code class="language-python">class Singleton(object):
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance:
+            return cls._instance
+        cls._isntance = cv = object.__new__(cls, *args, **kwargs)
+        return cv
+</code></pre>
 
-class Timeit(object):
-    def __init__(self, func):
-        self._wrapped = func
+<pre><code class="language-python">sin1 = Singleton()
+sin2 = Singleton()
+print(sin1 is sin2)
+</code></pre>
+
+<pre><code>False
+</code></pre>
+
+<p>现在我有一堆类要实现为单例模式，所以我打算照葫芦画瓢写一个<b>元类</b>，这样可以让代码复用：</p>
+
+<pre><code class="language-python">class SingleMeta(type):
+    def __init__(cls, name, bases, dict):
+        cls._instance = None
+        __new__o = cls.__new__
+        def __new__(cls, *args, **kwargs):
+            if cls._instance:
+                return cls._instance
+        cls._instance = cv = __new__o(cls, *args, **kwargs)
+        return cv
     
-    def __call__(self, *args, **kws):
-        start_time = time.time()
-        result = self._wrapped(*args, **kws)
-        print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
-        return result
-</code></pre>
+    cls.__new__ = __new__
+    
+class A(object):
+    __metaclass__ = SingleMeta
 
-<p>希望这个装饰器能够运行在普通函数上：</p>
-
-<pre><code class="language-python">@Timeit
-def func():
-    time.sleep(1)
-    return &quot;invoking function func&quot;
-</code></pre>
-
-<p>这个装饰器能够运行在普通函数上：</p>
-
-<pre><code class="language-python">func()
-</code></pre>
-
-<pre><code>elapsed time is 1.0005531311035156 
-
-
-
-
-
-&#39;invoking function func&#39;
-</code></pre>
-
-<p>但是运行在方法上会报错，为什么？</p>
-
-<pre><code class="language-python">class A(object):
-    @Timeit
-    def func(self):
-        time.sleep(1)
-        return &#39;invoking method func&#39;
-</code></pre>
-
-<pre><code class="language-python">a = A()
-a.func()
+a1 = A()
 </code></pre>
 
 <pre><code>---------------------------------------------------------------------------
 
-TypeError                                 Traceback (most recent call last)
+NameError                                 Traceback (most recent call last)
 
-&lt;ipython-input-27-27f4a5f7197a&gt; in &lt;module&gt;
-      1 a = A()
-----&gt; 2 a.func()
-
-
-&lt;ipython-input-25-0a38ed0ff6ce&gt; in __call__(self, *args, **kws)
-      7     def __call__(self, *args, **kws):
-      8         start_time = time.time()
-----&gt; 9         result = self._wrapped(*args, **kws)
-     10         print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
-     11         return result
+&lt;ipython-input-12-f4e661bbbe74&gt; in &lt;module&gt;
+----&gt; 1 class SingleMeta(type):
+      2     def __init__(cls, name, bases, dict):
+      3         cls._instance = None
+      4         __new__o = cls.__new__
+      5         def __new__(cls, *args, **kwargs):
 
 
-TypeError: func() missing 1 required positional argument: &#39;self&#39;
+&lt;ipython-input-12-f4e661bbbe74&gt; in SingleMeta()
+      9         return cv
+     10 
+---&gt; 11     cls.__new__ = __new__
+     12 
+     13 class A(object):
+
+
+NameError: name &#39;__new__&#39; is not defined
 </code></pre>
 
-<p>使用类装饰器后，在调用 func 函数的过程中其对应的 instance 并不会传递给 __call__ 方法，造成其 mehtod unbound ,那么解决方法是什么呢？</p>
+<p>哎呀，好气啊，为啥这会报错啊，我明明之前用这种方法给 <strong>getattribute</strong> 打补丁的，下面这段代码能够捕获一切属性调用并打印参数</p>
 
-<pre><code class="language-python">class Timeite(object):
-    def __init__(self, func):
-        self.func = func
-    def __call__(self, *args, **kws):
-        print(&#39;invoking Timer&#39;)
-    def __get__(self, instance, owner):
-        return lambda *args, **kws: self.func(instance, *args, **kws)
-</code></pre>
+<pre><code class="language-python">class TraceAttribute(type):
+    def __init__(cls, name, bases, dict):
+        __getattribute__o = cls.__getattribute__
+        def __getattribute__(self, *args, **kwargs):
+            print(&#39;__getattribute__:&#39;, args, kwargs)
+            return __getattribute__o(self, *args, **kwargs)
+        cls.__getattribute__ = __getattribute__
 
-<pre><code class="language-python">class A(object):
-    @Timeite
-    def func(self):
-        time.sleep(1)
-        return &#39;invoking method func&#39;
-    
+class A(object):
+    __metaclass__ = TraceAttribute
+    a = 1
+    b = 2
+
 a = A()
-a.func()
+print(a.a)
+print(a.b)
 </code></pre>
 
-<pre><code>&#39;invoking method func&#39;
+<pre><code>1
+2
+</code></pre>
+
+<p>试解释为什么给 <b> getattribute </b> 打补丁成功，而 <b> new </b> 打补丁失败。 如果我坚持使用元类给 <b> new </b> 打补丁来实现单例模式，应该怎么修改？ </p>
+
+<p>其实这是最气人的一点，类里的 <strong>new</strong> 是一个 staticmethod 因此替换的时候必须以 staticmethod 进行替换。答案如下：</p>
+
+<pre><code class="language-python">class SingleMeta(type):
+    def __init__(cls, name, bases, dict):
+        cls._instance = None
+        __new__o = cls.__new__
+    
+        @staticmethod
+        def __new__(cls, *args, **kwargs):
+            if cls._instance:
+                return cls._instance
+            cls._instance = cv = __new__o(cls, *args, **kwargs)
+            return cv
+        cls.__new__ = __new__
+    
+class A(object):
+    __metaclass__ = SingleMeta
+
+print(A() is A())
+</code></pre>
+
+<pre><code>False
 </code></pre>
 
                         
@@ -217,7 +237,7 @@ a.func()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/19 20:9 PM</span>
+                    <span class="date">2019/8/19 20:11 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -234,123 +254,170 @@ a.func()
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15657075853367.html">
+                <a class="clearlink" href="15662166109209.html">
                 
-                  <h1>Python常见的错误<十二></h1>
+                  <h1>Python常见的错误<十五></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
+                        	<h4 id="toc_0">常见错误15: 描述符的坑</h4>
 
-<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
-a = 3<br/><br/>
-b = 3<br/><br/>
-而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
-a = b = c = 3<br/><br/>
-我们来看看这段代码输出的是什么？</p>
+<p>我想写一个 Exam 类，其属性 math 为 [0,100] 的整数，若赋值时不在此范围内则抛出异常，我决定用描述符来实现这个需求。</p>
 
-<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
-i = 0
-i = s[i] = 3
-print(i)
-print(s)
+<pre><code class="language-python">class Grade(object):
+    def __init__(self):
+        self._score = 0
+    def __get__(self, instance, owner):
+        return self._score
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            self._score = value
+        else:
+            raise ValueError(&#39;grade must be between 0 and 100.&#39;)
 </code></pre>
 
-<pre><code>3
-[1, 2, 3, 3, 5, 6]
+<pre><code class="language-python">class Exam(object):
+    math = Grade()
+    def __init__(self, math):
+        self.math = math
 </code></pre>
 
-<p>i 的值: 3<br/><br/>
----这个好解释<br/><br/>
-s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
-？？？<br/><br/>
-s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
-
-<pre><code class="language-python">def test():
-    s = [1, 2, 3, 4, 5, 6] 
-    i = 0
-    i = s[i] = 3
-    print(i)
-    print(s)
-
-import dis
-dis.dis(test)
+<pre><code class="language-python">lucy = Exam(math=90)
+print(lucy.math)
+snake = Exam(math=75)
+print(snake.math)
+snake.math = 120
 </code></pre>
 
-<pre><code>  2           0 LOAD_CONST               1 (1)
-              2 LOAD_CONST               2 (2)
-              4 LOAD_CONST               3 (3)
-              6 LOAD_CONST               4 (4)
-              8 LOAD_CONST               5 (5)
-             10 LOAD_CONST               6 (6)
-             12 BUILD_LIST               6
-             14 STORE_FAST               0 (s)
+<pre><code>90
+75
 
-  3          16 LOAD_CONST               7 (0)
-             18 STORE_FAST               1 (i)
 
-  4          20 LOAD_CONST               3 (3)
-             22 DUP_TOP
-             24 STORE_FAST               1 (i)
-             26 LOAD_FAST                0 (s)
-             28 LOAD_FAST                1 (i)
-             30 STORE_SUBSCR
 
-  5          32 LOAD_GLOBAL              0 (print)
-             34 LOAD_FAST                1 (i)
-             36 CALL_FUNCTION            1
-             38 POP_TOP
+---------------------------------------------------------------------------
 
-  6          40 LOAD_GLOBAL              0 (print)
-             42 LOAD_FAST                0 (s)
-             44 CALL_FUNCTION            1
-             46 POP_TOP
-             48 LOAD_CONST               0 (None)
-             50 RETURN_VALUE
+ValueError                                Traceback (most recent call last)
+
+&lt;ipython-input-9-d59603acfa1c&gt; in &lt;module&gt;
+      3 snake = Exam(math=75)
+      4 print(snake.math)
+----&gt; 5 snake.math = 120
+
+
+&lt;ipython-input-7-edf3703e2b81&gt; in __set__(self, instance, value)
+      8             self._score = value
+      9         else:
+---&gt; 10             raise ValueError(&#39;grade must be between 0 and 100.&#39;)
+
+
+ValueError: grade must be between 0 and 100.
 </code></pre>
 
-<p>解释如下：<br/><br/>
-第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
-第1~2行简单解释下:<br/><br/>
-分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
-第3行:<br/><br/>
-LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:<br/><br/>
-//取自 python/ceval.c <br/>
-PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)<br/><br/>
-{<br/>
-        ... (省略)<br/><br/>
-        TARGET_NOARG(DUP_TOP)<br/><br/>
-        {<br/><br/>
-            v = TOP();    // 复制运行栈帧的顶部值<br/><br/>
-            Py_INCREF(v); // 增加引用计数<br/><br/>
-            PUSH(v);      // 再压入运行栈帧<br/><br/>
-            FAST_DISPATCH();<br/><br/>
-        }<br/><br/>
-        ... (省略)<br/><br/>
-}<br/><br/>
-DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:<br/>
-             24 STORE_FAST               1 (i)<br/>
-             26 LOAD_FAST                0 (s)<br/>
-             28 LOAD_FAST                1 (i)<br/>
-             30 STORE_SUBSCR<br/>
-果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+<p>看起来一切正常。不过这里面有个巨大的问题，尝试说明是什么问题？<br/><br/>
+为了解决这个问题，我改写了 Grade 描述符如下：<br/><br/>
+不过这样会导致更大的问题，请问该怎么解决这个问题？</p>
 
-<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
-这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+<pre><code class="language-python">class Gradee(object):
+    def __init__(self):
+        self._grade_pool = {}
+    def __get__(self, instance, owner):
+        return self._grade_pool.get(instance, None)
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            _grade_pool = self.__dict__.setdefault(&#39;_grade_pool&#39;, {})
+            _grade_pool[instance] = value
+        else:
+            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+</code></pre>
 
-<p>a = s = 3<br/><br/>
-等价于:<br/><br/>
-a = (s = 3)<br/><br/>
-也就是 s=3 返回3, 再赋值给a  </p>
+<pre><code class="language-python">class Exam(object):
+    grammer = Gradee()
+    def __init__(self, grammer):
+        self.grammer = grammer
+</code></pre>
 
-<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
-希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+<pre><code class="language-python">lucy = Exam(grammer=90)
+print(lucy.grammer)
+snake = Exam(grammer=75)
+print(snake.grammer)
+snake.grammer = 120
+</code></pre>
 
-<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
-a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
-Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
-参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
+<pre><code>90
+75
+
+
+
+---------------------------------------------------------------------------
+
+ValueError                                Traceback (most recent call last)
+
+&lt;ipython-input-12-1302d1b3a522&gt; in &lt;module&gt;
+      3 snake = Exam(grammer=75)
+      4 print(snake.grammer)
+----&gt; 5 snake.grammer = 120
+
+
+&lt;ipython-input-10-aa15607fb158&gt; in __set__(self, instance, value)
+      9             _grade_pool[instance] = value
+     10         else:
+---&gt; 11             raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+
+
+ValueError: fuuuuuuuuuck!!
+</code></pre>
+
+<ol>
+<li><p>第一个问题的其实很简单，如果你再运行一次 print ( lucy.math ) 你就会发现，输出值是 75 ，那么这是为什么呢？这就要先从 Python 的调用机制说起了。<br/><br/>
+我们如果调用一个属性，那么其顺序是优先从实例的 __dict__ 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。<br/><br/>
+好的，现在回到我们的问题。<br/><br/>
+我们发现，在我们的类 Exam 中，其 self.math 的调用过程是，首先在实例化后的实例的 __dict__ 中进行查找，没有找到，接着往上一级，在我们的类 Exam 中进行查找，好的找到了，返回。<br/><br/>
+那么这意味着，我们对于 self.math 的所有操作都是对于类变量 math 的操作。因此造成变量污染的问题。那么该则怎么解决呢？<br/><br/>
+很多同志可能会说，恩，在 __set__ 函数中将值设置到具体的实例字典不就行了。<br/><br/>
+那么这样可不可以呢？<br/><br/>
+答案是，很明显不得行啊，至于为什么，就涉及到我们 Python 描述符的机制了，描述符指的是实现了描述符协议的特殊的类，三个描述符协议指的是 __get__ , __set__ , __delete__ 以及 Python 3.6 中新增的 __set_name__ 方法，其中实现了__get__ 以及 __set__ / __delete__ / __set_name__ 的是 <b>Data descriptors</b> ，而只实现了 __get__ 的是 <b>Non-Data descriptor</b> 。<br/><br/>
+那么有什么区别呢，前面说了， <b>我们如果调用一个属性，那么其顺序是优先从实例的 <strong>dict</strong> 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。</b><br/><br/>
+但是，这里没有考虑描述符的因素进去，如果将描述符因素考虑进去，那么正确的表述应该是我们如果调用一个属性，那么其顺序是优先从实例的 __dict__ 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。其中如果在类实例字典中的该属性是一个 Data descriptors ，那么无论实例字典中存在该属性与否，无条件走描述符协议进行调用，在类实例字典中的该属性是一个 Non - Data descriptors ，那么优先调用实例字典中的属性值而不触发描述符协议，如果实例字典中不存在该属性值，那么触发 Non - Data descriptor 的描述符协议。回到之前的问题，我们即使在 __set__ 将具体的属性写入实例字典中，但是由于类字典中存在着 Data descriptors，因此，我们在调用 math 属性时，依旧会触发描述符协议。</p></li>
+<li><p>经过改良的做法，利用 dict 的 key 唯一性，将具体的值与实例进行绑定，但是同时带来了内存泄露的问题。<br/><br/>
+那么为什么会造成内存泄露呢，首先复习下我们的 dict 的特性， dict 最重要的一个特性，就是凡可 hash 的对象皆可为 key ， dict 通过利用的 hash 值的唯一性（严格意义上来讲并不是唯一，而是其 hash 值碰撞几率极小，近似认定其唯一）来保证 key 的不重复性。<br/><br/>
+同时（敲黑板，重点来了），<br/><br/>
+dict 中的 key 引用是强引用类型，会造成对应对象的引用计数的增加，可能造成对象无法被 gc ，从而产生内存泄露。<br/><br/>
+那么这里该怎么解决呢？两种方法 第一种：  </p></li>
+</ol>
+
+<pre><code class="language-python">class Grad(object):
+    def __init__(self):
+        import weakref
+        self._grade_pool = weakref.WeakKeyDictionary()
+    def __get__(self, instance, owner):
+        return self._grade_pool.get(instance, None)
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            _grade_pool = self.__dict__.setdefault(&#39;_grade_pool&#39;, {})
+            _grade_pool[instance] = value
+        else:
+            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+</code></pre>
+
+<p>weakref 库中的 WeakKeyDictionary 所产生的字典的 key 对于对象的引用是弱引用类型，其不会造成内存引用计数的增加，因此不会造成内存泄露。<br/><br/>
+同理，如果我们为了避免 value 对于对象的强引用，我们可以使用 WeakValueDictionary 。 </p>
+
+<p>第二种：在 Python 3.6 中，实现的 PEP 487 提案，为描述符新增加了一个协议，我们可以用其来绑定对应的对象：</p>
+
+<pre><code class="language-python">class Grad(object):
+    def __get__(self, instance, owner):
+        return instance.__dict__[self.key]
+    def __set__(self, instance, value):
+        if 0 &lt;= value &lt;= 100:
+            instance.__dict__[self.key] = value
+        else:
+            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+    def __set_name__(self, owner, name):
+        self.key = name
+</code></pre>
+
+<p>这道题涉及的东西比较多，这里给出一点参考链接， invoking-descriptors , Descriptor HowTo Guide , PEP 487 , what`s new in Python 3.6 。</p>
 
                         
                       </div>
@@ -359,7 +426,7 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/13 22:46 PM</span>
+                    <span class="date">2019/8/19 20:10 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -435,6 +502,8 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -454,6 +523,24 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -461,24 +548,6 @@ Python的表达式是由操作符连接而成的，但“=”在Python中并不�
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

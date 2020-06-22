@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -106,6 +108,185 @@
 	<div class="large-8 medium-8 columns">
 		<div class="markdown-body home-categories">
 		
+			<div class="article">
+                <a class="clearlink" href="15198200217202.html">
+                
+                  <h1>Python 字典的内部实现</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>python中字典是通过键索引的，因此，字典也可视作彼此关联的两个数组。下面我们尝试向字典中添加3个键/值（key/value）对：</p>
+
+<pre><code class="language-python">d = {&#39;a&#39;:1, &#39;b&#39;:2}
+d[&#39;c&#39;] = 3
+print d
+</code></pre>
+
+<p>输出：<code>{&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}</code><br/>
+这些值可通过如下方法访问：</p>
+
+<pre><code class="language-python">print d[&#39;a&#39;]
+print d[&#39;b&#39;]
+print d[&#39;c&#39;]
+print d[&#39;d&#39;]
+</code></pre>
+
+<p><code>Traceback (most recent call last):<br/>
+  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt; KeyError: &#39;d&#39;</code><br/>
+由于不存在 &#39;d&#39; 这个键，所以引发了KeyError异常。</p>
+
+<p><strong>哈希表（Hash tables）</strong><br/>
+在Python中，字典是通过哈希表实现的。也就是说，字典是一个数组，而数组的索引是键经过哈希函数处理后得到的。哈希函数的目的是使键均匀地分布在数组中。由于不同的键可能具有相同的哈希值，即可能出现冲突，高级的哈希函数能够使冲突数目最小化。Python中并不包含这样高级的哈希函数，几个重要（用于处理字符串和整数）的哈希函数通常情况下均是常规的类型：</p>
+
+<pre><code>&gt;&gt;&gt; map(hash, (0, 1, 2, 3))
+[0, 1, 2, 3]
+&gt;&gt;&gt; map(hash, (&quot;namea&quot;, &quot;nameb&quot;, &quot;namec&quot;, &quot;named&quot;))
+[-1658398457, -1658398460, -1658398459, -1658398462]
+</code></pre>
+
+<p>在以下的篇幅中，我们仅考虑用字符串作为键的情况。在Python中，用于处理字符串的哈希函数是这样定义的：</p>
+
+<pre><code class="language-python">arguments: string object
+returns: hash
+function string_hash:
+    if hash cached:
+        return it
+    set len to string&#39;s length
+    initialize var p pointing to 1st char of string object
+    set x to value pointed by p left shifted by 7 bits
+    while len &gt;= 0:
+        set var x to (1000003 * x) xor value pointed by p
+        increment pointer p
+    set x to x xor length of string object
+    cache x as the hash so we don&#39;t need to calculate it again
+    return x as the hash
+</code></pre>
+
+<p>如果在Python中运行 hash(&#39;a&#39;) ，后台将执行 string_hash()函数，然后返回 12416037344 （这里我们假设采用的是64位的平台）。</p>
+
+<p>如果用长度为 x 的数组存储键/值对，则我们需要用值为 x-1 的掩码计算槽（slot，存储键/值对的单元）在数组中的索引。这可使计算索引的过程变得非常迅速。字典结构调整长度的机制（以下会详细介绍）会使找到空槽的概率很高，也就意味着在多数情况下只需要进行简单的计算。假如字典中所用数组的长度是 8 ，那么键&#39;a&#39;的索引为：hash(&#39;a&#39;) &amp; 7 = 0，同理&#39;b&#39;的索引为 3 ,&#39;c&#39;的索引为 2 , 而&#39;z&#39;的索引与&#39;b&#39;相同，也为 3 ，这就出现了冲突。<br/>
+<img src="media/15198200217202/15198207691451.png" alt=""/><br/>
+可以看出，Python的哈希函数在键彼此连续的时候表现得很理想，这主要是考虑到通常情况下处理的都是这类形式的数据。然而，一旦我们添加了键&#39;z&#39;就会出现冲突，因为这个键值并不毗邻其他键，且相距较远。</p>
+
+<p>当然，我们也可以用索引为键的哈希值的链表来存储键/值对，但会增加查找元素的时间，时间复杂度也不再是 O(1) 了。下一节将介绍Python的字典解决冲突所采用的方法。</p>
+
+<p><strong>开放寻址法（ Open addressing ）</strong></p>
+
+<p>开放寻址法是一种用探测手段处理冲突的方法。在上述键&#39;z&#39;冲突的例子中，索引 3 在数组中已经被占用了，因而需要探寻一个当前未被使用的索引。增加和搜寻键/值对需要的时间均为 O(1)。</p>
+
+<p>搜寻空闲槽用到了一个二次探测序列（quadratic probing sequence），其代码如下：</p>
+
+<pre><code class="language-python">j = (5*j) + 1 + perturb; 
+perturb &gt;&gt;= PERTURB_SHIFT;
+use j % 2**i as the next table index;
+</code></pre>
+
+<p>循环地5*j+1可以快速放大不影响初始索引的哈希值二进位的微小差异。变量perturb可使其他二进位也不断变化。</p>
+
+<p>出于好奇，我们来看一看当数组长度为 32 时的探测序列，j = 3 -&gt; 11 -&gt; 19 -&gt; 29 -&gt; 5 -&gt; 6 -&gt; 16 -&gt; 31 -&gt; 28 -&gt; 13 -&gt; 2…</p>
+
+<p>关于探测序列的更多介绍可以参阅dictobject.c的源码。文件的开头包含了对探测机理的详细介绍。<br/>
+<img src="media/15198200217202/15198208428424.jpg" alt=""/><br/>
+下面我们结合例子来看一看 Python 内部代码。<br/>
+<strong>基于C语言的字典结构</strong><br/>
+以下基于C语言的数据结构用于存储字典的键/值对（也称作 entry），存储内容有哈希值，键和值。PyObject 是 Python 对象的一个基类。</p>
+
+<pre><code class="language-C">typedef struct {
+    Py_ssize_t me_hash;
+    PyObject *me_key;
+    PyObject *me_value
+} PyDictEntry;
+</code></pre>
+
+<p>下面为字典对应的数据结构。其中，ma_fill为活动槽以及哑槽（dummy slot）的总数。当一个活动槽中的键/值对被删除后，该槽则被标记为哑槽。ma_used为活动槽的总数。ma_mask值为数组的长度减 1 ，用于计算槽的索引。ma_table为数组本身，ma_smalltable为长度为 8 的初始数组。</p>
+
+<pre><code class="language-C">typedef struct _dictobject PyDictObject;
+struct _dictobject {
+    PyObject_HEAD
+    Py_ssize_t ma_fill;
+    Py_ssize_t ma_used;
+    Py_ssize_t ma_mask;
+    PyDictEntry *ma_table;
+    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
+    PyDictEntry ma_smalltable[PyDict_MINSIZE];
+};
+</code></pre>
+
+<p><strong>字典初始化</strong><br/>
+字典在初次创建时将调用PyDict_New()函数。这里删掉了源代码中的部分行，并且将C语言代码转换成了伪代码以突出其中的几个关键概念。</p>
+
+<pre><code class="language-C">returns new dictionary object
+function PyDict_New:
+    allocate new dictionary object
+    clear dictionary&#39;s table
+    set dictionary&#39;s number of used slots + dummy slots (ma_fill) to 0
+    set dictionary&#39;s number of active slots (ma_used) to 0
+    set dictionary&#39;s mask (ma_value) to dictionary size - 1 = 7
+    set dictionary&#39;s lookup function to lookdict_string
+    return allocated dictionary object
+</code></pre>
+
+<p><strong>添加项</strong><br/>
+添加新的键/值对调用的是PyDict_SetItem()函数。函数将使用一个指针指向字典对象和键/值对。这一过程中，首先会检查键是否是字符串，然后计算哈希值，如果先前已经计算并缓存了键的哈希值，则直接使用缓存的值。接着调用insertdict()函数添加新键/值对。如果活动槽和空槽的总数超过数组长度的2/3，则需调整数组的长度。为什么是 2/3 ？这主要是为了保证探测序列能够以足够快的速度找到空闲槽。后面我们会介绍调整长度的函数。</p>
+
+<pre><code class="language-C">arguments: dictionary, key, value
+returns: 0 if OK or -1
+function PyDict_SetItem:
+    if key&#39;s hash cached:
+        use hash
+    else:
+        calculate hash
+    call insertdict with dictionary object, key, hash and value
+    if key/value pair added successfully and capacity over 2/3:
+        call dictresize to resize dictionary&#39;s table
+</code></pre>
+
+<p>inserdict() 使用搜寻函数 lookdict_string() 来查找空闲槽。这跟查找键所用的是同一函数。lookdict_string() 使用哈希值和掩码计算槽的索引。如果用“索引 = 哈希值&amp;掩码”的方法未找到键，则会用调用先前介绍的循环方法探测，直至找到一个空闲槽。第一轮探测，如果未找到匹配的键的且探测过程中遇到过哑槽，则返回一个哑槽。这可使优先选择先前删除的槽。<br/>
+现在我们想添加如下的键/值对：{‘a’: 1, ‘b’: 2′, ‘z’: 26, ‘y’: 25, ‘c’: 5, ‘x’: 24}，那么将会发生如下过程：</p>
+
+<p>分配一个字典结构，内部表的尺寸为8。<br/>
+<img src="media/15198200217202/15198209955932.jpg" alt=""/><br/>
+以下就是我们目前所得到的：<br/>
+<img src="media/15198200217202/15198210086336.jpg" alt=""/><br/>
+8个槽中的6个已被使用，使用量已经超过了总容量的2/3，因而，dictresize()函数将会被调用，用以分配一个长度更大的数组，同时将旧表中的条目复制到新的表中。</p>
+
+<p>在我们这个例子中，dictresize()函数被调用后，数组长度调整后的长度不小于活动槽数量的 4 倍，即minused = 24 = 4 * ma_used。而当活动槽的数量非常大（大于50000）时，调整后长度应不小于活动槽数量的2倍，即2*ma_used。为什么是 4 倍？这主要是为了减少调用调整长度函数的次数，同时能显著提高稀疏度。</p>
+
+<p>新表的长度应大于 24，计算长度值时会不断对当前长度值进行升位运算，直到大于 24，最终得到的长度是 32，例如当前长度为 8 ，则计算过程如8 -&gt; 16 -&gt; 32。</p>
+
+<p>这就是长度调整的过程：分配一个长度为 32 的新表，然后用新的掩码，也就是 31 ，将旧表中的条目插入到新表。最终得到的结果如下：<br/>
+<img src="media/15198200217202/15198210614829.jpg" alt=""/><br/>
+<strong>删除项</strong><br/>
+删除条目时将调用PyDict_DelItem()函数。删除时，首先计算键的哈希值，然后调用搜询函数返回到该条目，最后该槽被标记为哑槽。</p>
+
+<p>假设我们想要从字典中删除键&#39;c&#39;，我们最终将得到如下结果：<br/>
+<img src="media/15198200217202/15198210844803.png" alt=""/><br/>
+注意，删除项目后，即使最终活动槽的数量远小于总的数量也不会触发调整数组长度的动作。但是，若删减后又增加键/值对时，由于调整长度的条件判断基于的是活动槽与哑槽的总数量，因而可能会缩减数组长度。</p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/2/28 20:13 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
 			<div class="article">
                 <a class="clearlink" href="15156751072902.html">
                 
@@ -327,65 +508,6 @@ print [id(ele) for ele in wilber]
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15142967450536.html">
-                
-                  <h1>Pyhton变量变换原理</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
-
-<pre><code class="language-C">tmp = x;
-x = y;
-y = tmp;
-</code></pre>
-
-<p>而在python中，则无需中间变量即可实现：</p>
-
-<pre><code class="language-python">x , y = y, x
-</code></pre>
-
-<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
-将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
-
-<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
-</code></pre>
-
-<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
-
-<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
-</code></pre>
-
-<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
-接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
-运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
-<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2017/12/26 21:59 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -446,6 +568,8 @@ y = tmp;
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -465,6 +589,24 @@ y = tmp;
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -472,24 +614,6 @@ y = tmp;
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

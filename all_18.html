@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -107,127 +109,167 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14965374170472.html">
+                <a class="clearlink" href="14991719231835.html">
                 
-                  <h1>UIView</h1>
+                  <h1>自定义控件</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIView常见属性</h3>
+                        	<h3 id="toc_0">UIView的封装</h3>
 
-<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
-* 获取自己的父控件对象</p>
+<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
+* 目的：封装空间内部的细节，不让外界关心</p>
 
-<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
-* 获取自己的子控件对象</p>
+<h3 id="toc_1">UIView的封装有两种方式</h3>
 
-<p><code>@property(nonatomic) NSInteger tag;</code><br/>
-* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
+<p>通过纯代码封装：<br/>
+1. 新建一个继承UIView的类<br/>
+2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
+3. 在initWithFrame:方法中添加子控件<br/>
+4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
+5. 提供一个模型属性，重写模型属性的set方法<br/>
+6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
+UIView的封装代码如下：</p>
 
-<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
-* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
+<pre><code> /**
+  *  CustomView.h文件
+  */
 
-<p><code>@property(nonatomic) CGRect frame;</code><br/>
-* 控件矩形框在父控件中的位置和尺寸</p>
-
-<p><code>@property(nonatomic) CGRect bounds;</code><br/>
-* 控件矩形框的位置和尺寸</p>
-
-<p><code>@property(nonatomic) CGPoint center;</code><br/>
-* 控件重点的位置</p>
-
-<pre><code>#import &quot;ViewController.h&quot;
-
-@interface ViewController ()
-
-@property(weak, nonatomic) UILabel *lable;
-
-@end
-
-@implementation ViewController
-
-- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    
-    UILabel *lable = [[UILabel alloc] init];
-    lable.frame = CGRectMake(200, 100, 100, 60);
-    lable.backgroundColor = [UIColor redColor];
-    [self.view addSubview:lable];
-    self.lable = lable;
-}
-
-- (IBAction)bounds {
-    self.lable.bounds = CGRectMake(0, 0, 200, 40);
-}
-
-- (IBAction)center {
-    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
-}
-@end
-
+ // 步骤1 新建一个继承UIView的类
+ #import &lt;UIKit/UIKit.h&gt;
+ @class CustomModel;
+ @interface CustomView : UIView
+ // 在这里为了方便，可以自行添加构造方法，方便使用
+ // 步骤5 提供一个`模型`属性，重写模型属性的set方法
+ @property (nonatomic, strong) CustomModel *model;
+ @end
 </code></pre>
 
-<h3 id="toc_1">常见的方法</h3>
+<pre><code>/**
+ *  CustomView.m文件
+ */
+ #import &quot;CustomView.h&quot;
+ #import &quot;CustomModel.h&quot;
+ @interface CustomView ()
+ // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
+ @property (nonatomic, weak) UIImageView *iconImageView;
+ @property (nonatomic, weak) UILabel *nameLabel;
+ @end
 
-<pre><code>-(void)loadView{
-    [super loadView];
-}
+ @implementation CustomView
+ // 步骤3 在initWithFrame:方法中添加子控件
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+     if (self = [super initWithFrame:frame]) {
+     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
+     UIImageView *iconImageView = [[UIImageView alloc] init];
+     self.iconImageView = iconImageView;
+     [self addSubview:iconImageView];
 
--(void)viewDidLoad{
-    [super viewDidLoad];
-} 
+     UILabel *nameLabel = [[UILabel alloc] init];
+     // 设置子控件的属性
+     nameLabel.textAlignment = NSTextAlignmentCenter;
+     nameLabel.font = [UIFont systemFontOfSize:10];
+     self.nameLabel = nameLabel;
+     [self addSubview:nameLabel];
+     }
+     return self;
+ }
 
--(void)didReceiveMemoryWarning{
-    [super didReceiveMemoryWarning];
-}
+ // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
+ - (void)layoutSubviews
+ {
+     [super layoutSubviews];
+
+     CGFloat iconImageViewX = 0;
+     CGFloat iconImageViewY = 0;
+     CGFloat iconImageViewW = self.bounds.size.width;
+     CGFloat iconImageViewH = 80;
+     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
+
+     CGFloat nameLabelX = 0;
+     CGFloat nameLabelY = iconImageViewH;
+     CGFloat nameLabelW = iconImageViewW;
+     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
+     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
+ }
+
+ // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
+ - (void)setModel:(CustomModel *)model
+ {
+     _model = model;
+     self.iconImageView.image = [UIImage imageNamed:model.icon];
+     self.nameLabel.text = model.name;
+ }
+ @end
 </code></pre>
 
-<h5 id="toc_2">viewDidLoad</h5>
+<p>layoutSubviews在以下情况下会被调用：<br/>
+1. init初始化不会触发layoutSubviews<br/>
+2. addSubview会触发layoutSubviews<br/>
+3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
+4. 滚动一个UIScrollView会触发layoutSubviews<br/>
+5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
+6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
 
-<ul>
-<li>系统调用</li>
-<li>controller的View加载完毕的时候调用</li>
-<li>控件的初始化，数据的初始化(懒加载)</li>
-</ul>
+<p>模型代码如下：</p>
 
-<h5 id="toc_3">didReceiveMemoryWarning</h5>
+<pre><code> /**
+  *  CustomModel.h文件
+  */
+ #import &lt;Foundation/Foundation.h&gt;
 
-<ul>
-<li>系统调用</li>
-<li>当控制器接受到内存警告调用</li>
-<li>去除一些不必要的内存，去除耗时的内存</li>
-</ul>
+ @interface CustomModel : NSObject
+    /**
+     *  名字
+     */
+ @property (nonatomic, copy) NSString *name;
+    /**
+     *  图片
+     */
+ @property (nonatomic, copy) NSString *icon;
 
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-//    NSLog(@&quot;%@&quot;, self.greenView.superview);
-//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
-//    NSLog(@&quot;%@&quot;, self.view.subviews);
-    UISwitch *sw = [[UISwitch alloc] init];
-    [sw setHighlighted:true];
-    [self.view addSubview:sw];
-    [sw removeFromSuperview];
-}
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
+
+ @end
 </code></pre>
 
-<h5 id="toc_4">addSubview</h5>
+<pre><code> /**
+  *  CustomModel.m文件
+  */
+ #import &quot;CustomModel.h&quot;
 
-<ul>
-<li>添加一个子控件
-##### removeFromSuperview</li>
-<li>从父控件中移除
-##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
-<li>根据一个tag找出对应的控件</li>
-<li>不推荐使用tag
+ @implementation CustomModel
+ + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
+ {
+     return [[self alloc] initWithName:name icon:icon];
+ }
 
-<ul>
-<li>tag的效率差</li>
-<li>tag容易乱</li>
-</ul></li>
-</ul>
+ - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
+ {
+     if (self = [super init]) {
+         self.name = name;
+         self.icon = icon;
+     }
+     return self;
+ }
+ @end
+</code></pre>
+
+<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
+
+<pre><code>// 创建自定义的View
+ CustomView *customView = [[CustomView alloc] init];
+// 设置数据
+ CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
+ customView.model = model;
+// 设置frame
+ customView.frame = CGRectMake(100, 100, 67, 100);
+// 添加子控件
+ [self.view addSubview:customView];
+</code></pre>
 
                         
                       </div>
@@ -236,7 +278,7 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/6/4 8:50 AM</span>
+                    <span class="date">2017/7/4 20:38 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
@@ -253,229 +295,61 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14950245211652.html">
+                <a class="clearlink" href="14976187081535.html">
                 
-                  <h1>Block</h1>
+                  <h1>UIButton</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<ul>
-<li>Block是一个数据类型；</li>
-</ul>
-
-<hr/>
-
-<p>既然block是一个数据类型，那么我们自然可以声明一个block类型的变量，那么block变量中存储的是什么呢？</p>
-
-<hr/>
-
-<blockquote>
-<p>block类型的变量中存储的是代码段（可以有参数，可以有返回值）。</p>
-</blockquote>
-
-<h3 id="toc_0">如何声明一个block变量</h3>
-
-<pre><code>void (^myBlock1)();
-int (^myBlock2)();
-int (^myBlock3)(int num1, int num2);
-</code></pre>
-
-<h3 id="toc_1">block变量的初始化</h3>
-
-<pre><code>void (^myBlock1)() = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-
-int (^myBlock2)() = ^int(){
-    int num1 = 10 + 20;
-    return num1;
-};
-
-int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<blockquote>
-<p>赋值给block变量的代码段必须要符合block变量的要求。</p>
-</blockquote>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-int main(int argc, const char * argv[]) {
-    
-    void (^myBlock1)();
-    myBlock1 = ^void(){
-        NSLog(@&quot;test&quot;);
-    };
-    myBlock1();
-    
-    int (^myBlock2)() = ^int(){
-        int num1 = 10 + 20;
-        return num1;
-    };
-    int sum = myBlock2();
-    NSLog(@&quot;sum = %d&quot;, sum);
-    
-    int (^myblock3)(int num1, int num2) = ^int(int num1, int num2){
-        int num3 = num1 + num2;
-        return num3;
-    };
-    
-    int res = myblock3(10, 100);
-    NSLog(@&quot;res = %d&quot;, res);
-    
-    
-    return 0;
-}
-</code></pre>
-
-<h3 id="toc_2">block的简写</h3>
-
-<ol>
-<li>如果代码段没有返回值，那么代码段的void可以省略：</li>
-</ol>
-
-<pre><code>//既没有参数也没有返回值的，void和（）都可以省略
-void (^myBlock1)() = ^(){
-        NSLog(@&quot;test&quot;);
-    };
-</code></pre>
-
-<ol>
-<li>如果代码段没有参数，代码段的（）也可以省略：</li>
-</ol>
-
-<pre><code>int (^myBlock2)() = ^int{
-    int num1 = 10 + 20;
-    return num1;
-};
-</code></pre>
-
-<ol>
-<li> 如果有指定参数，可以只写参数类型而不写参数名称：</li>
-</ol>
-
-<pre><code>int (^myblock3)(int, int) = ^int(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-</code></pre>
-
-<ol>
-<li><p>无论代码段是否有返回值，在写代码段的时候可以不写返回值的类型：</p></li>
-</ol>
+                        	<h3 id="toc_0">UIButton的状态</h3>
 
 <ul>
-<li>如果代码段省略了返回值，系统会自动确定返回值的类型</li>
-<li>如果代码段有返回值，return的数据是什么类型，系统就会认为代码段是什么类型；</li>
-</ul>
-
-<pre><code>int (^myBlock4)(int, int) = ^(int num1, int num2){
-    int num3 = num1 + num2;
-    return num3;
-};
-    
-int result = myBlock4(20, 30);
-NSLog(@&quot;result is %d&quot;, result);
-</code></pre>
-
-<h3 id="toc_3">简化block的定义</h3>
-
-<ol>
-<li>typedef: 将block定义为一个短类型。</li>
-</ol>
-
-<pre><code>typedef void (^NewType)();
-NewType block1 = ^void(){
-    NSLog(@&quot;Hello&quot;);
-};
-block1();
-</code></pre>
+<li><p>normal(普通状态)</p>
 
 <ul>
-<li>block内部可以取外部的局部变量和全局变量的值</li>
-<li>block内部可以修改全部变量的值，但是无法修改外部局部变量的值</li>
-<li>如果需要修改，则局部变量定义方式为__block int num = 100;</li>
+<li>默认情况（DEFAULT）</li>
+<li>对应的枚举常量： UIControlStateNormal</li>
+</ul></li>
+<li><p>highlighted (高亮状态)</p>
+
+<ul>
+<li>按钮被按下去的时候</li>
+<li>对应的枚举常量： UIControlStateHighlighted</li>
+</ul></li>
+<li><p>disabled (失效状态)</p>
+
+<ul>
+<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
+<li>对应的枚举变量： UIControlStateDisabled</li>
+</ul></li>
 </ul>
 
-<h3 id="toc_4">block作为函数的参数</h3>
+<h3 id="toc_1">UIButton代码应用</h3>
 
-<ol>
-<li>可以在函数中声明一个指定格式的block：</li>
-</ol>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.frame = CGRectMake(100, 300, 200, 100);
+    button.backgroundColor = [UIColor redColor];
+    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
+    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
+    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
+    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
+    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
 
-<pre><code>void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
+    [self.view addSubview:button];
+    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
+}
+
+-(IBAction)clickButton:(UIButton *)button {
+    button.enabled = NO;
+
 }
 </code></pre>
 
-<ol>
-<li>使用typedef简化定义：</li>
-</ol>
-
-<pre><code>typedef void (^NewBlock) ();
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-</code></pre>
-
-<ol>
-<li>如何调用：</li>
-</ol>
-
-<pre><code>#import &lt;Foundation/Foundation.h&gt;
-
-typedef void (^NewBlock) ();
-
-void test(void (^block1)()){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block1();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-void test_2(NewBlock block2){
-    NSLog(@&quot;~~~~~~~~&quot;);
-    block2();
-    NSLog(@&quot;~~~~~~~~&quot;);
-}
-
-int main(int argc, const char * argv[]) {
-
-    NewBlock type = ^{
-        NSLog(@&quot;hahahah&quot;);
-    };
-    
-    test_2(type);
-    
-    test_2(^{
-        NSLog(@&quot;hahahah&quot;);
-    });
-    
-    return 0;
-}
-</code></pre>
-
-<p>在这个状态下直接敲回车：<br/>
-<img src="media/14950245211652/14955458877653.jpg" alt=""/><br/>
-可以转换成：<br/>
-<img src="media/14950245211652/14955459281745.jpg" alt=""/><br/>
-然后直接补充代码即可：<br/>
-<img src="media/14950245211652/14955459527916.jpg" alt=""/></p>
-
-<blockquote>
-<p>将block作为函数的参数可以实现什么效果？</p>
-</blockquote>
-
-<pre><code>⁃ 可以将调用者所写的代码放到函数的内部去执行；
-</code></pre>
+<h3 id="toc_2">九宫格布局</h3>
 
                         
                       </div>
@@ -484,10 +358,10 @@ int main(int argc, const char * argv[]) {
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/5/17 20:35 PM</span>
+                    <span class="date">2017/6/16 21:11 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -560,6 +434,8 @@ int main(int argc, const char * argv[]) {
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -579,6 +455,24 @@ int main(int argc, const char * argv[]) {
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -586,24 +480,6 @@ int main(int argc, const char * argv[]) {
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

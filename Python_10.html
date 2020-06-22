@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -106,6 +108,295 @@
 	<div class="large-8 medium-8 columns">
 		<div class="markdown-body home-categories">
 		
+			<div class="article">
+                <a class="clearlink" href="15211187332796.html">
+                
+                  <h1>Python 陷阱与缺陷列表</h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=1
+&gt;&gt;&gt; def func():
+...     a+=1
+...     print a
+...
+&gt;&gt;&gt; func()
+Traceback (most recent call last):
+File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+File &quot;&lt;stdin&gt;&quot;, line 2, in func
+UnboundLocalError: local variable &#39;a&#39; referenced before assignment
+</code></pre>
+
+<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
+
+<p>对于“UnboundLocalError”,还有更高级的版本：</p>
+
+<pre><code class="language-python">import random
+ 
+def func(ok):
+    if ok:
+        a = random.random()
+    else:
+        import random
+        a = random.randint(1, 10)
+    return a
+ 
+func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
+</code></pre>
+
+<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
+
+<p>那么Python中哪些真正算得上陷阱呢？</p>
+
+<p><strong>第一：以mutable对象作为默认参数</strong></p>
+
+<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
+...     lst.append(1)
+...     return lst
+...
+&gt;&gt;&gt; f()
+[1]
+&gt;&gt;&gt; f()
+[1, 1]
+</code></pre>
+
+<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
+<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
+&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
+
+<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import time
+&gt;&gt;&gt; def report(when=time.time()):
+... return when
+...
+&gt;&gt;&gt; report()
+1500113234.487932
+&gt;&gt;&gt; report()
+1500113234.487932
+</code></pre>
+
+<p>python docoment 给出了标准的解决办法：<br/>
+<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
+...  if when is None:
+...  when = time.time()
+... return when
+...
+&gt;&gt;&gt; report()
+1500113446.746997
+&gt;&gt;&gt; report()
+1500113448.552873
+</code></pre>
+
+<p><strong>第二: x += y vs x = x + y</strong><br/>
+一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
+2 
+&gt;&gt;&gt; x=1;x = x+1;print x
+2
+&gt;&gt;&gt; x=[1];x+=[2];print x
+[1, 2]
+&gt;&gt;&gt; x=[1];x=x+[2];print x
+[1, 2]
+</code></pre>
+
+<p>呃，被光速打脸了？</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
+4357132800
+4357132728
+&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
+4357132800
+4357132800
+</code></pre>
+
+<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
+
+<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
+
+<pre><code class="language-python">import dis
+
+def foo(x, y):
+    x += y
+
+def foo2(x, y):
+    x = x + y
+
+print dis.dis(foo)
+print dis.dis(foo2)
+</code></pre>
+
+<p>输出结果如下：</p>
+
+<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 INPLACE_ADD         
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+
+77            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 BINARY_ADD          
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+</code></pre>
+
+<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
+更多内容可以参考：<br/>
+<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
+
+<p><strong>第三，神奇的小括号–()</strong><br/>
+小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;tuple&#39;&gt;
+&gt;&gt;&gt; type(())
+&lt;type &#39;tuple&#39;&gt;
+</code></pre>
+
+<p>但如果只有一个元素呢</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p><strong>第四：生成一个元素是列表的列表</strong><br/>
+这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
+很简单嘛：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
+&gt;&gt;&gt; a
+[[], [], [], [], [], [], [], [], [], []]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a[0] 
+[10]
+</code></pre>
+
+<p>看起来很不错，简单明了，but</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a[1]
+[10]
+&gt;&gt;&gt; a
+[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
+</code></pre>
+
+<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a
+[[10], [], [], [], [], [], [], [], [], []]
+</code></pre>
+
+<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
+列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
+... for idx, elem in enumerate(lst):
+... if elem % 3 == 0:
+... del lst[idx]
+</code></pre>
+
+<p>测试一下，</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 4, 5]
+</code></pre>
+
+<p>好像没什么错，不过这只是运气好</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 6, 5, 4]
+</code></pre>
+
+<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
+如果逻辑比较简单，使用list comprehension是不错的注意<br/>
+&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
+修改方法很简单：</p>
+
+<pre><code class="language-python">def mod_list(lst):
+    new_lst = []
+    for elem in lst:
+        if elem % 3 != 0:
+            new_lst.append(elem)
+    return new_lst
+
+lst = [1, 2, 3, 4, 5, 6]
+s = mod_list(lst)
+print s
+
+lst = [1, 2, 3, 6, 5, 4]
+s = mod_list(lst)
+print s
+</code></pre>
+
+<p><strong>第六，闭包与lambda</strong><br/>
+这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+...  return [lambda x:i*x for i in range(5)]
+...
+&gt;&gt;&gt; for multiplier in create_multipliers():
+... print multiplier(2)
+...
+</code></pre>
+
+<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
+
+<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
+解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+... return [lambda x, i = i:i*x for i in range(5)]
+...
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2018/3/15 20:58 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
 			<div class="article">
                 <a class="clearlink" href="15211170247112.html">
                 
@@ -365,185 +656,6 @@ zu
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15198200217202.html">
-                
-                  <h1>Python 字典的内部实现</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>python中字典是通过键索引的，因此，字典也可视作彼此关联的两个数组。下面我们尝试向字典中添加3个键/值（key/value）对：</p>
-
-<pre><code class="language-python">d = {&#39;a&#39;:1, &#39;b&#39;:2}
-d[&#39;c&#39;] = 3
-print d
-</code></pre>
-
-<p>输出：<code>{&#39;a&#39;: 1, &#39;b&#39;: 2, &#39;c&#39;: 3}</code><br/>
-这些值可通过如下方法访问：</p>
-
-<pre><code class="language-python">print d[&#39;a&#39;]
-print d[&#39;b&#39;]
-print d[&#39;c&#39;]
-print d[&#39;d&#39;]
-</code></pre>
-
-<p><code>Traceback (most recent call last):<br/>
-  File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt; KeyError: &#39;d&#39;</code><br/>
-由于不存在 &#39;d&#39; 这个键，所以引发了KeyError异常。</p>
-
-<p><strong>哈希表（Hash tables）</strong><br/>
-在Python中，字典是通过哈希表实现的。也就是说，字典是一个数组，而数组的索引是键经过哈希函数处理后得到的。哈希函数的目的是使键均匀地分布在数组中。由于不同的键可能具有相同的哈希值，即可能出现冲突，高级的哈希函数能够使冲突数目最小化。Python中并不包含这样高级的哈希函数，几个重要（用于处理字符串和整数）的哈希函数通常情况下均是常规的类型：</p>
-
-<pre><code>&gt;&gt;&gt; map(hash, (0, 1, 2, 3))
-[0, 1, 2, 3]
-&gt;&gt;&gt; map(hash, (&quot;namea&quot;, &quot;nameb&quot;, &quot;namec&quot;, &quot;named&quot;))
-[-1658398457, -1658398460, -1658398459, -1658398462]
-</code></pre>
-
-<p>在以下的篇幅中，我们仅考虑用字符串作为键的情况。在Python中，用于处理字符串的哈希函数是这样定义的：</p>
-
-<pre><code class="language-python">arguments: string object
-returns: hash
-function string_hash:
-    if hash cached:
-        return it
-    set len to string&#39;s length
-    initialize var p pointing to 1st char of string object
-    set x to value pointed by p left shifted by 7 bits
-    while len &gt;= 0:
-        set var x to (1000003 * x) xor value pointed by p
-        increment pointer p
-    set x to x xor length of string object
-    cache x as the hash so we don&#39;t need to calculate it again
-    return x as the hash
-</code></pre>
-
-<p>如果在Python中运行 hash(&#39;a&#39;) ，后台将执行 string_hash()函数，然后返回 12416037344 （这里我们假设采用的是64位的平台）。</p>
-
-<p>如果用长度为 x 的数组存储键/值对，则我们需要用值为 x-1 的掩码计算槽（slot，存储键/值对的单元）在数组中的索引。这可使计算索引的过程变得非常迅速。字典结构调整长度的机制（以下会详细介绍）会使找到空槽的概率很高，也就意味着在多数情况下只需要进行简单的计算。假如字典中所用数组的长度是 8 ，那么键&#39;a&#39;的索引为：hash(&#39;a&#39;) &amp; 7 = 0，同理&#39;b&#39;的索引为 3 ,&#39;c&#39;的索引为 2 , 而&#39;z&#39;的索引与&#39;b&#39;相同，也为 3 ，这就出现了冲突。<br/>
-<img src="media/15198200217202/15198207691451.png" alt=""/><br/>
-可以看出，Python的哈希函数在键彼此连续的时候表现得很理想，这主要是考虑到通常情况下处理的都是这类形式的数据。然而，一旦我们添加了键&#39;z&#39;就会出现冲突，因为这个键值并不毗邻其他键，且相距较远。</p>
-
-<p>当然，我们也可以用索引为键的哈希值的链表来存储键/值对，但会增加查找元素的时间，时间复杂度也不再是 O(1) 了。下一节将介绍Python的字典解决冲突所采用的方法。</p>
-
-<p><strong>开放寻址法（ Open addressing ）</strong></p>
-
-<p>开放寻址法是一种用探测手段处理冲突的方法。在上述键&#39;z&#39;冲突的例子中，索引 3 在数组中已经被占用了，因而需要探寻一个当前未被使用的索引。增加和搜寻键/值对需要的时间均为 O(1)。</p>
-
-<p>搜寻空闲槽用到了一个二次探测序列（quadratic probing sequence），其代码如下：</p>
-
-<pre><code class="language-python">j = (5*j) + 1 + perturb; 
-perturb &gt;&gt;= PERTURB_SHIFT;
-use j % 2**i as the next table index;
-</code></pre>
-
-<p>循环地5*j+1可以快速放大不影响初始索引的哈希值二进位的微小差异。变量perturb可使其他二进位也不断变化。</p>
-
-<p>出于好奇，我们来看一看当数组长度为 32 时的探测序列，j = 3 -&gt; 11 -&gt; 19 -&gt; 29 -&gt; 5 -&gt; 6 -&gt; 16 -&gt; 31 -&gt; 28 -&gt; 13 -&gt; 2…</p>
-
-<p>关于探测序列的更多介绍可以参阅dictobject.c的源码。文件的开头包含了对探测机理的详细介绍。<br/>
-<img src="media/15198200217202/15198208428424.jpg" alt=""/><br/>
-下面我们结合例子来看一看 Python 内部代码。<br/>
-<strong>基于C语言的字典结构</strong><br/>
-以下基于C语言的数据结构用于存储字典的键/值对（也称作 entry），存储内容有哈希值，键和值。PyObject 是 Python 对象的一个基类。</p>
-
-<pre><code class="language-C">typedef struct {
-    Py_ssize_t me_hash;
-    PyObject *me_key;
-    PyObject *me_value
-} PyDictEntry;
-</code></pre>
-
-<p>下面为字典对应的数据结构。其中，ma_fill为活动槽以及哑槽（dummy slot）的总数。当一个活动槽中的键/值对被删除后，该槽则被标记为哑槽。ma_used为活动槽的总数。ma_mask值为数组的长度减 1 ，用于计算槽的索引。ma_table为数组本身，ma_smalltable为长度为 8 的初始数组。</p>
-
-<pre><code class="language-C">typedef struct _dictobject PyDictObject;
-struct _dictobject {
-    PyObject_HEAD
-    Py_ssize_t ma_fill;
-    Py_ssize_t ma_used;
-    Py_ssize_t ma_mask;
-    PyDictEntry *ma_table;
-    PyDictEntry *(*ma_lookup)(PyDictObject *mp, PyObject *key, long hash);
-    PyDictEntry ma_smalltable[PyDict_MINSIZE];
-};
-</code></pre>
-
-<p><strong>字典初始化</strong><br/>
-字典在初次创建时将调用PyDict_New()函数。这里删掉了源代码中的部分行，并且将C语言代码转换成了伪代码以突出其中的几个关键概念。</p>
-
-<pre><code class="language-C">returns new dictionary object
-function PyDict_New:
-    allocate new dictionary object
-    clear dictionary&#39;s table
-    set dictionary&#39;s number of used slots + dummy slots (ma_fill) to 0
-    set dictionary&#39;s number of active slots (ma_used) to 0
-    set dictionary&#39;s mask (ma_value) to dictionary size - 1 = 7
-    set dictionary&#39;s lookup function to lookdict_string
-    return allocated dictionary object
-</code></pre>
-
-<p><strong>添加项</strong><br/>
-添加新的键/值对调用的是PyDict_SetItem()函数。函数将使用一个指针指向字典对象和键/值对。这一过程中，首先会检查键是否是字符串，然后计算哈希值，如果先前已经计算并缓存了键的哈希值，则直接使用缓存的值。接着调用insertdict()函数添加新键/值对。如果活动槽和空槽的总数超过数组长度的2/3，则需调整数组的长度。为什么是 2/3 ？这主要是为了保证探测序列能够以足够快的速度找到空闲槽。后面我们会介绍调整长度的函数。</p>
-
-<pre><code class="language-C">arguments: dictionary, key, value
-returns: 0 if OK or -1
-function PyDict_SetItem:
-    if key&#39;s hash cached:
-        use hash
-    else:
-        calculate hash
-    call insertdict with dictionary object, key, hash and value
-    if key/value pair added successfully and capacity over 2/3:
-        call dictresize to resize dictionary&#39;s table
-</code></pre>
-
-<p>inserdict() 使用搜寻函数 lookdict_string() 来查找空闲槽。这跟查找键所用的是同一函数。lookdict_string() 使用哈希值和掩码计算槽的索引。如果用“索引 = 哈希值&amp;掩码”的方法未找到键，则会用调用先前介绍的循环方法探测，直至找到一个空闲槽。第一轮探测，如果未找到匹配的键的且探测过程中遇到过哑槽，则返回一个哑槽。这可使优先选择先前删除的槽。<br/>
-现在我们想添加如下的键/值对：{‘a’: 1, ‘b’: 2′, ‘z’: 26, ‘y’: 25, ‘c’: 5, ‘x’: 24}，那么将会发生如下过程：</p>
-
-<p>分配一个字典结构，内部表的尺寸为8。<br/>
-<img src="media/15198200217202/15198209955932.jpg" alt=""/><br/>
-以下就是我们目前所得到的：<br/>
-<img src="media/15198200217202/15198210086336.jpg" alt=""/><br/>
-8个槽中的6个已被使用，使用量已经超过了总容量的2/3，因而，dictresize()函数将会被调用，用以分配一个长度更大的数组，同时将旧表中的条目复制到新的表中。</p>
-
-<p>在我们这个例子中，dictresize()函数被调用后，数组长度调整后的长度不小于活动槽数量的 4 倍，即minused = 24 = 4 * ma_used。而当活动槽的数量非常大（大于50000）时，调整后长度应不小于活动槽数量的2倍，即2*ma_used。为什么是 4 倍？这主要是为了减少调用调整长度函数的次数，同时能显著提高稀疏度。</p>
-
-<p>新表的长度应大于 24，计算长度值时会不断对当前长度值进行升位运算，直到大于 24，最终得到的长度是 32，例如当前长度为 8 ，则计算过程如8 -&gt; 16 -&gt; 32。</p>
-
-<p>这就是长度调整的过程：分配一个长度为 32 的新表，然后用新的掩码，也就是 31 ，将旧表中的条目插入到新表。最终得到的结果如下：<br/>
-<img src="media/15198200217202/15198210614829.jpg" alt=""/><br/>
-<strong>删除项</strong><br/>
-删除条目时将调用PyDict_DelItem()函数。删除时，首先计算键的哈希值，然后调用搜询函数返回到该条目，最后该槽被标记为哑槽。</p>
-
-<p>假设我们想要从字典中删除键&#39;c&#39;，我们最终将得到如下结果：<br/>
-<img src="media/15198200217202/15198210844803.png" alt=""/><br/>
-注意，删除项目后，即使最终活动槽的数量远小于总的数量也不会触发调整数组长度的动作。但是，若删减后又增加键/值对时，由于调整长度的条件判断基于的是活动槽与哑槽的总数量，因而可能会缩减数组长度。</p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2018/2/28 20:13 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -604,6 +716,8 @@ function PyDict_SetItem:
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -623,6 +737,24 @@ function PyDict_SetItem:
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -630,24 +762,6 @@ function PyDict_SetItem:
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

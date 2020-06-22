@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -107,91 +109,123 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655124741455.html">
+                <a class="clearlink" href="15657075853367.html">
                 
-                  <h1>Python常见的错误<九></h1>
+                  <h1>Python常见的错误<十二></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+                        	<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
 
-<p>请看下面这个 filefoo.py:</p>
+<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
+a = 3<br/><br/>
+b = 3<br/><br/>
+而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
+a = b = c = 3<br/><br/>
+我们来看看这段代码输出的是什么？</p>
 
-<pre><code class="language-python">import sys
-
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-
-def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        print(&#39;value error&#39;)
-    print(e)
-
-bad()
+<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
+i = 0
+i = s[i] = 3
+print(i)
+print(s)
 </code></pre>
 
-<p>在Python 2中运行正常：</p>
-
-<pre><code class="language-python">$ python foo.py 1
-key error
-1
-$ python foo.py 2
-value error
-2
+<pre><code>3
+[1, 2, 3, 3, 5, 6]
 </code></pre>
 
-<p>但是，现在让我们把它在Python 3中运行一下：</p>
+<p>i 的值: 3<br/><br/>
+---这个好解释<br/><br/>
+s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
+？？？<br/><br/>
+s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
 
-<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
-key error
-Traceback (most recent call last):
-  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
-    bad()
-  File &quot;foo.py&quot;, line 17, in bad
-    print(e)
-UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+<pre><code class="language-python">def test():
+    s = [1, 2, 3, 4, 5, 6] 
+    i = 0
+    i = s[i] = 3
+    print(i)
+    print(s)
+
+import dis
+dis.dis(test)
 </code></pre>
 
-<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+<pre><code>  2           0 LOAD_CONST               1 (1)
+              2 LOAD_CONST               2 (2)
+              4 LOAD_CONST               3 (3)
+              6 LOAD_CONST               4 (4)
+              8 LOAD_CONST               5 (5)
+             10 LOAD_CONST               6 (6)
+             12 BUILD_LIST               6
+             14 STORE_FAST               0 (s)
 
-<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+  3          16 LOAD_CONST               7 (0)
+             18 STORE_FAST               1 (i)
 
-<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+  4          20 LOAD_CONST               3 (3)
+             22 DUP_TOP
+             24 STORE_FAST               1 (i)
+             26 LOAD_FAST                0 (s)
+             28 LOAD_FAST                1 (i)
+             30 STORE_SUBSCR
 
-<pre><code class="language-python">import sys
+  5          32 LOAD_GLOBAL              0 (print)
+             34 LOAD_FAST                1 (i)
+             36 CALL_FUNCTION            1
+             38 POP_TOP
 
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-        
-def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        exception = e
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        exception = e
-        print(&#39;value error&#39;)
-    print(exception)
-
-sys.argv.append(1)
-good()
-sys.argv.append(2)
-good()
+  6          40 LOAD_GLOBAL              0 (print)
+             42 LOAD_FAST                0 (s)
+             44 CALL_FUNCTION            1
+             46 POP_TOP
+             48 LOAD_CONST               0 (None)
+             50 RETURN_VALUE
 </code></pre>
+
+<p>解释如下：<br/><br/>
+第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
+第1~2行简单解释下:<br/><br/>
+分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
+第3行:<br/><br/>
+LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:<br/><br/>
+//取自 python/ceval.c <br/>
+PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)<br/><br/>
+{<br/>
+        ... (省略)<br/><br/>
+        TARGET_NOARG(DUP_TOP)<br/><br/>
+        {<br/><br/>
+            v = TOP();    // 复制运行栈帧的顶部值<br/><br/>
+            Py_INCREF(v); // 增加引用计数<br/><br/>
+            PUSH(v);      // 再压入运行栈帧<br/><br/>
+            FAST_DISPATCH();<br/><br/>
+        }<br/><br/>
+        ... (省略)<br/><br/>
+}<br/><br/>
+DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:<br/>
+             24 STORE_FAST               1 (i)<br/>
+             26 LOAD_FAST                0 (s)<br/>
+             28 LOAD_FAST                1 (i)<br/>
+             30 STORE_SUBSCR<br/>
+果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+
+<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
+这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+
+<p>a = s = 3<br/><br/>
+等价于:<br/><br/>
+a = (s = 3)<br/><br/>
+也就是 s=3 返回3, 再赋值给a  </p>
+
+<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
+希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+
+<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
+a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
+Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
+参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
 
                         
                       </div>
@@ -200,7 +234,7 @@ good()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:34 PM</span>
+                    <span class="date">2019/8/13 22:46 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -217,91 +251,72 @@ good()
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655124251876.html">
+                <a class="clearlink" href="15657061085965.html">
                 
-                  <h1>Python常见的错误<八></h1>
+                  <h1>Python常见的错误<十一></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+                        	<h4 id="toc_0">常见错误11: 列表的缺陷</h4>
 
-<p>请看下面这个 filefoo.py:</p>
+<p>来看看下面代码的输出结果将是什么？</p>
 
-<pre><code class="language-python">import sys
-
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-
-def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        print(&#39;value error&#39;)
-    print(e)
-
-bad()
+<pre><code class="language-python">list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+print(list[10:])
+print(list[10])
 </code></pre>
 
-<p>在Python 2中运行正常：</p>
+<pre><code>[]
 
-<pre><code class="language-python">$ python foo.py 1
-key error
-1
-$ python foo.py 2
-value error
-2
+
+
+---------------------------------------------------------------------------
+
+IndexError                                Traceback (most recent call last)
+
+&lt;ipython-input-5-7b4a48b0e416&gt; in &lt;module&gt;
+      1 list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
+      2 print(list[10:])
+----&gt; 3 print(list[10])
+
+
+IndexError: list index out of range
 </code></pre>
 
-<p>但是，现在让我们把它在Python 3中运行一下：</p>
+<p>上面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
+例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
+然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
+这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
 
-<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
-key error
-Traceback (most recent call last):
-  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
-    bad()
-  File &quot;foo.py&quot;, line 17, in bad
-    print(e)
-UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+<p>我们再来看看这段代码，猜想一下，输出是什么？</p>
+
+<pre><code class="language-python">list = [ [ ] ] * 5
+print(list)  # output?
+list[0].append(10)
+print(list)  # output?
+list[1].append(20)
+print(list)   # output?
+list.append(30)
+print(list)   # output?
 </code></pre>
 
-<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
-
-<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
-
-<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
-
-<pre><code class="language-python">import sys
-
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-        
-def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        exception = e
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        exception = e
-        print(&#39;value error&#39;)
-    print(exception)
-
-sys.argv.append(1)
-good()
-sys.argv.append(2)
-good()
+<pre><code>[[], [], [], [], []]
+[[10], [10], [10], [10], [10]]
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]
 </code></pre>
+
+<p>解释如下：<br/><br/>
+第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了5个空列表。<br/><br/>
+然而，理解表达式list=[ [ ] ] * 5的关键一点是它不是创造一个包含五个独立列表的列表，而是它是一个<b>创建了包含对同一个列表五次引用的列表。</b><br/><br/>
+只有了解了这一点，我们才能更好的理解接下来的输出结果。<br/><br/>
+list[0].append(10) 将10附加在第一个列表上。<br/>
+但由于所有5个列表是引用的同一个列表，所以这个结果将是：<br/><br/>
+[[10], [10], [10], [10], [10]]。<br/><br/>
+同理，list[1].append(20)将20附加在第二个列表上。但同样由于5个列表是引用的同一个列表，所以输出结果现在是：<br/><br/>
+[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
+作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
 
                         
                       </div>
@@ -310,7 +325,7 @@ good()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:33 PM</span>
+                    <span class="date">2019/8/13 22:21 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -386,6 +401,8 @@ good()
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -405,6 +422,24 @@ good()
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -412,24 +447,6 @@ good()
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

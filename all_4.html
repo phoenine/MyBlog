@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -107,72 +109,79 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15657061085965.html">
+                <a class="clearlink" href="15662165783528.html">
                 
-                  <h1>Python常见的错误<十一></h1>
+                  <h1>Python常见的错误<十四></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误11: 列表的缺陷</h4>
+                        	<h4 id="toc_0">常见错误14: Python 调用机制</h4>
 
-<p>来看看下面代码的输出结果将是什么？</p>
+<p>我们知道 __call__ 方法可以用来重载圆括号调用，好的，以为问题就这么简单？ Naive ！</p>
 
-<pre><code class="language-python">list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-print(list[10:])
-print(list[10])
+<pre><code class="language-python">class A(object):
+    def __call__(self):
+        print(&quot;invoking __call__ from A!&quot;)
 </code></pre>
 
-<pre><code>[]
-
-
-
----------------------------------------------------------------------------
-
-IndexError                                Traceback (most recent call last)
-
-&lt;ipython-input-5-7b4a48b0e416&gt; in &lt;module&gt;
-      1 list = [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-      2 print(list[10:])
-----&gt; 3 print(list[10])
-
-
-IndexError: list index out of range
+<pre><code class="language-python">a = A()
+a()
 </code></pre>
 
-<p>上面的代码将输出[]，不会产生IndexError错误。就像所期望的那样，尝试用超出成员的个数的index来获取某个列表的成员。<br/><br/>
-例如，尝试获取list[10]和之后的成员，会导致IndexError。<br/><br/>
-然而，尝试获取列表的切片，开始的index超过了成员个数不会产生IndexError,而是仅仅返回一个空列表。<br/><br/>
-这成为特别让人恶心的疑难杂症，因为运行的时候没有错误产生，导致bug很难被追踪到。 </p>
-
-<p>我们再来看看这段代码，猜想一下，输出是什么？</p>
-
-<pre><code class="language-python">list = [ [ ] ] * 5
-print(list)  # output?
-list[0].append(10)
-print(list)  # output?
-list[1].append(20)
-print(list)   # output?
-list.append(30)
-print(list)   # output?
+<pre><code>invoking __call__ from A!
 </code></pre>
 
-<pre><code>[[], [], [], [], []]
-[[10], [10], [10], [10], [10]]
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]
+<p>现在我们可以看到 a() 似乎等价于 a.__call__() ,看起来很 Easy 对吧，好的，我现在想作死，又写出了如下的代码:</p>
+
+<pre><code class="language-python">a.__call__ = lambda: &quot;invoking __call__ from lambda&quot;
+print(a.__call__())
+a()
 </code></pre>
 
-<p>解释如下：<br/><br/>
-第一行的输出结果直觉上很容易理解，例如 list = [ [ ] ] * 5 就是简单的创造了5个空列表。<br/><br/>
-然而，理解表达式list=[ [ ] ] * 5的关键一点是它不是创造一个包含五个独立列表的列表，而是它是一个<b>创建了包含对同一个列表五次引用的列表。</b><br/><br/>
-只有了解了这一点，我们才能更好的理解接下来的输出结果。<br/><br/>
-list[0].append(10) 将10附加在第一个列表上。<br/>
-但由于所有5个列表是引用的同一个列表，所以这个结果将是：<br/><br/>
-[[10], [10], [10], [10], [10]]。<br/><br/>
-同理，list[1].append(20)将20附加在第二个列表上。但同样由于5个列表是引用的同一个列表，所以输出结果现在是：<br/><br/>
-[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
-作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
+<pre><code>invoking __call__ from lambda
+invoking __call__ from A!
+</code></pre>
+
+<p>为什么 a() 没有调用出 a.__call__()</p>
+
+<p>原因在于，在 Python 中，新式类（ new class  )的内建特殊方法，和实例的属性字典是相互隔离的，具体可以看看 Python 官方文档对于这一情况的说明:</p>
+
+<blockquote>
+<p>For new - style classes , implicit invocations of special methods are only guaranteed to work correctly if defined on an object &#39; s type , not in the object &#39; s instance dictionary. <br/>
+That behaviour is the reason why the following code raises an exception  ( unlike the equivalent example with old - style classes ):</p>
+</blockquote>
+
+<p>同时官方也给出了一个例子：</p>
+
+<pre><code class="language-python">class C(object):
+    pass
+
+c = C()
+c.__len__ = lambda: 5
+len(c)
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+TypeError                                 Traceback (most recent call last)
+
+&lt;ipython-input-4-7039f902a29c&gt; in &lt;module&gt;
+      4 c = C()
+      5 c.__len__ = lambda: 5
+----&gt; 6 len(c)
+
+
+TypeError: object of type &#39;C&#39; has no len()
+</code></pre>
+
+<pre><code class="language-python">c.__len__()
+</code></pre>
+
+<pre><code>5
+</code></pre>
+
+<p>回到我们的例子上来，当我们在执行 a.__call__ = lambda :&quot; invoking __call__ from lambda &quot; 时，的确在我们在 a.__dict__ 中新增加了一个 key 为 __call__ 的 item ，但是当我们执行 a () 时，因为涉及特殊方法的调用，因此我们的调用过程不会从 a.__dict__ 中寻找属性，而是从 tyee ( a ). __dict__ 中寻找属性。因此，就会出现如上所述的情况。</p>
 
                         
                       </div>
@@ -181,7 +190,7 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/13 22:21 PM</span>
+                    <span class="date">2019/8/19 20:9 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -198,55 +207,108 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15656215590319.html">
+                <a class="clearlink" href="15662165446488.html">
                 
-                  <h1>Python常见的错误<十></h1>
+                  <h1>Python常见的错误<十三></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误10: 浮点与整除</h4>
+                        	<h4 id="toc_0">常见错误13: 装饰器</h4>
 
-<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
+<p>我想写一个类装饰器用来度量函数/方法运行时间：</p>
 
-<pre><code class="language-python">def div1(x,y):
-    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
-def div2(x,y):
-    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
-div1(5,2)
-div1(5.,2)
-div2(5,2)
-div2(5.,2.)
+<pre><code class="language-python">import time
+
+class Timeit(object):
+    def __init__(self, func):
+        self._wrapped = func
+    
+    def __call__(self, *args, **kws):
+        start_time = time.time()
+        result = self._wrapped(*args, **kws)
+        print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
+        return result
 </code></pre>
 
-<pre><code>5/2 = 2.5
-5.0/2 = 2.5
-5//2 = 2
-5.0//2.0 = 2.0
+<p>希望这个装饰器能够运行在普通函数上：</p>
+
+<pre><code class="language-python">@Timeit
+def func():
+    time.sleep(1)
+    return &quot;invoking function func&quot;
 </code></pre>
 
-<p>在Python3下结果会有怎样的不同？<br/><br/>
-在Python2中，上述代码输出将是<br/><br/>
-5/2 = 2<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
+<p>这个装饰器能够运行在普通函数上：</p>
 
-<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
-注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
-
-<pre><code class="language-python">from future import division
+<pre><code class="language-python">func()
 </code></pre>
 
-<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
-然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
-因此，在Python3中，将会是如下结果：<br/><br/>
-5/2 = 2.5<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
+<pre><code>elapsed time is 1.0005531311035156 
 
-<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
+
+
+
+
+&#39;invoking function func&#39;
+</code></pre>
+
+<p>但是运行在方法上会报错，为什么？</p>
+
+<pre><code class="language-python">class A(object):
+    @Timeit
+    def func(self):
+        time.sleep(1)
+        return &#39;invoking method func&#39;
+</code></pre>
+
+<pre><code class="language-python">a = A()
+a.func()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+TypeError                                 Traceback (most recent call last)
+
+&lt;ipython-input-27-27f4a5f7197a&gt; in &lt;module&gt;
+      1 a = A()
+----&gt; 2 a.func()
+
+
+&lt;ipython-input-25-0a38ed0ff6ce&gt; in __call__(self, *args, **kws)
+      7     def __call__(self, *args, **kws):
+      8         start_time = time.time()
+----&gt; 9         result = self._wrapped(*args, **kws)
+     10         print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
+     11         return result
+
+
+TypeError: func() missing 1 required positional argument: &#39;self&#39;
+</code></pre>
+
+<p>使用类装饰器后，在调用 func 函数的过程中其对应的 instance 并不会传递给 __call__ 方法，造成其 mehtod unbound ,那么解决方法是什么呢？</p>
+
+<pre><code class="language-python">class Timeite(object):
+    def __init__(self, func):
+        self.func = func
+    def __call__(self, *args, **kws):
+        print(&#39;invoking Timer&#39;)
+    def __get__(self, instance, owner):
+        return lambda *args, **kws: self.func(instance, *args, **kws)
+</code></pre>
+
+<pre><code class="language-python">class A(object):
+    @Timeite
+    def func(self):
+        time.sleep(1)
+        return &#39;invoking method func&#39;
+    
+a = A()
+a.func()
+</code></pre>
+
+<pre><code>&#39;invoking method func&#39;
+</code></pre>
 
                         
                       </div>
@@ -255,7 +317,7 @@ div2(5.,2.)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/12 22:52 PM</span>
+                    <span class="date">2019/8/19 20:9 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -331,6 +393,8 @@ div2(5.,2.)
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -350,6 +414,24 @@ div2(5.,2.)
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -357,24 +439,6 @@ div2(5.,2.)
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

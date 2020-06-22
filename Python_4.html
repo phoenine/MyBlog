@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -106,6 +108,148 @@
 	<div class="large-8 medium-8 columns">
 		<div class="markdown-body home-categories">
 		
+			<div class="article">
+                <a class="clearlink" href="15657075853367.html">
+                
+                  <h1>Python常见的错误<十二></h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h4 id="toc_0">常见错误12: 链式赋值的坑</h4>
+
+<p>在我们使用Python的过程中, 经常遇到赋值语句, 就像下面的那样:<br/><br/>
+a = 3<br/><br/>
+b = 3<br/><br/>
+而链式赋值是同时对几个变量进行赋值，如：<br/><br/>
+a = b = c = 3<br/><br/>
+我们来看看这段代码输出的是什么？</p>
+
+<pre><code class="language-python">s = [1, 2, 3, 4, 5, 6]
+i = 0
+i = s[i] = 3
+print(i)
+print(s)
+</code></pre>
+
+<pre><code>3
+[1, 2, 3, 3, 5, 6]
+</code></pre>
+
+<p>i 的值: 3<br/><br/>
+---这个好解释<br/><br/>
+s 的值: [1, 2, 3, 3, 5, 6]<br/><br/>
+？？？<br/><br/>
+s的列表, 并没有像我们想象中的那样, 就i=0位置上的元素, 变成3, 而是将i=3位置的元素改成3了, 为什么会这样? 一起来解析下吧, 上dis大杀器!</p>
+
+<pre><code class="language-python">def test():
+    s = [1, 2, 3, 4, 5, 6] 
+    i = 0
+    i = s[i] = 3
+    print(i)
+    print(s)
+
+import dis
+dis.dis(test)
+</code></pre>
+
+<pre><code>  2           0 LOAD_CONST               1 (1)
+              2 LOAD_CONST               2 (2)
+              4 LOAD_CONST               3 (3)
+              6 LOAD_CONST               4 (4)
+              8 LOAD_CONST               5 (5)
+             10 LOAD_CONST               6 (6)
+             12 BUILD_LIST               6
+             14 STORE_FAST               0 (s)
+
+  3          16 LOAD_CONST               7 (0)
+             18 STORE_FAST               1 (i)
+
+  4          20 LOAD_CONST               3 (3)
+             22 DUP_TOP
+             24 STORE_FAST               1 (i)
+             26 LOAD_FAST                0 (s)
+             28 LOAD_FAST                1 (i)
+             30 STORE_SUBSCR
+
+  5          32 LOAD_GLOBAL              0 (print)
+             34 LOAD_FAST                1 (i)
+             36 CALL_FUNCTION            1
+             38 POP_TOP
+
+  6          40 LOAD_GLOBAL              0 (print)
+             42 LOAD_FAST                0 (s)
+             44 CALL_FUNCTION            1
+             46 POP_TOP
+             48 LOAD_CONST               0 (None)
+             50 RETURN_VALUE
+</code></pre>
+
+<p>解释如下：<br/><br/>
+第一列的数字, 代表中间的字节码是属于哪一行代码的.<br/><br/>
+第1~2行简单解释下:<br/><br/>
+分别LOAD_CONST5个数字, 组成一个列表, 赋值给s,再取一个0, 赋值给i.接下来的就是我们关心的, 也是带给我们意外的代码.<br/><br/>
+第3行:<br/><br/>
+LOAD_CONST取出常量3, 它并不是像上面执行STORE_NAME, 而是采用DUP_TOP, 这是什么鬼, 我们这要去看下这指令具体是干嘛的:<br/><br/>
+//取自 python/ceval.c <br/>
+PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)<br/><br/>
+{<br/>
+        ... (省略)<br/><br/>
+        TARGET_NOARG(DUP_TOP)<br/><br/>
+        {<br/><br/>
+            v = TOP();    // 复制运行栈帧的顶部值<br/><br/>
+            Py_INCREF(v); // 增加引用计数<br/><br/>
+            PUSH(v);      // 再压入运行栈帧<br/><br/>
+            FAST_DISPATCH();<br/><br/>
+        }<br/><br/>
+        ... (省略)<br/><br/>
+}<br/><br/>
+DUP_TOP指令说白了, 就是将刚才LOAD_CONST指令取出的常量3, 复制一份给v,然后再压回去运行栈帧, 这样就有两个3了, 为什么要这么做, 可能个大家已经猜到了, 不过我们还是得继续看具体是不是像我们想的那样, 继续看会字节码:<br/>
+             24 STORE_FAST               1 (i)<br/>
+             26 LOAD_FAST                0 (s)<br/>
+             28 LOAD_FAST                1 (i)<br/>
+             30 STORE_SUBSCR<br/>
+果然不出我们所料, 开始将这些3通过STORE_NAME赋值给i, 而对于s, 它反而是, 再一次LOAD_NAME取出i的值, 此时i的值是3, 不是一开始的0了, 在通过STORE_SUBSCR指令, 将刚才压入运行时时栈的3赋值给位置是3的元素, 具体的源码就不再看, 到这就够了.</p>
+
+<p>所以看到这, 相信大家都能清楚, 为什么结果是 [1, 2, 3, 3, 5, 6]<br/><br/>
+这跟我们想象中的链式赋值很不同, 我们以前总是觉得, 赋值要从右到左依次执行, 先执行 s[i] = 3, 再执行 i=3, 然而这些是类似c语言这类支持表达式赋值才允许的. 在c语言中, s = 3表达式是有返回值的. 它会返回赋值的结果3, 所以在它们的链式赋值中, 是将右边表达式的返回值, 再赋值给左边的, 例如:  </p>
+
+<p>a = s = 3<br/><br/>
+等价于:<br/><br/>
+a = (s = 3)<br/><br/>
+也就是 s=3 返回3, 再赋值给a  </p>
+
+<p>而在python是不支持这种表达式赋值的, 也就是表达式是没有返回值的, 如果硬要a = (s = 3)只会触发SyntaxError: invalid syntax<br/><br/>
+希望大家以后在用到这种链式赋值时, 尽量避免这些问题哦.</p>
+
+<p>支持表达式赋值是Python语言的核心，比如a = b + 3。这里的 b + 3 就是表达式。如果不支持表达式赋值就没法继续下去了。<br/><br/>
+a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<br/><br/>
+Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
+参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2019/8/13 22:46 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
 			<div class="article">
                 <a class="clearlink" href="15657061085965.html">
                 
@@ -197,80 +341,6 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15656215590319.html">
-                
-                  <h1>Python常见的错误<十></h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h4 id="toc_0">常见错误10: 浮点与整除</h4>
-
-<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
-
-<pre><code class="language-python">def div1(x,y):
-    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
-def div2(x,y):
-    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
-div1(5,2)
-div1(5.,2)
-div2(5,2)
-div2(5.,2.)
-</code></pre>
-
-<pre><code>5/2 = 2.5
-5.0/2 = 2.5
-5//2 = 2
-5.0//2.0 = 2.0
-</code></pre>
-
-<p>在Python3下结果会有怎样的不同？<br/><br/>
-在Python2中，上述代码输出将是<br/><br/>
-5/2 = 2<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
-
-<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
-注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
-
-<pre><code class="language-python">from future import division
-</code></pre>
-
-<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
-然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
-因此，在Python3中，将会是如下结果：<br/><br/>
-5/2 = 2.5<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
-
-<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2019/8/12 22:52 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -331,6 +401,8 @@ div2(5.,2.)
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -350,6 +422,24 @@ div2(5.,2.)
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -357,24 +447,6 @@ div2(5.,2.)
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

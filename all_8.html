@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -107,38 +109,87 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655121732301.html">
+                <a class="clearlink" href="15655122908336.html">
                 
-                  <h1>Python常见的错误<三></h1>
+                  <h1>Python常见的错误<六></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误3: 为 except 指定错误的参数</h4>
+                        	<h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
 
 <p>我们来看下面这个例子：</p>
 
-<pre><code class="language-python">try:
-    l = [&quot;a&quot;, &quot;b&quot;]
-    int(l[2])
-except ValueError, IndexError:
-    pass
+<pre><code class="language-python">def create_multipliers():
+    return [lambda x : i * x for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
 </code></pre>
 
-<pre><code>  File &quot;&lt;ipython-input-2-4f54e4adb7ee&gt;&quot;, line 4
-    except ValueError, IndexError:
-                     ^
-SyntaxError: invalid syntax
+<pre><code>8
+8
+8
+8
+8
 </code></pre>
 
-<p>这里的问题在于 except 语句并不接受以这种方式指定的异常列表。相反，在Python 2.x中，使用语法 except Exception, e 是将一个异常对象绑定到第二个可选参数（在这个例子中是 e）上，以便在后面使用。所以，在上面这个例子中，IndexError 这个异常并不是被except语句捕捉到的，而是被绑定到一个名叫 IndexError的参数上时引发的。<br/><br/>
-在一个except语句中捕获多个异常的正确做法是将第一个参数指定为一个含有所有要捕获异常的元组。并且，为了代码的可移植性，要使用as关键词，因为Python 2 和Python 3都支持这种语法：</p>
+<p>你也许希望获得下面的输出结果：  0  2  4  6  8<br/><br/>
+惊讶吧!<br/><br/>
+这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
+<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
+因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
+解决的办法有很多：</p>
 
-<pre><code class="language-python">try:
-    l = [&quot;a&quot;, &quot;b&quot;]
-    int(l[2])
-except (ValueError, IndexError) as e:
-    pass
+<p>第一种办法是用yield惰性求值：</p>
+
+<pre><code class="language-python">def create_multipliers():
+    for i in range(5): yield lambda x : i * x
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+</code></pre>
+
+<pre><code>0
+2
+4
+6
+8
+</code></pre>
+
+<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
+在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
+
+<pre><code class="language-python">def create_multipliers():
+    return [lambda x, i=i: i * x for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+</code></pre>
+
+<pre><code>0
+2
+4
+6
+8
+</code></pre>
+
+<p>还有种替代的方案是，使用偏函数：</p>
+
+<pre><code class="language-python">from functools import partial
+from operator import mul
+def create_multipliers():
+    return [partial(mul, i) for i in range(5)]
+
+for multiplier in create_multipliers():
+    print(multiplier(2))
+</code></pre>
+
+<pre><code>0
+2
+4
+6
+8
 </code></pre>
 
                         
@@ -148,7 +199,7 @@ except (ValueError, IndexError) as e:
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:29 PM</span>
+                    <span class="date">2019/8/11 16:31 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -165,46 +216,52 @@ except (ValueError, IndexError) as e:
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655120913106.html">
+                <a class="clearlink" href="15655122526636.html">
                 
-                  <h1>Python常见的错误<二></h1>
+                  <h1>Python常见的错误<五></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误2: 错误地使用类变量</h4>
+                        	<h4 id="toc_0">常见错误5: 当迭代时修改一个列表（List）</h4>
 
 <p>我们来看下面这个例子：</p>
 
-<pre><code class="language-python">class A(object):
-    x = 1
-
-class B(A):
-    pass
-
-class C(A):
-    pass
-
-print(A.x, B.x, C.x)
-B.x = 2
-print(A.x, B.x, C.x)
-A.x = 3
-print(A.x, B.x, C.x)
+<pre><code class="language-python">odd = lambda x : bool(x % 2)
+numbers = [n for n in range(10)]
+for i in range(len(numbers)):
+     if odd(numbers[i]):
+            del numbers[i]
 </code></pre>
 
-<pre><code>1 1 1
-1 2 1
-3 2 3
+<pre><code>---------------------------------------------------------------------------
+
+IndexError                                Traceback (most recent call last)
+
+&lt;ipython-input-1-c259828f5d17&gt; in &lt;module&gt;
+      2 numbers = [n for n in range(10)]
+      3 for i in range(len(numbers)):
+----&gt; 4      if odd(numbers[i]):
+      5             del numbers[i]
+
+
+IndexError: list index out of range
 </code></pre>
 
-<p>WTF?? 我们只改了A.x，为什么C.x也改了?<br/><br/>
-在Python中，<b>类变量在内部当做字典来处理，其遵循常被引用的方法解析顺序（MRO）</b>。<br/><br/>
-一个变量名如果没有在当前类下的字典中被发现，则会在更高级的类（如它的父类）中尽心搜索直到引用的变量名被找到。（如果引用变量名在自身类和更高级类中没有找到，将会引发一个属性错误）。<br/><br/>
-所以在上面的代码中，由于class C中的x属性没有找到，它会向上找它的基类（尽管Python支持多重继承，但上面的例子中只有A）。<br/><br/>
-如果它的任何一个子类被覆写了值（例如说，当我们执行语句B.x = 2）,这个值只在子类中进行了修改。所以第二个打印语句输出结果是1 2 1。<br/><br/>
-如果这个值在父类中进行了修改，（例如说，当我们执行语句A.x = 3）,这个改变将会影响那些还没有覆写子类的值（在这个例子中就是C），所以第三打印语句输出结果是3 2 3。换句话说，class C中没有它自己的x属性，其独立于A。因此，C.x事实上是A.x的引用。  </p>
+<p>当迭代的时候，从一个 列表或者数组中删除元素，对于任何有经验的开发者来说，这是一个众所周知的错误。尽管上面的例子非常明显，但是许多高级开发者在更复杂的代码中也并非是故意而为之的。<br/>
+幸运的是，Python包含大量简洁优雅的编程范例，若使用得当，能大大简化和精炼代码。<br/><br/>
+这样的好处是能得到更简化和更精简的代码，能更好的避免程序中出现当迭代时修改一个列表这样的bug。一个这样的范例是递推式列表（list comprehensions）。<br/><br/>
+<a href="https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps">https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps</a><br/><br/>
+而且，递推式列表（list comprehensions）针对这个问题是特别有用的，通过更改上文中的实现，得到一段极佳的代码：</p>
 
-<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
+<pre><code class="language-python">odd = lambda x : bool(x % 2)
+numbers = [n for n in range(10)]
+numbers[:] = [n for n in numbers if not odd(n)]  # ahh, the beauty of it all
+numbers
+</code></pre>
+
+<pre><code>[0, 2, 4, 6, 8]
+</code></pre>
 
                         
                       </div>
@@ -213,7 +270,7 @@ print(A.x, B.x, C.x)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:28 PM</span>
+                    <span class="date">2019/8/11 16:30 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -289,6 +346,8 @@ print(A.x, B.x, C.x)
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -308,6 +367,24 @@ print(A.x, B.x, C.x)
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -315,24 +392,6 @@ print(A.x, B.x, C.x)
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Pyhton变量变换原理 - Ascetic in the deadlock
+   - Ascetic in the deadlock
   
   </title>
   
@@ -109,14 +109,12 @@
       <div class="markdown-body article-wrap">
        <div class="article">
           
-          <h1>Pyhton变量变换原理</h1>
+          <h1></h1>
      
         <div class="read-more clearfix">
-          <span class="date">2017/12/26 21:59 PM</span>
+          <span class="date">2019/11/2 13:3 PM</span>
 
-          <span>posted in&nbsp;</span> 
           
-              <span class="posted-in"><a href='Python.html'>Python</a></span>
            
          
           <span class="comments">
@@ -129,34 +127,7 @@
       </div><!-- article -->
 
       <div class="article-content">
-      <p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
-
-<pre><code class="language-C">tmp = x;
-x = y;
-y = tmp;
-</code></pre>
-
-<p>而在python中，则无需中间变量即可实现：</p>
-
-<pre><code class="language-python">x , y = y, x
-</code></pre>
-
-<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
-将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
-
-<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
-</code></pre>
-
-<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
-
-<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
-</code></pre>
-
-<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
-接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
-运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
-<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
-
+      
 
     
 
@@ -166,16 +137,16 @@ y = tmp;
         <div class="large-6 columns">
         <p class="text-left" style="padding:15px 0px;">
       
-          <a href="15156751072902.html" 
-          title="Previous Post: Python对象的浅拷贝与深拷贝">&laquo; Python对象的浅拷贝与深拷贝</a>
+          <a href="15726710349835.html" 
+          title="Previous Post: Swift基本语法">&laquo; Swift基本语法</a>
       
         </p>
         </div>
         <div class="large-6 columns">
       <p class="text-right" style="padding:15px 0px;">
       
-          <a  href="15142936231027.html" 
-          title="Next Post: Python Unittest与Mock">Python Unittest与Mock &raquo;</a>
+          <a  href="15662172714318.html" 
+          title="Next Post: Python Modules - 03 - Python itertools">Python Modules - 03 - Python itertools &raquo;</a>
       
       </p>
         </div>

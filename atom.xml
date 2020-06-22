@@ -4,13 +4,275 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2019-08-19T20:21:44+08:00</updated>
+  <updated>2020-06-22T18:08:10+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
     
   </author>
   <generator uri="http://www.mweb.im/">MWeb</generator>
+  
+  <entry>
+    <title type="html"><![CDATA[【pythonic】详解Python 3.8的海象算子]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15928352455072.html"/>
+    <updated>2020-06-22T22:14:05+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15928352455072.html</id>
+    <content type="html"><![CDATA[
+<p>最近，Python 社区发布了该语言的 3.8 版本。作为 Python 语法糖的爱好者，我探索了发布说明，关注到了其中一个独特的算子。这个算子被称为「海象算子（Walrus Operator）」或「命名表达式算子（Named Expression operator）」，符号为「:=」。</p>
+
+<h2 id="toc_0"><b>海象算子</b></h2>
+
+<blockquote>
+<p>官网介绍：Assignment expressions（赋值表达式）<br/>
+There is new syntax := that assigns values to variables as part of a larger expression. It is affectionately known as “the walrus operator” due to its resemblance to the eyes and tusks of a walrus.</p>
+</blockquote>
+
+<p>这个新算子（:=）能让我们为表达式中的一个变量赋值。这个符号看起来颇有些类似于海象的眼睛和犬齿。</p>
+
+<p>我们先来看看下面一段代码：</p>
+
+<pre><code class="language-python">countries = [&quot;India&quot;, &quot;USA&quot;, &quot;France&quot;, &quot;Germany&quot;]
+</code></pre>
+
+<pre><code class="language-python">if len(countries) &lt; 5:
+    print(&quot;Length of countries is {}&quot;.format(len(countries)))
+</code></pre>
+
+<pre><code>Length of countries is 4
+</code></pre>
+
+<p>在上面的代码段中，我们两次调用了函数 len()。我们可以避免重复计算以提升可读性吗？当然可以，我们可对这段代码进行如下改进：</p>
+
+<pre><code class="language-python">country_size = len(countries)
+if country_size &lt; 5:
+    print (&quot;Length of countries is {}&quot;.format(country_size))
+</code></pre>
+
+<pre><code>Length of countries is 4
+</code></pre>
+
+<p>还有进一步改进的空间吗？我们可以不用单独一行来给「country_size」赋值吗？</p>
+
+<pre><code class="language-python">if (country_size := len(countries)) &lt; 5 :
+        print (&quot;Length of countries is {}&quot;.format(country_size))
+</code></pre>
+
+<pre><code>Length of countries is 4
+</code></pre>
+
+<p>这就是 Python 3.8 引入的海象算子的用武之地。我们可以在 if 语句之中直接执行声明和赋值操作。我们下面进一步探索该算子的能力。</p>
+
+<h2 id="toc_1"><b>代码行数与复杂度的平衡</b></h2>
+
+<p>先看看以下示例:</p>
+
+<pre><code class="language-python">def get_count():
+    &quot;Fetches count of records from a database&quot;
+    return 100
+    
+powers = [get_count(), get_count()**2, get_count()**3]
+print(powers)
+</code></pre>
+
+<pre><code>[100, 10000, 1000000]
+</code></pre>
+
+<p>上面的示例是通过多次调用一个高成本的函数 get_count() 来填充一个列表。 </p>
+
+<p>有了海象算子的帮助，我们可以避免多次调用函数 get_count()，其具体的功能是将结果存储到一个变量中，然后我们可在后续的计算中复用同一个变量。下面演示了海象算子的用法：</p>
+
+<pre><code class="language-python">powers =[result:= get_count(), result**2, result**3]
+print(powers)
+</code></pre>
+
+<pre><code>[100, 10000, 1000000]
+</code></pre>
+
+<p>从上面的例子可以看到，海象算子可以减少代码行数，让代码更可读，因此能简化代码审查人员的工作。此外，这也能实现代码行数和代码复杂度的平衡。</p>
+
+<h2 id="toc_2"><b>解决理解低效的问题</b></h2>
+
+<p>看下面这个例子：</p>
+
+<pre><code class="language-python">employees = []
+employee_ids = {1:&quot;Tommy&quot;, 2:&quot;Tobey&quot;, 3:&quot;Evan&quot;, 4:&quot;Golf&quot;}
+for key in employee_ids:
+    employee = employee_ids[key]
+    if employee:
+        employees.append(employee)
+print(employees)
+</code></pre>
+
+<pre><code>[&#39;Tommy&#39;, &#39;Tobey&#39;, &#39;Evan&#39;, &#39;Golf&#39;]
+</code></pre>
+
+<p>上面的示例需要多次执行循环。一开始，我们创建一个空列表，然后在 id 列表上迭代并通过检查结果是否有效来填充我们创建的列表。</p>
+
+<p>我们可以简化上面的代码，将其浓缩为一行：</p>
+
+<pre><code class="language-python">employees = [result for key in employee_ids if (result:= employee_ids[key])]
+print(employees)
+</code></pre>
+
+<pre><code>[&#39;Tommy&#39;, &#39;Tobey&#39;, &#39;Evan&#39;, &#39;Golf&#39;]
+</code></pre>
+
+<h2 id="toc_3"><b>文件分块处理</b></h2>
+
+<p>在处理大文件时，我们会将文件分块读取。每当读取一个分块时，都会检查它的值，并且该值也是 while 循环的终止条件。</p>
+
+<pre><code class="language-python">chunk = file.read(256)
+
+while chunk:
+    process(chunk)
+    chunk = file.read(256)
+</code></pre>
+
+<p>我们可以在 while 循环表达式中读取数据以及为要读取的数据赋值。由此我们就能避免在 while 循环之外显式地声明变量。如下示例：</p>
+
+<pre><code class="language-python">while (chunk := file.read(256)):
+    process(chunk)
+</code></pre>
+
+<h2 id="toc_4"><b>正则表达式匹配</b></h2>
+
+<p>正则表达式匹配是一个两步式过程。第一步是检查是否有匹配，第二步是提取匹配的部分。</p>
+
+<pre><code class="language-python">import re
+obj = re.match(r&quot;(\d+)\.(\d+)&quot;, &quot;24.1632&quot;).group(1) if re.match(r&quot;(\d+)\.(\d+)&quot;, &quot;24.1632&quot;) else None
+print(obj)
+</code></pre>
+
+<pre><code>24
+</code></pre>
+
+<p>从上面的代码可以观察到，我们在一次匹配中重复计算了 re.match(r&quot;(\d+).(\d+)&quot;, &quot;24.1632&quot;)。这会减慢该程序的执行速度，而且数据量越大减慢得越明显。上面的代码可以重写为如下形式，从而避免重复计算：</p>
+
+<pre><code class="language-python">obj = match.group(1) if (match := re.match(r&quot;(\d+)\.(\d+)&quot;, &quot;24.1632&quot;)) else None
+print(obj)
+</code></pre>
+
+<pre><code>24
+</code></pre>
+
+<h2 id="toc_5"><b>不能使用海象算子的地方</b></h2>
+
+<h3 id="toc_6">为变量赋值</h3>
+
+<pre><code class="language-python">a = 5 # 有效
+a := 5 # 无效
+</code></pre>
+
+<pre><code>  File &quot;&lt;ipython-input-50-7471f449f795&gt;&quot;, line 2
+    a := 5 # 无效
+      ^
+SyntaxError: invalid syntax
+</code></pre>
+
+<pre><code class="language-python">empty_list = [] # 有效
+empty_list := [] # 无效
+</code></pre>
+
+<pre><code>  File &quot;&lt;ipython-input-51-c637bed9e3c4&gt;&quot;, line 2
+    empty_list := [] # 无效
+               ^
+SyntaxError: invalid syntax
+</code></pre>
+
+<p>如上所示，我们不能使用 := 替代 =。海象算子只能是一个表达式的一部分。</p>
+
+<h3 id="toc_7">加法/减法赋值</h3>
+
+<pre><code class="language-python">a += 5 # 有效
+a :+=5 # 无效
+</code></pre>
+
+<pre><code>  File &quot;&lt;ipython-input-52-d36dacdf957b&gt;&quot;, line 2
+    a :+=5 # 无效
+       ^
+SyntaxError: invalid syntax
+</code></pre>
+
+<h3 id="toc_8">在 lambda 函数中为表达式赋值</h3>
+
+<pre><code class="language-python">(lambda: a:= 5) # 无效
+(lambda: (a := 5)) # 有效但无用
+(var := lambda: 5) # 有效
+</code></pre>
+
+<pre><code>  File &quot;&lt;ipython-input-53-257421e1abae&gt;&quot;, line 1
+    (lambda: a:= 5) # 无效
+     ^
+SyntaxError: cannot use named assignment with lambda
+</code></pre>
+
+<h3 id="toc_9">PEP-572 及其争议</h3>
+
+<p>海象算子是作为 PEP-572（Python 改进提议）的一部分而引入的。如果要为 Python 语言引入一项新功能，总是需要经由 PEP 来实现，而且必须得到 Python 的发明者 Guido van Rossum 或他选择的代表的批准。</p>
+
+<p>围绕海象算子的争议非常多，而且由此引发的「战争」导致了 Python 之父 Guido van Rossum 告退，不再担任 Python 社区的终身仁慈独裁者（BDFL）。海象算子的争议点有很多，下面是其中几个：</p>
+
+<ul>
+<li>句法变化问题：开发者们为 := 提议了多种替代方案，比如「表达式 -&gt; NAME」、「NAME -&gt; 表达式」、「{表达式} NAME」等等。少数人建议使用现有的关键字，其他人则使用了新的算子。</li>
+<li>后向兼容问题：这个特性无法向后兼容，也无法运行在之前的 Python 版本上。</li>
+<li>算子名称问题：人们建议不要使用「海象算子」这样的代号，而是使用「赋值算子」、「命名表达式算子」、「成为算子」等术语，以免人们不明白。</li>
+</ul>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Swift基本语法]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15726710349835.html"/>
+    <updated>2019-11-02T13:03:54+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15726710349835.html</id>
+    <content type="html"><![CDATA[
+<h3 id="toc_0">1. Swift交互式解释器</h3>
+
+<h4 id="toc_1">1.1 Terminal上运行swift进入REPL解释器</h4>
+
+<pre><code class="language-swift">  1&gt; let a = &quot;100&quot;
+a: String = &quot;100&quot;
+  2&gt; Int(a)
+$R0: Int? = 100
+  3&gt; let b = $R0 + 50
+error: repl.swift:3:9: error: value of optional type &#39;Int?&#39; must be unwrapped to a value of type &#39;Int&#39;
+let b = $R0 + 50
+        ^
+
+repl.swift:3:9: note: coalesce using &#39;??&#39; to provide a default when the optional value contains &#39;nil&#39;
+let b = $R0 + 50
+        ^
+        (   ?? &lt;#default value#&gt;)
+
+repl.swift:3:9: note: force-unwrap using &#39;!&#39; to abort execution if the optional value contains &#39;nil&#39;
+let b = $R0 + 50
+        ^
+           !
+  3&gt; let b = $R0! + 50
+b: Int = 150
+</code></pre>
+
+<blockquote>
+<p>$R0 : Int?  </p>
+</blockquote>
+
+<p>可选值， 需要解包</p>
+
+<h4 id="toc_2">1.2 swift palyground 学习的乐园</h4>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15726710075785.html"/>
+    <updated>2019-11-02T13:03:27+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15726710075785.html</id>
+    <content type="html"><![CDATA[
+
+]]></content>
+  </entry>
   
   <entry>
     <title type="html"><![CDATA[Python Modules - 03 - Python itertools]]></title>
@@ -2339,391 +2601,6 @@ SyntaxError: invalid syntax
     int(l[2])
 except (ValueError, IndexError) as e:
     pass
-</code></pre>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python常见的错误<二>]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15655120913106.html"/>
-    <updated>2019-08-11T16:28:11+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15655120913106.html</id>
-    <content type="html"><![CDATA[
-<h4 id="toc_0">常见错误2: 错误地使用类变量</h4>
-
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-
-class B(A):
-    pass
-
-class C(A):
-    pass
-
-print(A.x, B.x, C.x)
-B.x = 2
-print(A.x, B.x, C.x)
-A.x = 3
-print(A.x, B.x, C.x)
-</code></pre>
-
-<pre><code>1 1 1
-1 2 1
-3 2 3
-</code></pre>
-
-<p>WTF?? 我们只改了A.x，为什么C.x也改了?<br/><br/>
-在Python中，<b>类变量在内部当做字典来处理，其遵循常被引用的方法解析顺序（MRO）</b>。<br/><br/>
-一个变量名如果没有在当前类下的字典中被发现，则会在更高级的类（如它的父类）中尽心搜索直到引用的变量名被找到。（如果引用变量名在自身类和更高级类中没有找到，将会引发一个属性错误）。<br/><br/>
-所以在上面的代码中，由于class C中的x属性没有找到，它会向上找它的基类（尽管Python支持多重继承，但上面的例子中只有A）。<br/><br/>
-如果它的任何一个子类被覆写了值（例如说，当我们执行语句B.x = 2）,这个值只在子类中进行了修改。所以第二个打印语句输出结果是1 2 1。<br/><br/>
-如果这个值在父类中进行了修改，（例如说，当我们执行语句A.x = 3）,这个改变将会影响那些还没有覆写子类的值（在这个例子中就是C），所以第三打印语句输出结果是3 2 3。换句话说，class C中没有它自己的x属性，其独立于A。因此，C.x事实上是A.x的引用。  </p>
-
-<p><img src="./jupyter_logo.png", width=320, heigth=240></p>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python常见的错误<一>]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15654471089883.html"/>
-    <updated>2019-08-10T22:25:08+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15654471089883.html</id>
-    <content type="html"><![CDATA[
-<h4 id="toc_0">常见错误1: 滥用表达式作为函数参数的默认值</h4>
-
-<p>Python允许为函数的参数提供默认的可选值。尽管这是语言的一大特色，但是它可能会导致一些易变默认值的混乱。<br/><br/>
-一个常见的错误是认为函数每次不提供可选参数调用时，会将可选参数将设置为默认指定值。例如下面这段代码：</p>
-
-<pre><code class="language-python">def extendList(val, list=[]):
-    list.append(val)
-    return list
-
-list1 = extendList(10)
-list2 = extendList(123,[])
-list3 = extendList(&#39;a&#39;)a
-
-print(&quot;list1 = %s&quot; % list1)
-print(&quot;list2 = %s&quot; % list2)
-print(&quot;list3 = %s&quot; % list3)
-</code></pre>
-
-<pre><code>list1 = [10, &#39;a&#39;]
-list2 = [123]
-list3 = [10, &#39;a&#39;]
-</code></pre>
-
-<p>很多人都会误认为list1=[10]，list3=[‘a’]，因为他们以为每次extendList被调用时，列表参数的默认值都将被设置为[]。<br/><br/>
-但实际上的情况是，<b> 函数参数的默认列表只在函数被定义的那一刻创建一次。</b><br/><br/>
-当extendList被没有指定特定参数list调用时，这组list的值随后将被使用。这是因为<u>带有默认参数的表达式在函数被定义的时候被计算，不是在调用的时候被计算。</u><br/><br/>
-因此list1和list3是在同一个默认列表上进行操作（计算）的。<br/><br/>
-而list2是在一个分离的列表上进行操作（计算）的。（通过传递一个自有的空列表作为列表参数的数值）。<br/>
-extendList的定义可以作如下修改:</p>
-
-<pre><code class="language-python">def extendList_2(val, list=None):
-    if list is None:
-        list = []
-    list.append(val)
-    return list
-
-list1 = extendList_2(10)
-list2 = extendList_2(123,[])
-list3 = extendList_2(&#39;a&#39;)
-
-print(&quot;list1 = %s&quot; % list1)
-print(&quot;list2 = %s&quot; % list2)
-print(&quot;list3 = %s&quot; % list3)
-</code></pre>
-
-<pre><code>list1 = [10]
-list2 = [123]
-list3 = [&#39;a&#39;]
-</code></pre>
-
-<p>下面dis库是python(默认的CPython)自带的一个库,可以用来分析字节码。</p>
-
-<pre><code class="language-python">import dis
-dis.dis(extendList)
-</code></pre>
-
-<pre><code>  2           0 LOAD_FAST                1 (list)
-              2 LOAD_METHOD              0 (append)
-              4 LOAD_FAST                0 (val)
-              6 CALL_METHOD              1
-              8 POP_TOP
-
-  3          10 LOAD_FAST                1 (list)
-             12 RETURN_VALUE
-</code></pre>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python 陷阱与缺陷列表]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15211187332796.html"/>
-    <updated>2018-03-15T20:58:53+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15211187332796.html</id>
-    <content type="html"><![CDATA[
-<p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a=1
-&gt;&gt;&gt; def func():
-...     a+=1
-...     print a
-...
-&gt;&gt;&gt; func()
-Traceback (most recent call last):
-File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
-File &quot;&lt;stdin&gt;&quot;, line 2, in func
-UnboundLocalError: local variable &#39;a&#39; referenced before assignment
-</code></pre>
-
-<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
-
-<p>对于“UnboundLocalError”,还有更高级的版本：</p>
-
-<pre><code class="language-python">import random
- 
-def func(ok):
-    if ok:
-        a = random.random()
-    else:
-        import random
-        a = random.randint(1, 10)
-    return a
- 
-func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
-</code></pre>
-
-<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
-
-<p>那么Python中哪些真正算得上陷阱呢？</p>
-
-<p><strong>第一：以mutable对象作为默认参数</strong></p>
-
-<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
-...     lst.append(1)
-...     return lst
-...
-&gt;&gt;&gt; f()
-[1]
-&gt;&gt;&gt; f()
-[1, 1]
-</code></pre>
-
-<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
-<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
-&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
-
-<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; import time
-&gt;&gt;&gt; def report(when=time.time()):
-... return when
-...
-&gt;&gt;&gt; report()
-1500113234.487932
-&gt;&gt;&gt; report()
-1500113234.487932
-</code></pre>
-
-<p>python docoment 给出了标准的解决办法：<br/>
-<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
-...  if when is None:
-...  when = time.time()
-... return when
-...
-&gt;&gt;&gt; report()
-1500113446.746997
-&gt;&gt;&gt; report()
-1500113448.552873
-</code></pre>
-
-<p><strong>第二: x += y vs x = x + y</strong><br/>
-一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
-2 
-&gt;&gt;&gt; x=1;x = x+1;print x
-2
-&gt;&gt;&gt; x=[1];x+=[2];print x
-[1, 2]
-&gt;&gt;&gt; x=[1];x=x+[2];print x
-[1, 2]
-</code></pre>
-
-<p>呃，被光速打脸了？</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
-4357132800
-4357132728
-&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
-4357132800
-4357132800
-</code></pre>
-
-<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
-
-<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
-
-<pre><code class="language-python">import dis
-
-def foo(x, y):
-    x += y
-
-def foo2(x, y):
-    x = x + y
-
-print dis.dis(foo)
-print dis.dis(foo2)
-</code></pre>
-
-<p>输出结果如下：</p>
-
-<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
-              3 LOAD_FAST                1 (y)
-              6 INPLACE_ADD         
-              7 STORE_FAST               0 (x)
-             10 LOAD_CONST               0 (None)
-             13 RETURN_VALUE             None
-
-77            0 LOAD_FAST                0 (x)
-              3 LOAD_FAST                1 (y)
-              6 BINARY_ADD          
-              7 STORE_FAST               0 (x)
-             10 LOAD_CONST               0 (None)
-             13 RETURN_VALUE             None
-</code></pre>
-
-<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
-更多内容可以参考：<br/>
-<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
-
-<p><strong>第三，神奇的小括号–()</strong><br/>
-小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
-&gt;&gt;&gt; type(a)
-&lt;type &#39;tuple&#39;&gt;
-&gt;&gt;&gt; type(())
-&lt;type &#39;tuple&#39;&gt;
-</code></pre>
-
-<p>但如果只有一个元素呢</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a=(1)
-&gt;&gt;&gt; type(a)
-&lt;type &#39;int&#39;&gt;
-</code></pre>
-
-<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
-&gt;&gt;&gt; type(a)
-&lt;type &#39;int&#39;&gt;
-</code></pre>
-
-<p><strong>第四：生成一个元素是列表的列表</strong><br/>
-这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
-很简单嘛：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
-&gt;&gt;&gt; a
-[[], [], [], [], [], [], [], [], [], []]
-&gt;&gt;&gt; a[0].append(10)
-&gt;&gt;&gt; a[0] 
-[10]
-</code></pre>
-
-<p>看起来很不错，简单明了，but</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a[1]
-[10]
-&gt;&gt;&gt; a
-[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
-</code></pre>
-
-<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
-&gt;&gt;&gt; a[0].append(10)
-&gt;&gt;&gt; a
-[[10], [], [], [], [], [], [], [], [], []]
-</code></pre>
-
-<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
-列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
-... for idx, elem in enumerate(lst):
-... if elem % 3 == 0:
-... del lst[idx]
-</code></pre>
-
-<p>测试一下，</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
-&gt;&gt;&gt; modify_lst(lst)
-&gt;&gt;&gt; lst
-[1, 2, 4, 5]
-</code></pre>
-
-<p>好像没什么错，不过这只是运气好</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
-&gt;&gt;&gt; modify_lst(lst)
-&gt;&gt;&gt; lst
-[1, 2, 6, 5, 4]
-</code></pre>
-
-<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
-如果逻辑比较简单，使用list comprehension是不错的注意<br/>
-&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
-修改方法很简单：</p>
-
-<pre><code class="language-python">def mod_list(lst):
-    new_lst = []
-    for elem in lst:
-        if elem % 3 != 0:
-            new_lst.append(elem)
-    return new_lst
-
-lst = [1, 2, 3, 4, 5, 6]
-s = mod_list(lst)
-print s
-
-lst = [1, 2, 3, 6, 5, 4]
-s = mod_list(lst)
-print s
-</code></pre>
-
-<p><strong>第六，闭包与lambda</strong><br/>
-这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
-...  return [lambda x:i*x for i in range(5)]
-...
-&gt;&gt;&gt; for multiplier in create_multipliers():
-... print multiplier(2)
-...
-</code></pre>
-
-<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
-
-<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
-解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
-... return [lambda x, i = i:i*x for i in range(5)]
-...
 </code></pre>
 
 ]]></content>

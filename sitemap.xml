@@ -2,7 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
   <loc>https://sparkbye.github.io/myBlog/</loc>
-  <lastmod>2019-08-19T20:22:55+08:00</lastmod>
+  <lastmod>2020-06-22T22:15:44+08:00</lastmod>
+</url>
+
+<url>
+  <loc>https://sparkbye.github.io/myBlog/15928352455072.html</loc>
+  <lastmod>2020-06-22T22:14:05+08:00</lastmod>
+</url>
+
+<url>
+  <loc>https://sparkbye.github.io/myBlog/15726710349835.html</loc>
+  <lastmod>2019-11-02T13:03:54+08:00</lastmod>
+</url>
+
+<url>
+  <loc>https://sparkbye.github.io/myBlog/15726710075785.html</loc>
+  <lastmod>2019-11-02T13:03:27+08:00</lastmod>
 </url>
 
 <url>
@@ -252,6 +267,10 @@
 
 <url>
   <loc>https://sparkbye.github.io/myBlog/Python.html</loc>
+</url>
+
+<url>
+  <loc>https://sparkbye.github.io/myBlog/Swift.html</loc>
 </url>
 
 <url>

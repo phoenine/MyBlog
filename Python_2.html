@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -106,6 +108,151 @@
 	<div class="large-8 medium-8 columns">
 		<div class="markdown-body home-categories">
 		
+			<div class="article">
+                <a class="clearlink" href="15662167164116.html">
+                
+                  <h1>Python常见的错误<十六></h1>
+                  <div class="a-content">
+                      
+                      <div class="a-content-text">
+                        
+                        	<h4 id="toc_0">常见错误16: Python 特殊方法</h4>
+
+<p>我写了一个通过重载 <b> new </b> 方法来实现单例模式的类。</p>
+
+<pre><code class="language-python">class Singleton(object):
+    _instance = None
+    def __new__(cls, *args, **kwargs):
+        if cls._instance:
+            return cls._instance
+        cls._isntance = cv = object.__new__(cls, *args, **kwargs)
+        return cv
+</code></pre>
+
+<pre><code class="language-python">sin1 = Singleton()
+sin2 = Singleton()
+print(sin1 is sin2)
+</code></pre>
+
+<pre><code>False
+</code></pre>
+
+<p>现在我有一堆类要实现为单例模式，所以我打算照葫芦画瓢写一个<b>元类</b>，这样可以让代码复用：</p>
+
+<pre><code class="language-python">class SingleMeta(type):
+    def __init__(cls, name, bases, dict):
+        cls._instance = None
+        __new__o = cls.__new__
+        def __new__(cls, *args, **kwargs):
+            if cls._instance:
+                return cls._instance
+        cls._instance = cv = __new__o(cls, *args, **kwargs)
+        return cv
+    
+    cls.__new__ = __new__
+    
+class A(object):
+    __metaclass__ = SingleMeta
+
+a1 = A()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+NameError                                 Traceback (most recent call last)
+
+&lt;ipython-input-12-f4e661bbbe74&gt; in &lt;module&gt;
+----&gt; 1 class SingleMeta(type):
+      2     def __init__(cls, name, bases, dict):
+      3         cls._instance = None
+      4         __new__o = cls.__new__
+      5         def __new__(cls, *args, **kwargs):
+
+
+&lt;ipython-input-12-f4e661bbbe74&gt; in SingleMeta()
+      9         return cv
+     10 
+---&gt; 11     cls.__new__ = __new__
+     12 
+     13 class A(object):
+
+
+NameError: name &#39;__new__&#39; is not defined
+</code></pre>
+
+<p>哎呀，好气啊，为啥这会报错啊，我明明之前用这种方法给 <strong>getattribute</strong> 打补丁的，下面这段代码能够捕获一切属性调用并打印参数</p>
+
+<pre><code class="language-python">class TraceAttribute(type):
+    def __init__(cls, name, bases, dict):
+        __getattribute__o = cls.__getattribute__
+        def __getattribute__(self, *args, **kwargs):
+            print(&#39;__getattribute__:&#39;, args, kwargs)
+            return __getattribute__o(self, *args, **kwargs)
+        cls.__getattribute__ = __getattribute__
+
+class A(object):
+    __metaclass__ = TraceAttribute
+    a = 1
+    b = 2
+
+a = A()
+print(a.a)
+print(a.b)
+</code></pre>
+
+<pre><code>1
+2
+</code></pre>
+
+<p>试解释为什么给 <b> getattribute </b> 打补丁成功，而 <b> new </b> 打补丁失败。 如果我坚持使用元类给 <b> new </b> 打补丁来实现单例模式，应该怎么修改？ </p>
+
+<p>其实这是最气人的一点，类里的 <strong>new</strong> 是一个 staticmethod 因此替换的时候必须以 staticmethod 进行替换。答案如下：</p>
+
+<pre><code class="language-python">class SingleMeta(type):
+    def __init__(cls, name, bases, dict):
+        cls._instance = None
+        __new__o = cls.__new__
+    
+        @staticmethod
+        def __new__(cls, *args, **kwargs):
+            if cls._instance:
+                return cls._instance
+            cls._instance = cv = __new__o(cls, *args, **kwargs)
+            return cv
+        cls.__new__ = __new__
+    
+class A(object):
+    __metaclass__ = SingleMeta
+
+print(A() is A())
+</code></pre>
+
+<pre><code>False
+</code></pre>
+
+                        
+                      </div>
+                  </div>
+                </a>
+                <div class="read-more clearfix">
+                  <div class="more-left left">
+                  
+                    <span class="date">2019/8/19 20:11 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          				   
+                  </div>
+                  <div class="more-right right">
+                  <span class="comments">
+                      
+
+                       
+                  </span>
+                  </div>
+                </div>
+              </div><!-- article -->
+        
 			<div class="article">
                 <a class="clearlink" href="15662166109209.html">
                 
@@ -295,104 +442,6 @@ dict 中的 key 引用是强引用类型，会造成对应对象的引用计数�
                 </div>
               </div><!-- article -->
         
-			<div class="article">
-                <a class="clearlink" href="15662165783528.html">
-                
-                  <h1>Python常见的错误<十四></h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h4 id="toc_0">常见错误14: Python 调用机制</h4>
-
-<p>我们知道 __call__ 方法可以用来重载圆括号调用，好的，以为问题就这么简单？ Naive ！</p>
-
-<pre><code class="language-python">class A(object):
-    def __call__(self):
-        print(&quot;invoking __call__ from A!&quot;)
-</code></pre>
-
-<pre><code class="language-python">a = A()
-a()
-</code></pre>
-
-<pre><code>invoking __call__ from A!
-</code></pre>
-
-<p>现在我们可以看到 a() 似乎等价于 a.__call__() ,看起来很 Easy 对吧，好的，我现在想作死，又写出了如下的代码:</p>
-
-<pre><code class="language-python">a.__call__ = lambda: &quot;invoking __call__ from lambda&quot;
-print(a.__call__())
-a()
-</code></pre>
-
-<pre><code>invoking __call__ from lambda
-invoking __call__ from A!
-</code></pre>
-
-<p>为什么 a() 没有调用出 a.__call__()</p>
-
-<p>原因在于，在 Python 中，新式类（ new class  )的内建特殊方法，和实例的属性字典是相互隔离的，具体可以看看 Python 官方文档对于这一情况的说明:</p>
-
-<blockquote>
-<p>For new - style classes , implicit invocations of special methods are only guaranteed to work correctly if defined on an object &#39; s type , not in the object &#39; s instance dictionary. <br/>
-That behaviour is the reason why the following code raises an exception  ( unlike the equivalent example with old - style classes ):</p>
-</blockquote>
-
-<p>同时官方也给出了一个例子：</p>
-
-<pre><code class="language-python">class C(object):
-    pass
-
-c = C()
-c.__len__ = lambda: 5
-len(c)
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-TypeError                                 Traceback (most recent call last)
-
-&lt;ipython-input-4-7039f902a29c&gt; in &lt;module&gt;
-      4 c = C()
-      5 c.__len__ = lambda: 5
-----&gt; 6 len(c)
-
-
-TypeError: object of type &#39;C&#39; has no len()
-</code></pre>
-
-<pre><code class="language-python">c.__len__()
-</code></pre>
-
-<pre><code>5
-</code></pre>
-
-<p>回到我们的例子上来，当我们在执行 a.__call__ = lambda :&quot; invoking __call__ from lambda &quot; 时，的确在我们在 a.__dict__ 中新增加了一个 key 为 __call__ 的 item ，但是当我们执行 a () 时，因为涉及特殊方法的调用，因此我们的调用过程不会从 a.__dict__ 中寻找属性，而是从 tyee ( a ). __dict__ 中寻找属性。因此，就会出现如上所述的情况。</p>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2019/8/19 20:9 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
               
 
 
@@ -453,6 +502,8 @@ TypeError: object of type &#39;C&#39; has no len()
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -472,6 +523,24 @@ TypeError: object of type &#39;C&#39; has no len()
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -479,24 +548,6 @@ TypeError: object of type &#39;C&#39; has no len()
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

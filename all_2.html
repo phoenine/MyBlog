@@ -82,6 +82,8 @@
         
             <li><a href="Python.html">Python</a></li>
         
+            <li><a href="Swift.html">Swift</a></li>
+        
             <li><a href="Bootstrap.html">Bootstrap</a></li>
         
             <li><a href="Objective-C.html">Objective-C</a></li>
@@ -107,170 +109,379 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15662166109209.html">
+                <a class="clearlink" href="15662171970710.html">
                 
-                  <h1>Python常见的错误<十五></h1>
+                  <h1>Python Modules - 02 - Python collections</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误15: 描述符的坑</h4>
+                        	<h4 id="toc_0">Module-1: collections 模块总结</h4>
 
-<p>我想写一个 Exam 类，其属性 math 为 [0,100] 的整数，若赋值时不在此范围内则抛出异常，我决定用描述符来实现这个需求。</p>
+<p>Python为我们提供了4种基本的数据结构：list, tuple, dict, set，但是在处理数据量较大的情形的时候，这4种数据结构就明显过于单一了，比如list作为单向链表在某些情形插入的效率会比较低，有时候我们也需要维护一个有序的dict。所以这个时候我们就要用到Python标准库为我们提供的collections包了，它提供了多个有用的集合类，熟练掌握这些集合类，不仅可以让我们让写出的代码更加Pythonic，也可以提高我们程序的运行效率。</p>
 
-<pre><code class="language-python">class Grade(object):
-    def __init__(self):
-        self._score = 0
-    def __get__(self, instance, owner):
-        return self._score
-    def __set__(self, instance, value):
-        if 0 &lt;= value &lt;= 100:
-            self._score = value
-        else:
-            raise ValueError(&#39;grade must be between 0 and 100.&#39;)
+<ol>
+<li><b>defaultdict的使用</b></li>
+</ol>
+
+<p>defaultdict(default_factory)在普通的dict(字典)之上添加了default_factory，使得key(键)不存在时会自动生成相应类型的value(值)，default_factory参数可以指定成list, set, int等各种合法类型。</p>
+
+<pre><code class="language-python">from collections import defaultdict
+s = [(&#39;red&#39;, 1), (&#39;blue&#39;, 2), (&#39;red&#39;, 3), (&#39;blue&#39;, 4), (&#39;red&#39;, 1), (&#39;blue&#39;, 4)]
 </code></pre>
 
-<pre><code class="language-python">class Exam(object):
-    math = Grade()
-    def __init__(self, math):
-        self.math = math
+<p>我们现在有上面这样一组list(列表)，虽然我们有6组数据，但是仔细观察后发现其实我们只有两种color(颜色)，但是每一个color对应多个值。现在我们想要将这个list转换成一个dict(字典)，这个dict的key(键)对应一种color，dict的value(值)设置为一个list存放color对应的多个值。我们可以使用defaultdict(list)来解决这个问题。</p>
+
+<pre><code class="language-python">d = defaultdict(list)
+for k, v in s:
+    d[k].append(v)
+print(d)
 </code></pre>
 
-<pre><code class="language-python">lucy = Exam(math=90)
-print(lucy.math)
-snake = Exam(math=75)
-print(snake.math)
-snake.math = 120
+<pre><code>defaultdict(&lt;class &#39;list&#39;&gt;, {&#39;red&#39;: [1, 3, 1], &#39;blue&#39;: [2, 4, 4]})
 </code></pre>
 
-<pre><code>90
-75
+<p>上面这个例子中有一些不完美的地方，比如说{‘blue’: [2, 4, 4], ‘red’: [1, 3, 1]}这个defaultdict中blue颜色中包含两个4，red颜色中包含两个1，但是我们不希望含有重复的元素，这个时候可以考虑使用defaultdict(set)来解决这个问题。set(集合)相比list(列表)的不同之处在于set中不允许存在相同的元素。</p>
 
-
-
----------------------------------------------------------------------------
-
-ValueError                                Traceback (most recent call last)
-
-&lt;ipython-input-9-d59603acfa1c&gt; in &lt;module&gt;
-      3 snake = Exam(math=75)
-      4 print(snake.math)
-----&gt; 5 snake.math = 120
-
-
-&lt;ipython-input-7-edf3703e2b81&gt; in __set__(self, instance, value)
-      8             self._score = value
-      9         else:
----&gt; 10             raise ValueError(&#39;grade must be between 0 and 100.&#39;)
-
-
-ValueError: grade must be between 0 and 100.
+<pre><code class="language-python">d = defaultdict(set)
+for k, v in s:
+    d[k].add(v)
+print(d) 
 </code></pre>
 
-<p>看起来一切正常。不过这里面有个巨大的问题，尝试说明是什么问题？<br/><br/>
-为了解决这个问题，我改写了 Grade 描述符如下：<br/><br/>
-不过这样会导致更大的问题，请问该怎么解决这个问题？</p>
-
-<pre><code class="language-python">class Gradee(object):
-    def __init__(self):
-        self._grade_pool = {}
-    def __get__(self, instance, owner):
-        return self._grade_pool.get(instance, None)
-    def __set__(self, instance, value):
-        if 0 &lt;= value &lt;= 100:
-            _grade_pool = self.__dict__.setdefault(&#39;_grade_pool&#39;, {})
-            _grade_pool[instance] = value
-        else:
-            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+<pre><code>defaultdict(&lt;class &#39;set&#39;&gt;, {&#39;red&#39;: {1, 3}, &#39;blue&#39;: {2, 4}})
 </code></pre>
 
-<pre><code class="language-python">class Exam(object):
-    grammer = Gradee()
-    def __init__(self, grammer):
-        self.grammer = grammer
+<p>通过使用defaultdict(int)的形式我们来统计一个字符串中每个字符出现的个数。</p>
+
+<pre><code class="language-python">s = &#39;hello world&#39;
+d = defaultdict(int)
+for k in s:
+    d[k] += 1
+print(d)
 </code></pre>
 
-<pre><code class="language-python">lucy = Exam(grammer=90)
-print(lucy.grammer)
-snake = Exam(grammer=75)
-print(snake.grammer)
-snake.grammer = 120
-</code></pre>
-
-<pre><code>90
-75
-
-
-
----------------------------------------------------------------------------
-
-ValueError                                Traceback (most recent call last)
-
-&lt;ipython-input-12-1302d1b3a522&gt; in &lt;module&gt;
-      3 snake = Exam(grammer=75)
-      4 print(snake.grammer)
-----&gt; 5 snake.grammer = 120
-
-
-&lt;ipython-input-10-aa15607fb158&gt; in __set__(self, instance, value)
-      9             _grade_pool[instance] = value
-     10         else:
----&gt; 11             raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
-
-
-ValueError: fuuuuuuuuuck!!
+<pre><code>defaultdict(&lt;class &#39;int&#39;&gt;, {&#39;h&#39;: 1, &#39;e&#39;: 1, &#39;l&#39;: 3, &#39;o&#39;: 2, &#39; &#39;: 1, &#39;w&#39;: 1, &#39;r&#39;: 1, &#39;d&#39;: 1})
 </code></pre>
 
 <ol>
-<li><p>第一个问题的其实很简单，如果你再运行一次 print ( lucy.math ) 你就会发现，输出值是 75 ，那么这是为什么呢？这就要先从 Python 的调用机制说起了。<br/><br/>
-我们如果调用一个属性，那么其顺序是优先从实例的 __dict__ 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。<br/><br/>
-好的，现在回到我们的问题。<br/><br/>
-我们发现，在我们的类 Exam 中，其 self.math 的调用过程是，首先在实例化后的实例的 __dict__ 中进行查找，没有找到，接着往上一级，在我们的类 Exam 中进行查找，好的找到了，返回。<br/><br/>
-那么这意味着，我们对于 self.math 的所有操作都是对于类变量 math 的操作。因此造成变量污染的问题。那么该则怎么解决呢？<br/><br/>
-很多同志可能会说，恩，在 __set__ 函数中将值设置到具体的实例字典不就行了。<br/><br/>
-那么这样可不可以呢？<br/><br/>
-答案是，很明显不得行啊，至于为什么，就涉及到我们 Python 描述符的机制了，描述符指的是实现了描述符协议的特殊的类，三个描述符协议指的是 __get__ , __set__ , __delete__ 以及 Python 3.6 中新增的 __set_name__ 方法，其中实现了__get__ 以及 __set__ / __delete__ / __set_name__ 的是 <b>Data descriptors</b> ，而只实现了 __get__ 的是 <b>Non-Data descriptor</b> 。<br/><br/>
-那么有什么区别呢，前面说了， <b>我们如果调用一个属性，那么其顺序是优先从实例的 <strong>dict</strong> 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。</b><br/><br/>
-但是，这里没有考虑描述符的因素进去，如果将描述符因素考虑进去，那么正确的表述应该是我们如果调用一个属性，那么其顺序是优先从实例的 __dict__ 里查找，然后如果没有查找到的话，那么一次查询类字典，父类字典，直到彻底查不到为止。其中如果在类实例字典中的该属性是一个 Data descriptors ，那么无论实例字典中存在该属性与否，无条件走描述符协议进行调用，在类实例字典中的该属性是一个 Non - Data descriptors ，那么优先调用实例字典中的属性值而不触发描述符协议，如果实例字典中不存在该属性值，那么触发 Non - Data descriptor 的描述符协议。回到之前的问题，我们即使在 __set__ 将具体的属性写入实例字典中，但是由于类字典中存在着 Data descriptors，因此，我们在调用 math 属性时，依旧会触发描述符协议。</p></li>
-<li><p>经过改良的做法，利用 dict 的 key 唯一性，将具体的值与实例进行绑定，但是同时带来了内存泄露的问题。<br/><br/>
-那么为什么会造成内存泄露呢，首先复习下我们的 dict 的特性， dict 最重要的一个特性，就是凡可 hash 的对象皆可为 key ， dict 通过利用的 hash 值的唯一性（严格意义上来讲并不是唯一，而是其 hash 值碰撞几率极小，近似认定其唯一）来保证 key 的不重复性。<br/><br/>
-同时（敲黑板，重点来了），<br/><br/>
-dict 中的 key 引用是强引用类型，会造成对应对象的引用计数的增加，可能造成对象无法被 gc ，从而产生内存泄露。<br/><br/>
-那么这里该怎么解决呢？两种方法 第一种：  </p></li>
+<li><b>OrderedDict的使用</b></li>
 </ol>
 
-<pre><code class="language-python">class Grad(object):
-    def __init__(self):
-        import weakref
-        self._grade_pool = weakref.WeakKeyDictionary()
-    def __get__(self, instance, owner):
-        return self._grade_pool.get(instance, None)
-    def __set__(self, instance, value):
-        if 0 &lt;= value &lt;= 100:
-            _grade_pool = self.__dict__.setdefault(&#39;_grade_pool&#39;, {})
-            _grade_pool[instance] = value
-        else:
-            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
+<p>我们知道默认的dict(字典)是无序的，但是在某些情形我们需要保持dict的有序性，这个时候可以使用OrderedDict，它是dict的一个subclass(子类)，但是在dict的基础上保持了dict的有序型，下面我们来看一下使用方法。</p>
+
+<pre><code class="language-python">from collections import OrderedDict
+d = {&#39;banana&#39;: 3, &#39;apple&#39;: 4, &#39;pear&#39;: 1, &#39;orange&#39;: 2}
 </code></pre>
 
-<p>weakref 库中的 WeakKeyDictionary 所产生的字典的 key 对于对象的引用是弱引用类型，其不会造成内存引用计数的增加，因此不会造成内存泄露。<br/><br/>
-同理，如果我们为了避免 value 对于对象的强引用，我们可以使用 WeakValueDictionary 。 </p>
+<p>这是一个无序的dict(字典)，现在我们可以使用OrderedDict来让这个dict变得有序。</p>
 
-<p>第二种：在 Python 3.6 中，实现的 PEP 487 提案，为描述符新增加了一个协议，我们可以用其来绑定对应的对象：</p>
-
-<pre><code class="language-python">class Grad(object):
-    def __get__(self, instance, owner):
-        return instance.__dict__[self.key]
-    def __set__(self, instance, value):
-        if 0 &lt;= value &lt;= 100:
-            instance.__dict__[self.key] = value
-        else:
-            raise ValueError(&#39;fuuuuuuuuuck!!&#39;)
-    def __set_name__(self, owner, name):
-        self.key = name
+<pre><code class="language-python"># 将d按照key来排序
+a = OrderedDict(sorted(d.items(), key=lambda t: t[0]))
+print(a)
+# 将d按照value来排序
+b = OrderedDict(sorted(d.items(), key=lambda t: t[1]))
+print(b)
+# 将d按照key的长度来排序
+c = OrderedDict(sorted(d.items(), key=lambda t: len(t[0])))
+print(c)
 </code></pre>
 
-<p>这道题涉及的东西比较多，这里给出一点参考链接， invoking-descriptors , Descriptor HowTo Guide , PEP 487 , what`s new in Python 3.6 。</p>
+<pre><code>OrderedDict([(&#39;apple&#39;, 4), (&#39;banana&#39;, 3), (&#39;orange&#39;, 2), (&#39;pear&#39;, 1)])
+OrderedDict([(&#39;pear&#39;, 1), (&#39;orange&#39;, 2), (&#39;banana&#39;, 3), (&#39;apple&#39;, 4)])
+OrderedDict([(&#39;pear&#39;, 1), (&#39;apple&#39;, 4), (&#39;banana&#39;, 3), (&#39;orange&#39;, 2)])
+</code></pre>
+
+<p>使用popitem(last=True)方法可以让我们按照LIFO(先进后出)的顺序删除dict中的key-value，即删除最后一个插入的键值对，如果last=False就按照FIFO(先进先出)删除dict中key-value。</p>
+
+<pre><code class="language-python">d = {&#39;banana&#39;: 3, &#39;apple&#39;: 4, &#39;pear&#39;: 1, &#39;orange&#39;: 2}
+# 将d按照key来排序
+d = OrderedDict(sorted(d.items(), key=lambda t: t[0]))
+print(d)
+# 使用popitem()方法来移除最后一个key-value对
+print(d.popitem())
+# 使用popitem(last=False)来移除第一个key-value对
+print(d.popitem(last=False))
+</code></pre>
+
+<pre><code>OrderedDict([(&#39;apple&#39;, 4), (&#39;banana&#39;, 3), (&#39;orange&#39;, 2), (&#39;pear&#39;, 1)])
+(&#39;pear&#39;, 1)
+(&#39;apple&#39;, 4)
+</code></pre>
+
+<p>使用move_to_end(key, last=True)来改变有序的OrderedDict对象的key-value顺序，通过这个方法我们可以将排序好的OrderedDict对象中的任意一个key-value插入到字典的开头或者结尾。</p>
+
+<pre><code class="language-python">d = OrderedDict.fromkeys(&#39;abcde&#39;)
+print(d)
+# 将key为b的key-value对移动到dict的最后
+d.move_to_end(&#39;b&#39;)
+print(d)
+print(&#39;&#39;.join(d.keys()))
+# 将key为b的key-value对移动到dict的最前面
+d.move_to_end(&#39;b&#39;, last=False)
+print(&#39;&#39;.join(d.keys()))
+</code></pre>
+
+<pre><code>OrderedDict([(&#39;a&#39;, None), (&#39;b&#39;, None), (&#39;c&#39;, None), (&#39;d&#39;, None), (&#39;e&#39;, None)])
+OrderedDict([(&#39;a&#39;, None), (&#39;c&#39;, None), (&#39;d&#39;, None), (&#39;e&#39;, None), (&#39;b&#39;, None)])
+acdeb
+bacde
+</code></pre>
+
+<ol>
+<li><b>deque的使用</b></li>
+</ol>
+
+<p>list存储数据的优势在于按找索引查找元素会很快，但是插入和删除元素就很慢了，因为它是是单链表的数据结构。deque是为了高效实现插入和删除操作的双向列表，适合用于队列和栈，而且线程安全。</p>
+
+<p>list只提供了append和pop方法来从list的尾部插入/删除元素，但是deque新增了appendleft/popleft允许我们高效的在元素的开头来插入/删除元素。而且使用deque在队列两端添加（append）或弹出（pop）元素的算法复杂度大约是O(1)，但是对于list对象改变列表长度和数据位置的操作例如 pop(0)和insert(0, v)操作的复杂度高达O(n)。由于对deque的操作和list基本一致，这里就不重复了。</p>
+
+<pre><code class="language-python">from collections import deque
+d1=deque()
+d1.extend(&#39;abcdefg&#39;)
+print(&#39;extend: %s&#39;% d1)
+d1.append(&#39;h&#39;)
+print(&#39;append: %s&#39;% d1)
+
+d2=deque()
+d2.extendleft(range(6))
+print(&#39;extendleft: %s&#39;% d2)
+d2.appendleft(6)
+print(&#39;appendleft: %s&#39;% d2)
+</code></pre>
+
+<pre><code>extend: deque([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;])
+append: deque([&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;, &#39;f&#39;, &#39;g&#39;, &#39;h&#39;])
+extendleft: deque([5, 4, 3, 2, 1, 0])
+appendleft: deque([6, 5, 4, 3, 2, 1, 0])
+</code></pre>
+
+<p>从输出的结果，我们可以看到，append默认从集合的右边增加数组元素，而另一个appendleft可以从集合的左边增加元素</p>
+
+<p>与append和appendleft方法对应的还有pop和popleft方法分别用于从集合中取出元素，看下面的例子:</p>
+
+<pre><code class="language-python">print(&quot;From the right:&quot;)  
+d = deque(&#39;abcdefg&#39;)  
+while True:  
+    try:  
+        print(d.pop())
+    except IndexError:  
+        break  
+
+print(&#39;\n From the left:&#39;)  
+d = deque(range(6))  
+while True:  
+    try:  
+        print(d.popleft())  
+    except IndexError:  
+        break  
+</code></pre>
+
+<pre><code>From the right:
+g
+f
+e
+d
+c
+b
+a
+
+ From the left:
+0
+1
+2
+3
+4
+5
+</code></pre>
+
+<p>最后值得一提的是，deque是线程安全的，也就是说你可以同时从deque集合的左边和右边进行操作而不会有影响，看下面的代码：</p>
+
+<pre><code class="language-python">import collections  
+import threading  
+import time  
+candle = collections.deque(range(5))  
+def burn(direction,nextSource):  
+    while True:  
+        try:  
+            next=nextSource()  
+        except IndexError:  
+            break  
+        else:  
+            print(&#39;%s : %s&#39; % (direction,next))  
+            time.sleep(0.1)  
+    print(&quot;done %s&quot; % direction)  
+    return  
+
+left=threading.Thread(target=burn,args=(&#39;left&#39;,candle.popleft))  
+right=threading.Thread(target=burn,args=(&#39;right&#39;,candle.pop))  
+  
+left.start()  
+right.start() 
+
+left.join()  
+right.join()
+</code></pre>
+
+<pre><code>left : 0
+right : 4
+left : 1
+right : 3
+left : 2
+done right
+done left
+</code></pre>
+
+<ol>
+<li><b>ChainMap的使用</b></li>
+</ol>
+
+<p>ChainMap用来将多个dict(字典)组成一个list(只是比喻)，可以理解成合并多个字典，但和update不同，而且效率更高。  </p>
+
+<pre><code class="language-python">from collections import ChainMap
+a = {&quot;x&quot;:1, &quot;z&quot;:3}
+b = {&quot;y&quot;:2, &quot;z&quot;:4}
+# 构造一个ChainMap对象
+m = ChainMap(a, b)
+print(m)
+print(&quot;x: {}, y: {}, z: {}&quot;.format(m[&quot;x&quot;], m[&quot;y&quot;], m[&quot;z&quot;]))
+
+# 将m变成一个list
+print(m.maps)
+
+# ChainMap进行修改的时候总是只会对第一个字典进行修改
+m[&quot;z&quot;] = 4
+print(m)
+m.pop(&#39;z&#39;)
+print(m)
+
+# 从m复制一个ChainMap对象，更新这个复制的对象并不会对m造成影响
+m2 = m.new_child()
+m2[&#39;z&#39;] = &#39;f&#39;
+print(m[&#39;z&#39;])
+print(m2.parents)
+</code></pre>
+
+<pre><code>ChainMap({&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+x: 1, y: 2, z: 3
+[{&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4}]
+ChainMap({&#39;x&#39;: 1, &#39;z&#39;: 4}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+ChainMap({&#39;x&#39;: 1}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+4
+ChainMap({&#39;x&#39;: 1}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+</code></pre>
+
+<p>从原理上面讲，ChainMap实际上是把放入的字典存储在一个队列中，当进行字典的增加删除等操作只会在第一个字典上进行，当进行查找的时候会依次查找，new_child()方法实质上是在列表的第一个元素前放入一个字典，默认是{}，而parents是去掉了列表开头的元素。也正是因为底层是列表实现的，所以实际上ChainMap查询的字典实际上还是原来的字典的引用</p>
+
+<pre><code class="language-python">a = {&quot;x&quot;:1, &quot;z&quot;:3}
+b = {&quot;y&quot;:2, &quot;z&quot;:4}
+c = ChainMap(a,b)
+print(c)
+print(c.maps)
+print(c.parents)
+print(c.parents.maps)
+print(c.parents.parents)
+</code></pre>
+
+<pre><code>ChainMap({&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4})
+[{&#39;x&#39;: 1, &#39;z&#39;: 3}, {&#39;y&#39;: 2, &#39;z&#39;: 4}]
+ChainMap({&#39;y&#39;: 2, &#39;z&#39;: 4})
+[{&#39;y&#39;: 2, &#39;z&#39;: 4}]
+ChainMap({})
+</code></pre>
+
+<ol>
+<li><b>Counter的使用</b></li>
+</ol>
+
+<p>Counter也是dict的一个subclass，它是一个无序容器，可以看做一个计数器，用来统计相关元素出现的个数。</p>
+
+<pre><code class="language-python">from collections import Counter
+cnt = Counter()
+# 统计列表中元素出现的个数
+for word in [&#39;red&#39;, &#39;blue&#39;, &#39;red&#39;, &#39;green&#39;, &#39;blue&#39;, &#39;blue&#39;]:
+    cnt[word] += 1
+print(cnt)
+
+# 统计字符串中元素出现的个数
+cnt = Counter()
+for ch in &#39;hello&#39;:
+    cnt[ch] = cnt[ch] + 1
+print(cnt)
+</code></pre>
+
+<pre><code>Counter({&#39;blue&#39;: 3, &#39;red&#39;: 2, &#39;green&#39;: 1})
+Counter({&#39;l&#39;: 2, &#39;h&#39;: 1, &#39;e&#39;: 1, &#39;o&#39;: 1})
+</code></pre>
+
+<p>使用elements()方法按照元素的出现次数返回一个iterator(迭代器)，元素以任意的顺序返回，如果元素的计数小于1，将忽略它。</p>
+
+<pre><code class="language-python">c = Counter(a=4, b=2, c=0, d=-2)
+print(c)
+d = c.elements()
+print(next(d))
+print(sorted(c.elements()))
+</code></pre>
+
+<pre><code>Counter({&#39;a&#39;: 4, &#39;b&#39;: 2, &#39;c&#39;: 0, &#39;d&#39;: -2})
+a
+[&#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;a&#39;, &#39;b&#39;, &#39;b&#39;]
+</code></pre>
+
+<p>使用most_common(n)返回一个list, list中包含Counter对象中出现最多前n个元素。</p>
+
+<pre><code class="language-python">c = Counter(&#39;abracadabra&#39;)
+print(c)
+print(c.most_common(3))
+</code></pre>
+
+<pre><code>Counter({&#39;a&#39;: 5, &#39;b&#39;: 2, &#39;r&#39;: 2, &#39;c&#39;: 1, &#39;d&#39;: 1})
+[(&#39;a&#39;, 5), (&#39;b&#39;, 2), (&#39;r&#39;, 2)]
+</code></pre>
+
+<ol>
+<li><b>namedtuple的使用</b></li>
+</ol>
+
+<p>Python中存储系列数据，比较常见的数据类型有list，除此之外，还有tuple数据类型。相比与list，tuple中的元素不可修改，在映射中可以当键使用。tuple元组的item只能通过index访问，collections模块的namedtuple子类不仅可以使用item的index访问item，还可以通过item的name进行访问。可以将namedtuple理解为c中的struct结构，其首先将各个item命名，然后对每个item赋予数据。<br/><br/>
+使用namedtuple(typename, field_names)命名tuple中的元素来使程序更具可读性。</p>
+
+<pre><code class="language-python">from collections import namedtuple
+Point = namedtuple(&#39;PointExtension&#39;, [&#39;x&#39;, &#39;y&#39;])
+p = Point(1, 2)
+print(p.__class__.__name__)
+print(p.x)
+print(p.y)
+</code></pre>
+
+<pre><code>PointExtension
+1
+2
+</code></pre>
+
+<pre><code class="language-python">from collections import namedtuple  
+  
+websites = [  
+    (&#39;Sohu&#39;, &#39;http://www.sohu.com/&#39;, u&#39;Zhang Chaoyang&#39;),  
+    (&#39;Sina&#39;, &#39;http://www.sina.com.cn/&#39;, u&#39;Wang Zhidong&#39;),  
+    (&#39;163&#39;, &#39;http://www.163.com/&#39;, u&#39;Ding Lei&#39;)  
+]  
+  
+Website = namedtuple(&#39;Website&#39;, [&#39;name&#39;, &#39;url&#39;, &#39;founder&#39;])
+  
+for website in websites:  
+    website = Website._make(website)  
+    print(website)
+    print(website.name)
+</code></pre>
+
+<pre><code>Website(name=&#39;Sohu&#39;, url=&#39;http://www.sohu.com/&#39;, founder=&#39;Zhang Chaoyang&#39;)
+Sohu
+Website(name=&#39;Sina&#39;, url=&#39;http://www.sina.com.cn/&#39;, founder=&#39;Wang Zhidong&#39;)
+Sina
+Website(name=&#39;163&#39;, url=&#39;http://www.163.com/&#39;, founder=&#39;Ding Lei&#39;)
+163
+</code></pre>
 
                         
                       </div>
@@ -279,7 +490,7 @@ dict 中的 key 引用是强引用类型，会造成对应对象的引用计数�
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/19 20:10 PM</span>
+                    <span class="date">2019/8/19 20:19 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -296,79 +507,119 @@ dict 中的 key 引用是强引用类型，会造成对应对象的引用计数�
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15662165783528.html">
+                <a class="clearlink" href="15662171354673.html">
                 
-                  <h1>Python常见的错误<十四></h1>
+                  <h1>Python Modules - 01 - Python random</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误14: Python 调用机制</h4>
+                        	<h4 id="toc_0">Module-1: random 模块总结</h4>
 
-<p>我们知道 __call__ 方法可以用来重载圆括号调用，好的，以为问题就这么简单？ Naive ！</p>
+<p>Python中的random模块用于生成随机数。下面介绍一下random模块中最常用的几个函数。</p>
 
-<pre><code class="language-python">class A(object):
-    def __call__(self):
-        print(&quot;invoking __call__ from A!&quot;)
+<pre><code class="language-python">import random
 </code></pre>
 
-<pre><code class="language-python">a = A()
-a()
+<ol>
+<li><b>random.random</b></li>
+</ol>
+
+<p>random.random()用于生成一个0到1的随机符点数: 0 &lt;= n &lt; 1.0</p>
+
+<pre><code class="language-python">a = random.random()
+print(a)
 </code></pre>
 
-<pre><code>invoking __call__ from A!
+<pre><code>0.6898048215526792
 </code></pre>
 
-<p>现在我们可以看到 a() 似乎等价于 a.__call__() ,看起来很 Easy 对吧，好的，我现在想作死，又写出了如下的代码:</p>
+<ol>
+<li><b>random.uniform</b></li>
+</ol>
 
-<pre><code class="language-python">a.__call__ = lambda: &quot;invoking __call__ from lambda&quot;
-print(a.__call__())
-a()
+<p>random.uniform的函数原型为：random.uniform(a, b)，用于生成一个指定范围内的随机符点数，两个参数其中一个是上限，一个是下限。如果a &gt; b，则生成的随机数n: b &lt;= n &lt;= a。如果 a &lt;b， 则 a &lt;= n &lt;= b。</p>
+
+<pre><code class="language-python">a = random.uniform(1000, 18888)
+print(a)
+b = random.uniform(1000, 18888)
+print(b)
 </code></pre>
 
-<pre><code>invoking __call__ from lambda
-invoking __call__ from A!
+<pre><code>8052.755100232027
+2137.3131503870227
 </code></pre>
 
-<p>为什么 a() 没有调用出 a.__call__()</p>
+<ol>
+<li><b>random.randint</b></li>
+</ol>
 
-<p>原因在于，在 Python 中，新式类（ new class  )的内建特殊方法，和实例的属性字典是相互隔离的，具体可以看看 Python 官方文档对于这一情况的说明:</p>
+<p>random.randint()的函数原型为：random.randint(a, b)，用于生成一个指定范围内的整数。其中参数a是下限，参数b是上限，生成的随机数n: a &lt;= n &lt;= b</p>
 
-<blockquote>
-<p>For new - style classes , implicit invocations of special methods are only guaranteed to work correctly if defined on an object &#39; s type , not in the object &#39; s instance dictionary. <br/>
-That behaviour is the reason why the following code raises an exception  ( unlike the equivalent example with old - style classes ):</p>
-</blockquote>
-
-<p>同时官方也给出了一个例子：</p>
-
-<pre><code class="language-python">class C(object):
-    pass
-
-c = C()
-c.__len__ = lambda: 5
-len(c)
+<pre><code class="language-python">a = random.randint(10, 20)
+print(a)
 </code></pre>
 
-<pre><code>---------------------------------------------------------------------------
-
-TypeError                                 Traceback (most recent call last)
-
-&lt;ipython-input-4-7039f902a29c&gt; in &lt;module&gt;
-      4 c = C()
-      5 c.__len__ = lambda: 5
-----&gt; 6 len(c)
-
-
-TypeError: object of type &#39;C&#39; has no len()
+<pre><code>18
 </code></pre>
 
-<pre><code class="language-python">c.__len__()
+<ol>
+<li><b>random.randrange</b></li>
+</ol>
+
+<p>random.randrange的函数原型为：random.randrange(start, stop, step)，从指定范围内，按指定基数递增的集合中获取一个随机数。   </p>
+
+<pre><code class="language-python">a = random.randrange(10, 20, 3)         #在[10，13， 16， 19]中选择
+print(a)
 </code></pre>
 
-<pre><code>5
+<pre><code>10
 </code></pre>
 
-<p>回到我们的例子上来，当我们在执行 a.__call__ = lambda :&quot; invoking __call__ from lambda &quot; 时，的确在我们在 a.__dict__ 中新增加了一个 key 为 __call__ 的 item ，但是当我们执行 a () 时，因为涉及特殊方法的调用，因此我们的调用过程不会从 a.__dict__ 中寻找属性，而是从 tyee ( a ). __dict__ 中寻找属性。因此，就会出现如上所述的情况。</p>
+<ol>
+<li><b>random.choice</b></li>
+</ol>
+
+<p>random.choice从序列中获取一个随机元素。其函数原型为：random.choice(sequence)，参数sequence表示一个有序类型。<br/><br/>
+这里要说明 一下：sequence在python不是一种特定的类型，而是泛指一系列的类型。list, tuple, 字符串都属于sequence。</p>
+
+<pre><code class="language-python">a = &quot;mylittlepolly&quot;
+print(random.choice(a))
+b = [&#39;sun&#39;, &#39;moon&#39;, &#39;star&#39;]
+print(random.choice(b))
+</code></pre>
+
+<pre><code>l
+moon
+</code></pre>
+
+<ol>
+<li><b>random.shuffle</b></li>
+</ol>
+
+<p>random.shuffle的函数原型为：random.shuffle(x[, random])，用于将一个列表中的元素打乱。</p>
+
+<pre><code class="language-python">a = [&quot;Python&quot;, &quot;is&quot;, &quot;powerful&quot;, &quot;simple&quot;, &quot;and so on...&quot;]
+random.shuffle(a)
+print(a)
+</code></pre>
+
+<pre><code>[&#39;and so on...&#39;, &#39;simple&#39;, &#39;powerful&#39;, &#39;Python&#39;, &#39;is&#39;]
+</code></pre>
+
+<ol>
+<li><b>random.sample</b></li>
+</ol>
+
+<p>random.sample的函数原型为：random.sample(sequence, k)，从指定序列中随机获取指定长度的片断。sample函数不会修改原有序列。</p>
+
+<pre><code class="language-python">a = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+b = random.sample(a, 5)
+print(b)
+</code></pre>
+
+<pre><code>[9, 8, 1, 7, 3]
+</code></pre>
 
                         
                       </div>
@@ -377,7 +628,7 @@ TypeError: object of type &#39;C&#39; has no len()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/19 20:9 PM</span>
+                    <span class="date">2019/8/19 20:18 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -453,6 +704,8 @@ TypeError: object of type &#39;C&#39; has no len()
         
             <a href="Python.html"><strong>Python</strong></a>
         
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
             <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
         
             <a href="Objective-C.html"><strong>Objective-C</strong></a>
@@ -472,6 +725,24 @@ TypeError: object of type &#39;C&#39; has no len()
 	      
 		      
 			      <li class="post">
+			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710349835.html">Swift基本语法</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15726710075785.html"></a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
 			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
 			      </li>
 		     
@@ -479,24 +750,6 @@ TypeError: object of type &#39;C&#39; has no len()
 		      
 			      <li class="post">
 			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662171354673.html">Python Modules - 01 - Python random</a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662167164116.html">Python常见的错误<十六></a>
-			      </li>
-		     
-		  
-		      
-			      <li class="post">
-			        <a href="15662166109209.html">Python常见的错误<十五></a>
 			      </li>
 		     
 		  

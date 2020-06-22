@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Python - Ascetic in the deadlock
+  Ascetic in the deadlock
   
   </title>
   
@@ -109,91 +109,55 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655124251876.html">
+                <a class="clearlink" href="14834488859095.html">
                 
-                  <h1>Python常见的错误<八></h1>
+                  <h1>Bootstrap Study_1</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+                        	<h2 id="toc_0">What is Bootstrap</h2>
 
-<p>请看下面这个 filefoo.py:</p>
+<ul>
+<li>Free front-end framework </li>
+<li>Includes HTML and CSS based design templates for typography, forms, buttons, tables, navigation, modals and many other.</li>
+</ul>
 
-<pre><code class="language-python">import sys
+<h3 id="toc_1">Containers</h3>
 
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
+<ul>
+<li>The <em>.container</em> class provides a responsive fixed width container</li>
+<li>The <em>.container-fluid</em> class provides a full width container, spanning the entire width of the viewport</li>
+</ul>
 
-def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        print(&#39;value error&#39;)
-    print(e)
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
+&lt;head&gt;
+  &lt;title&gt;Bootstrap Example&lt;/title&gt;
+  &lt;meta charset=&quot;utf-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css&quot;&gt;
+  &lt;script src=&quot;https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js&quot;&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
 
-bad()
+&lt;div class=&quot;container&quot;&gt;
+  &lt;h1&gt;My First Bootstrap Page&lt;/h1&gt;
+  &lt;p&gt;This is some text.&lt;/p&gt; 
+&lt;/div&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
 </code></pre>
 
-<p>在Python 2中运行正常：</p>
+<h3 id="toc_2">Grid classes</h3>
 
-<pre><code class="language-python">$ python foo.py 1
-key error
-1
-$ python foo.py 2
-value error
-2
-</code></pre>
-
-<p>但是，现在让我们把它在Python 3中运行一下：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
-key error
-Traceback (most recent call last):
-  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
-    bad()
-  File &quot;foo.py&quot;, line 17, in bad
-    print(e)
-UnboundLocalError: local variable &#39;e&#39; referenced before assignment
-</code></pre>
-
-<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
-
-<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
-
-<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
-
-<pre><code class="language-python">import sys
-
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-        
-def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        exception = e
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        exception = e
-        print(&#39;value error&#39;)
-    print(exception)
-
-sys.argv.append(1)
-good()
-sys.argv.append(2)
-good()
-</code></pre>
+<p>The Bootstrap grid system has four classes:<br/>
+* xs (for phones)<br/>
+* sm (for tablets)<br/>
+* md (for desktops)<br/>
+* lg (for larger desktops)</p>
 
                         
                       </div>
@@ -202,10 +166,10 @@ good()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:33 PM</span>
+                    <span class="date">2017/1/3 21:8 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -219,62 +183,37 @@ good()
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655123624150.html">
+                <a class="clearlink" href="14832356716225.html">
                 
-                  <h1>Python常见的错误<七></h1>
+                  <h1>Bootstrap Basic</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误7: 创建循环依赖模块</h4>
+                        	<h2 id="toc_0">基本的HTML模板</h2>
 
-<p>让我们假设你有两个文件，a.py 和 b.py，他们之间相互引用，如下所示：</p>
+<ul>
+<li>bootstrap模板为使IE6、7、8兼容， 需要引用下面的代码：</li>
+</ul>
 
-<pre><code class="language-python">import b
-
-def f():
-    return b.x
-print(f())
+<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js&quot;&gt;&lt;/script&gt;
 </code></pre>
 
-<pre><code class="language-python">import a
+<ul>
+<li>为使IE6、7、8兼容css3样式，需要引用下面的代码：</li>
+</ul>
 
-x = 1
-def g():
-    print(a.f())
+<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;
 </code></pre>
 
-<p>首先，让我们尝试引入 a.py：</p>
+<ul>
+<li>如果要使用Bootstrap的js插件，需要先调入jquery</li>
+</ul>
 
-<pre><code class="language-python">import a
+<pre><code>&lt;script src=&quot;https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js&quot;&gt;&lt;/script&gt;
 </code></pre>
 
-<p>可以正常工作。这也许是你感到很奇怪。毕竟，我们确实在这里引入了一个循环依赖的模块，我们推测这样会出问题的，不是吗？<br/><br/>
-答案就是在Python中，仅仅引入一个循环依赖的模块是没有问题的。如果一个模块已经被引入了，Python并不会去再次引入它。但是，根据每个模块要访问其他模块中的函数和变量位置的不同，就很可能会遇到问题。<br/><br/>
-所以，回到我们这个例子，当我们引入 a.py 时，再引入 b.py 不会产生任何问题，因为当引入的时候，b.py 不需要 a.py 中定义任何东西。b.py 中唯一引用 a.py 中的东西是调用 a.f()。 但是那个调用是发生在g() 中的，并且 a.py 和 b.py 中都没有调用 g()。所以运行正常。<br/><br/>
-但是，如果我们尝试去引入b.py 会发生什么呢？（在这之前不引入a.py），如下所示:</p>
-
-<pre><code class="language-python">import b
-</code></pre>
-
-<p>啊哦。 出问题了！此处的问题是，在引入b.py的过程中，Python尝试去引入 a.py，但是a.py 要调用f()，而f() 有尝试去访问 b.x。但是此时 b.x 还没有被定义呢。所以发生了 AttributeError 异常。</p>
-
-<p>至少，解决这个问题很简单，只需修改b.py，使其在g()中引入 a.py：</p>
-
-<pre><code class="language-python">x = 1
-
-def g():
-    import a    # 只有当g()被调用的时候才会引入a
-    print a.f()
-</code></pre>
-
-<p>现在，当我们再引入b，没有任何问题：</p>
-
-<pre><code class="language-python">&gt;&gt;&gt; import b
-&gt;&gt;&gt; b.g()
-1    # Printed a first time since module &#39;a&#39; calls &#39;print f()&#39; at the end
-1    # Printed a second time, this one is our call to &#39;g&#39;
-</code></pre>
+<h2 id="toc_1">全局样式</h2>
 
                         
                       </div>
@@ -283,10 +222,10 @@ def g():
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:32 PM</span>
+                    <span class="date">2017/1/1 9:54 AM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
+          					    <span class="posted-in"><a href='Bootstrap.html'>Bootstrap</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -305,12 +244,12 @@ def g():
 			<div class="row">
 			  <div class="large-6 columns">
 			  <p class="text-left" style="padding-top:25px;">
-			   <a href="Python_5.html">&laquo; Prev Page</a>  
+			   <a href="all_23.html">&laquo; Prev Page</a>  
 			  </p>
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			 <a href="Python_7.html">&raquo; Next Page</a> 
+			
 			</p>
 			  </div>
 			</div>
