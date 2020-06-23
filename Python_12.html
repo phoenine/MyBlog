@@ -109,40 +109,270 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15142967450536.html">
+                <a class="clearlink" href="15211187332796.html">
                 
-                  <h1>Pyhton变量变换原理</h1>
+                  <h1>Python 陷阱与缺陷列表</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
+                        	<p>我个人对陷阱的定义是这样的：代码看起来可以工作，但不是以你“想当然“”的方式。如果一段代码直接出错，抛出了异常，我不认为这是陷阱。比如，Python程序员应该都遇到过的“UnboundLocalError”, 示例：</p>
 
-<pre><code class="language-C">tmp = x;
-x = y;
-y = tmp;
+<pre><code class="language-python">&gt;&gt;&gt; a=1
+&gt;&gt;&gt; def func():
+...     a+=1
+...     print a
+...
+&gt;&gt;&gt; func()
+Traceback (most recent call last):
+File &quot;&lt;stdin&gt;&quot;, line 1, in &lt;module&gt;
+File &quot;&lt;stdin&gt;&quot;, line 2, in func
+UnboundLocalError: local variable &#39;a&#39; referenced before assignment
 </code></pre>
 
-<p>而在python中，则无需中间变量即可实现：</p>
+<p>&lt;-朕的朱批 -&gt; 这是因为在函数内部对变量赋值进行修改后，该变量就会被Python解释器认为是局部变量而非全局变量，当程序执行到a+=1的时候，因为这条语句是给a赋值，所以a成为了局部变量，那么在执行print a的时候，因为a这个局部变量还没有定义，自然就会抛出这样的错误。只要去掉a+=1，或者加关键字global就不会报错了</p>
 
-<pre><code class="language-python">x , y = y, x
+<p>对于“UnboundLocalError”,还有更高级的版本：</p>
+
+<pre><code class="language-python">import random
+ 
+def func(ok):
+    if ok:
+        a = random.random()
+    else:
+        import random
+        a = random.randint(1, 10)
+    return a
+ 
+func(True)# UnboundLocalError: local variable &#39;random&#39; referenced before assignment
 </code></pre>
 
-<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
-将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
+<p>可能对于很多python新手来说，这个Error让人摸不着头脑。但我认为这不算陷阱，因为这段代码一定会报错，而不是默默的以错误的方式运行。不怕真小人，就怕伪君子。我认为缺陷就好比伪君子。</p>
 
-<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
+<p>那么Python中哪些真正算得上陷阱呢？</p>
+
+<p><strong>第一：以mutable对象作为默认参数</strong></p>
+
+<p>这个估计是最广为人知的了，Python和其他很多语言一样，提供了默认参数，默认参数确实是个好东西，可以让函数调用者忽略一些细节（比如GUI编程，Tkinter，QT），对于lambda表达式也非常有用。但是如果使用了可变对象作为默认参数，那么事情就不那么愉快了。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def f(lst = []):
+...     lst.append(1)
+...     return lst
+...
+&gt;&gt;&gt; f()
+[1]
+&gt;&gt;&gt; f()
+[1, 1]
 </code></pre>
 
-<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
+<p>惊喜不惊喜？！究其原因，python中一切都是对象，函数也不列外，默认参数只是函数的一个属性。而默认参数在函数定义的时候已经求值了。<br/>
+<code>Default parameter values are evaluated when the function definition is executed.</code><br/>
+&lt;-朕的朱批 -&gt; lst是可变对象，默认参数在函数定义的时候已经求值了</p>
 
-<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
+<p>stackoverflow上有一个更适当的例子来说明默认参数是在定义的时候求值，而不是调用的时候。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import time
+&gt;&gt;&gt; def report(when=time.time()):
+... return when
+...
+&gt;&gt;&gt; report()
+1500113234.487932
+&gt;&gt;&gt; report()
+1500113234.487932
 </code></pre>
 
-<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
-接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
-运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
-<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
+<p>python docoment 给出了标准的解决办法：<br/>
+<code>A way around this is to use None as the default, and explicitly test for it in the body of the function</code></p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def report(when=None):
+...  if when is None:
+...  when = time.time()
+... return when
+...
+&gt;&gt;&gt; report()
+1500113446.746997
+&gt;&gt;&gt; report()
+1500113448.552873
+</code></pre>
+
+<p><strong>第二: x += y vs x = x + y</strong><br/>
+一般来说，二者是等价的，至少看起来是等价的（这也是陷阱的定义 — 看起来都OK，但不一定正确）。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=1;x += 1;print x
+2 
+&gt;&gt;&gt; x=1;x = x+1;print x
+2
+&gt;&gt;&gt; x=[1];x+=[2];print x
+[1, 2]
+&gt;&gt;&gt; x=[1];x=x+[2];print x
+[1, 2]
+</code></pre>
+
+<p>呃，被光速打脸了？</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; x=[1];print id(x);x=x+[2];print id(x) 
+4357132800
+4357132728
+&gt;&gt;&gt; x=[1];print id(x);x+=[2];print id(x)
+4357132800
+4357132800
+</code></pre>
+
+<p>前者x指向一个新的对象，后者x在原来的对象是修改，当然，那种效果是正确的取决于应用场景。至少，得知道，二者有时候并不一样</p>
+
+<p>&lt;-朕的朱批 -&gt; 我们可以通过dis来检查下这两者的区别;</p>
+
+<pre><code class="language-python">import dis
+
+def foo(x, y):
+    x += y
+
+def foo2(x, y):
+    x = x + y
+
+print dis.dis(foo)
+print dis.dis(foo2)
+</code></pre>
+
+<p>输出结果如下：</p>
+
+<pre><code class="language-python">74            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 INPLACE_ADD         
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+
+77            0 LOAD_FAST                0 (x)
+              3 LOAD_FAST                1 (y)
+              6 BINARY_ADD          
+              7 STORE_FAST               0 (x)
+             10 LOAD_CONST               0 (None)
+             13 RETURN_VALUE             None
+</code></pre>
+
+<p>分别对应INPLACE_ADD和BINARY_ADD<br/>
+更多内容可以参考：<br/>
+<a href="https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python">https://stackoverflow.com/questions/15376509/when-is-i-x-different-from-i-i-x-in-python</a></p>
+
+<p><strong>第三，神奇的小括号–()</strong><br/>
+小括号（parenthese）在各种编程语言中都有广泛的应用，python中，小括号还能表示元组（tuple）这一数据类型, 元组是immutable的序列。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = (1, 2)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;tuple&#39;&gt;
+&gt;&gt;&gt; type(())
+&lt;type &#39;tuple&#39;&gt;
+</code></pre>
+
+<p>但如果只有一个元素呢</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p>神奇不神奇，如果要表示只有一个元素的元组，正确的姿势是：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a=(1,)
+&gt;&gt;&gt; type(a)
+&lt;type &#39;int&#39;&gt;
+</code></pre>
+
+<p><strong>第四：生成一个元素是列表的列表</strong><br/>
+这个有点像二维数组，当然生成一个元素是字典的列表也是可以的，更通俗的说，生成一个元素是可变对象的序列<br/>
+很简单嘛：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a= [[]] * 10
+&gt;&gt;&gt; a
+[[], [], [], [], [], [], [], [], [], []]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a[0] 
+[10]
+</code></pre>
+
+<p>看起来很不错，简单明了，but</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a[1]
+[10]
+&gt;&gt;&gt; a
+[[10], [10], [10], [10], [10], [10], [10], [10], [10], [10]]
+</code></pre>
+
+<p>我猜，这应该不是你预期的结果吧，究其原因，还是因为python中list是可变对象，上述的写法大家都指向的同一个可变对象，正确的姿势</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; a = [[] for _ in xrange(10)]
+&gt;&gt;&gt; a[0].append(10)
+&gt;&gt;&gt; a
+[[10], [], [], [], [], [], [], [], [], []]
+</code></pre>
+
+<p><strong>第五，在访问列表的时候，修改列表</strong><br/>
+列表（list）在python中使用非常广泛，当然经常会在访问列表的时候增加或者删除一些元素。比如，下面这个函数，试图删掉列表中为3的倍数的元素：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def modify_lst(lst):
+... for idx, elem in enumerate(lst):
+... if elem % 3 == 0:
+... del lst[idx]
+</code></pre>
+
+<p>测试一下，</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,4,5,6]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 4, 5]
+</code></pre>
+
+<p>好像没什么错，不过这只是运气好</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; lst = [1,2,3,6,5,4]
+&gt;&gt;&gt; modify_lst(lst)
+&gt;&gt;&gt; lst
+[1, 2, 6, 5, 4]
+</code></pre>
+
+<p>上面的例子中，6这个元素就没有被删除。如果在modify_lst函数中print idx， item就可以发现端倪：lst在变短，但idx是递增的，所以在上面出错的例子中，当3被删除之后，6变成了lst的第2个元素（从0开始）。在C++中，如果遍历容器的时候用迭代器删除元素，也会有同样的问题。<br/>
+如果逻辑比较简单，使用list comprehension是不错的注意<br/>
+&lt;-朕的朱批 -&gt; 不用不知道，一用吓一跳啊<br/>
+修改方法很简单：</p>
+
+<pre><code class="language-python">def mod_list(lst):
+    new_lst = []
+    for elem in lst:
+        if elem % 3 != 0:
+            new_lst.append(elem)
+    return new_lst
+
+lst = [1, 2, 3, 4, 5, 6]
+s = mod_list(lst)
+print s
+
+lst = [1, 2, 3, 6, 5, 4]
+s = mod_list(lst)
+print s
+</code></pre>
+
+<p><strong>第六，闭包与lambda</strong><br/>
+这个也是老生长谈的例子，在其他语言也有类似的情况。先看一个例子:</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+...  return [lambda x:i*x for i in range(5)]
+...
+&gt;&gt;&gt; for multiplier in create_multipliers():
+... print multiplier(2)
+...
+</code></pre>
+
+<p>create_multipliers函数的返回值时一个列表，列表的每一个元素都是一个函数 －－ 将输入参数x乘以一个倍数i的函数。预期的结果时0，2，4，6，8. 但结果是5个8，意外不意外。</p>
+
+<p>由于出现这个陷阱的时候经常使用了lambda，所以可能会认为是lambda的问题，但lambda表示不愿意背这个锅。问题的本质在与python中的属性查找规则，LEGB（local，enclousing，global，bulitin），在上面的例子中，i就是在闭包作用域（enclousing），而Python的闭包是迟绑定，这意味着闭包中用到的变量的值，是在内部函数被调用时查询得到的。<br/>
+解决办法也很简单，那就是变闭包作用域为局部作用域。</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; def create_multipliers():
+... return [lambda x, i = i:i*x for i in range(5)]
+...
+</code></pre>
 
                         
                       </div>
@@ -151,7 +381,7 @@ y = tmp;
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/26 21:59 PM</span>
+                    <span class="date">2018/3/15 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -168,36 +398,240 @@ y = tmp;
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15142936231027.html">
+                <a class="clearlink" href="15211170247112.html">
                 
-                  <h1>Python Unittest与Mock</h1>
+                  <h1>浅谈Python中字符串处理</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p><strong>unittest</strong><br/>
-python内部自带了一个单元测试的模块，pyUnit也就是我们说的：unittest<br/>
-python unittest的框架如下： <br/>
-<img src="media/15142936231027/15142937307631.png" alt=""/><br/>
-基本使用方法如下：</p>
+                        	<h2 id="toc_0">一、拆分含有多种分隔符的字符串</h2>
 
-<ol>
-<li>import unittest module</li>
-<li>定义一个继承自unittest.TestCase的测试用例类。</li>
-<li>定义setUp和tearDown，在每个测试用例前后做一些辅助工作。</li>
-<li>定义测试用例，名字需要以test开头。</li>
-<li>一个测试用例原则上只测试一个方面，测试目的和测试内容应很明确。主要是调用assertEqual、assertRaises等断言方法判断程序执行结果和预期值是否相符。</li>
-<li>调用unittest.main()启动测试</li>
-<li>如果测试未通过，会输出相应的错误提示。如果测试全部通过则不显示任何东西，这时可以添加-v参数显示详细信息。</li>
-</ol>
+<h3 id="toc_1">1.如何拆分含有多种分隔符的字符串</h3>
 
-<p>这里举个简单的例子说明：<br/>
-<img src="media/15142936231027/15142939572020.png" alt=""/></p>
+<p>问题： 我们要把某个字符串依据分隔符号拆分不同的字段，该字符串包含多种不同的分隔符，例如：</p>
 
-<p>常用的断言：<br/>
-<img src="media/15142936231027/15142939778044.png" alt=""/></p>
+<pre><code class="language-python">s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
+</code></pre>
 
-<p><strong>Mock</strong></p>
+<p>其中;,|,\t 都是分隔符号，如何处理？<br/>
+方法一： 连续使用str.split()方法，每次处理一种分隔符号</p>
+
+<pre><code class="language-python">s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
+def mySplit(s,ds):
+    res = [s]    
+    for d in ds:
+        t = []
+        map(lambda x: t.extend(x.split(d)), res)
+        res = t    
+    return res
+
+print mySplit(s,&#39;;|,\t&#39;)
+
+输出：
+[&#39;ab&#39;, &#39;cd&#39;, &#39;efg&#39;, &#39;hi&#39;, &#39;jkl&#39;, &#39;mn&#39;, &#39;opq&#39;, &#39;rst&#39;, &#39;uvw&#39;, &#39;xyz&#39;]
+</code></pre>
+
+<p>方法二： 使用正则表达式的re.split()方法，一次性拆分字符串</p>
+
+<pre><code class="language-python">import re
+
+s = &quot;ab;cd|efg|hi,jkl|mn\topq;rst,uvw\txyz&quot;
+
+print re.split(r&#39;[;|,\t]+&#39;,s)
+
+输出：
+[&#39;ab&#39;, &#39;cd&#39;, &#39;efg&#39;, &#39;hi&#39;, &#39;jkl&#39;, &#39;mn&#39;, &#39;opq&#39;, &#39;rst&#39;, &#39;uvw&#39;, &#39;xyz&#39;]
+</code></pre>
+
+<h2 id="toc_2">二、调整字符串中文本格式</h2>
+
+<h3 id="toc_3">1. 如何判断字符串a是否以字符串b开头或结尾</h3>
+
+<p>问题：某文件系统目录下有一系列文件：a.py,quicksort.c,stack.cpp,b.sh , 编写程序给其中所有.sh文件和.py文件加上用户可执行权限？<br/>
+解决方案：<br/>
+使用字符串中的str.startswith()和end.startswith()方法 (注意：多个匹配时参数使用元组)</p>
+
+<pre><code class="language-python">In [1]: import os    #列出当前目录以.sh和以.py结尾的文件
+In [2]: [name for name in os.listdir(&#39;.&#39;) if name.endswith((&#39;.py&#39;,&#39;.sh&#39;))]
+Out[2]: [&#39;b.sh&#39;, &#39;a.py&#39;]
+
+In [3]: import stat
+
+# 查看 a.py 文件权限
+In [4]: os.stat(&#39;a.py&#39;).st_mode
+Out[4]: 33204# 把文件权限转换成8进制，即为平常看到的权限
+In [5]: oct(os.stat(&#39;a.py&#39;).st_mode)
+Out[5]: &#39;0100664&#39;# 更改文件权限，添加一个可执行权限
+In [6]: os.chmod(&#39;a.py&#39;,os.stat(&#39;a.py&#39;).st_mode | stat.S_IXUSR)
+
+In [7]: ll
+total 0
+-rwxrw-r-- 1 yangevan 0 5月   9 14:48 a.py*
+-rw-rw-r-- 1 yangevan 0 5月   9 14:48 b.sh
+-rw-rw-r-- 1 yangevan 0 5月   9 14:48 quicksort.c
+-rw-rw-r-- 1 yangevan 0 5月   9 14:48 stack.cpp
+</code></pre>
+
+<h3 id="toc_4">2.如何对字符串中文本的格式进行调整</h3>
+
+<p>问题：某软件的log文件，其中日期格式为“yyyy-mm-dd”:</p>
+
+<pre><code class="language-python">2017-05-08 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+2017-05-08 09:12:48 startup packages configure
+09:12:48 startup packages configure
+</code></pre>
+
+<p>我们想把其中日期改为美国日期的格式&quot;mm/dd/yyyy&quot;,2017-05-08 ==&gt; 05/08/2017 ,应如何处理？<br/>
+解决方案：<br/>
+使用正则表达式re.sub()方法做字符串替换，利用正则表达式的捕获组捕获每个部分内容，在字符串中调整各个组的捕获顺序。</p>
+
+<pre><code class="language-python">In [1]: import re
+
+In [2]: log = open(&#39;/var/log/dpkg.log&#39;).read()
+# (\d{4}) 匹配到4个数字为一个捕获组，其顺序为1。故后面替换用\1放到最后，r是为了防止字符串被转义
+In [3]: print re.sub(&#39;(\d{4})-(\d{2})-(\d{2})&#39;,r&#39;\2/\3/\1&#39;, log)
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 startup packages configure
+
+# 也可以为每个捕获组起个名称，而不使用默认顺序来处理
+In [5]: print re.sub(&#39;(?P&lt;year&gt;\d{4})-(?P&lt;month&gt;\d{2})-(?P&lt;day&gt;\d{2})&#39;,r&#39;\g&lt;month&gt;/\g&lt;day&gt;/\g&lt;year&gt;&#39;, log)
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status unpacked passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status half-configured passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 status installed passwd:amd64 1:4.2-3.1ubuntu5.2
+05/08/2017 09:12:48 startup packages configure
+</code></pre>
+
+<h2 id="toc_5">三、字符串拼接</h2>
+
+<h3 id="toc_6">1.如何将多个小字符串拼接成一个大的字符串</h3>
+
+<p>问题：在程序中我们将各个参数按次序收集到列表中： [&quot;<0112>&quot;, &quot;<32>&quot;,&quot;<1024x768>&quot;,&quot;<60>&quot; ],要把各个参数拼接成数据报进行发送&quot;<0112><32><1024x768><60>&quot;<br/>
+解决方案：<br/>
+方法一：迭代列表，连续使用“+”操作依次拼接每一个字符串</p>
+
+<pre><code class="language-python">In [1]: pl = [&quot;&lt;0112&gt;&quot;, &quot;&lt;32&gt;&quot;,&quot;&lt;1024x768&gt;&quot;,&quot;&lt;60&gt;&quot; ]
+
+In [2]: s = &#39;&#39;
+
+# 这种方法会产生许多临时结果，会造成资源的浪费
+In [3]: for p in pl:
+  ...:     s = s + p
+  ...:     print s
+  ...:    
+&lt;0112&gt;&lt;0112&gt;&lt;32&gt;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;
+In [4]: s
+Out[4]: &#39;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;&#39;
+</code></pre>
+
+<p>方法二：使用str.join()方法，更加快速的拼接列表中所有字符串</p>
+
+<pre><code class="language-python">In [5]: &#39;&#39;.join(pl)
+Out[5]: &#39;&lt;0112&gt;&lt;32&gt;&lt;1024x768&gt;&lt;60&gt;&#39;
+</code></pre>
+
+<p>有个列表l = [&#39;abc&#39;,123,45,&#39;xyz&#39;],如何让123和45以字符串的方式拼接</p>
+
+<pre><code class="language-python">In [6]: l = [&#39;abc&#39;,123,45,&#39;xyz&#39;]
+
+# 使用生成器表达式，开销比列表表达式小
+In [7]: (str(x) for x in l)
+  ...:
+Out[7]: &lt;generator object &lt;genexpr&gt; at 0x7fe3cadef550&gt;
+
+In [8]: &#39;&#39;.join(str(x) for x in l)
+Out[8]: &#39;abc12345xyz&#39;
+</code></pre>
+
+<h2 id="toc_7">四、字符串居中对齐</h2>
+
+<h3 id="toc_8">1.如何对字符串进行左、右、居中对齐</h3>
+
+<p>问题： 某个字典存储了一系列属性值</p>
+
+<pre><code class="language-python">{    &quot;loDist&quot;:100.0,    &quot;smartCull&quot;:0.04,    &quot;farclip&quot;:477}
+</code></pre>
+
+<p>在程序中想以工整的格式进行输出，如何处理？<br/>
+解决方案：<br/>
+方法一： 使用字符串的str.ljust(),str.rjust(),str.center()进行,右,居中对齐<br/>
+方法二： 使用format方法，传递类似&#39;<20','>20&#39;,&#39;<sup>20&#39;参数完成同样任务</sup></p>
+
+<pre><code class="language-python">In [1]: s = &#39;abc&#39;In 
+
+Out[2]: &#39;abc                 &#39;
+In [3]: s.ljust(20,&#39;=&#39;)
+Out[3]: &#39;abc=================&#39;
+In [4]: s.center(20)
+Out[4]: &#39;        abc         &#39;
+In [5]: format(s,&#39;&lt;20&#39;)
+Out[5]: &#39;abc                 &#39;
+In [6]: d = {
+  ...:     &quot;loDist&quot;:100.0,
+  ...:     &quot;smartCull&quot;:0.04,
+  ...:     &quot;farclip&quot;:477
+  ...: }
+In [7]: d.keys()
+Out[7]: [&#39;loDist&#39;, &#39;smartCull&#39;, &#39;farclip&#39;]
+In [8]: w =max(map(len,d.keys()))
+In [9]: for k in d:
+  ...:     print k.ljust(w),&#39;:&#39;,d[k]
+  ...:    
+loDist    : 100.0
+smartCull : 0.04
+farclip   : 477
+</code></pre>
+
+<h3 id="toc_9">2.去掉不需要的字符串</h3>
+
+<p>问题：<br/>
+1.过滤掉用户输入中前后多余的空白字符： &#39; <a href="mailto:nick@gmail.com">nick@gmail.com</a> &#39;<br/>
+2.过滤某windows下编辑文本中的&#39;\r&#39;: &#39;hello world\r\n&#39;<br/>
+3.去掉文本中的unicode组合符号(音调):u&#39;zǒu&#39;<br/>
+解决方案：<br/>
+方法一： 字符串strip(),lstrip(),rstrip()方法去掉字符串两端字符<br/>
+方法二：删除单个固定位置的字符，可以使用切片+拼接的方式<br/>
+方法三：字符串的replace方法或正则表达式re.sub()方法删除任意位置字符<br/>
+方法四：字符串translate()方法,可以同时删除多种不同字符</p>
+
+<pre><code class="language-python">In [1]: s = &#39;  abc 123  &#39;
+In [2]: s.strip()
+Out[2]: &#39;abc 123&#39;
+In [3]: s.lstrip()
+Out[3]: &#39;abc 123  &#39;
+In [4]: s = &#39;-----ab+++++&#39;
+In [5]: s.strip(&#39;-+&#39;)
+Out[5]: &#39;ab&#39;
+In [6]: s = &#39;abc:123&#39;
+In [7]: s[:3]+s[4:]
+Out[7]: &#39;abc123&#39;
+In [8]: s = &#39;\tabc\t123\txyz&#39;# 去除\t
+In [9]: s.replace(&#39;\t&#39;,&#39;&#39;)
+Out[9]: &#39;abc123xyz&#39;
+In [10]: s = &#39;\tabc\t123\txyz\ropq\r&#39;
+In [11]: import re# 去除\t\r
+In [12]: re.sub(&#39;[\t\r]&#39;,&#39;&#39;,s)
+Out[12]: &#39;abc123xyzopq&#39;
+In [13]: s = &#39;abc\refg\n\2342\t&#39;# 去除\t\r\n
+In [14]: s.translate(None,&#39;\t\r\n&#39;)
+Out[14]: &#39;abcefg\x9c2&#39;
+In [15]: u = u&#39;zǒu&#39;
+In [16]: u
+Out[16]: u&#39;z\u01d2u&#39;
+In [17]: print u.translate({0x01d2:None})
+zu
+</code></pre>
 
                         
                       </div>
@@ -206,7 +640,7 @@ python unittest的框架如下： <br/>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/26 21:7 PM</span>
+                    <span class="date">2018/3/15 20:30 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -303,31 +737,31 @@ python unittest的框架如下： <br/>
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

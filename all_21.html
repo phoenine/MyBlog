@@ -109,53 +109,105 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14885942470746.html">
+                <a class="clearlink" href="14966683926548.html">
                 
-                  <h1>类方法与对象方法</h1>
+                  <h1>UILable</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">对象方法</h4>
+                        	<h3 id="toc_0">UILable常见属性</h3>
 
-<ul>
-<li>调用：如果想要调用对象方法就必须先创建对象，通过对象名来调用</li>
-<li>声明：使用‘-’号</li>
-</ul>
+<p><code>@property(nonatomic, copy) NSString *text;</code><br/>
+* 显示文字</p>
 
-<h4 id="toc_1">类方法</h4>
+<p><code>@property(nonatomic, retain) UIFont *font;</code><br/>
+* 显示字体</p>
 
-<ul>
-<li>调用：类方法的调用不依赖于对象，如果要调用类方法，不需要去创建对象，直接通过类名来调用。</li>
-<li>声明：使用‘+’号</li>
-<li>在类方法中不能直接访问属性</li>
-<li>属性是在对象创建的时候，跟随着对象一起创建在对象之中</li>
-<li>类第一次被访问的时候，会做类加载，是把类的带啊存储在代码段</li>
-<li>节约空间，提高效率</li>
-<li>如果方法不需要直接访问属性，也不需要直接调用其他的对象方法，则可以定义为类方法</li>
-</ul>
+<p><code>@property(nonatomic, retain) UIColor *textColor;</code><br/>
+* 文字颜色</p>
 
-<h4 id="toc_2">类方法规范</h4>
+<p><code>@property(nonatomic) NSTextAlignment textAlignment;</code><br/>
+* 对齐模式(左对齐，居中对齐， 右对齐)</p>
 
-<ul>
-<li>如果写一个类，可以为这个类提供一个和类同名的类方法；</li>
-</ul>
+<p><code>@property(nonatomic) NSInteger numberOfLines;</code><br/>
+*文字行数</p>
 
-<h4 id="toc_3">NSString最常用的类方法</h4>
+<p><code>property(nonatomic) NSLineBreakMode lineBreakMode;</code><br/>
+* 换行模式</p>
 
-<p>instanceType 作为返回值 代表返回的是当前类的对象<br/>
-<img src="media/14885942470746/14888085422135.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888090342021.jpg" alt=""/></p>
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UILabel *lable = [[UILabel alloc] init];
+    
+    lable.frame = CGRectMake(50, 300, 300, 200);
+    lable.backgroundColor = [UIColor redColor];
+    lable.text = @&quot;你这头猪&quot;;
+    lable.textAlignment = NSTextAlignmentCenter;
+    lable.font = [UIFont systemFontOfSize:20.f];
+    lable.font = [UIFont boldSystemFontOfSize:20.f];
+    lable.textColor = [UIColor purpleColor];
+    lable.shadowOffset = CGSizeMake(4, -10);
+    lable.shadowColor = [UIColor blueColor];
+    lable.lineBreakMode = NSLineBreakByClipping;
+    [self.view addSubview:lable];   
+}
+</code></pre>
 
-<h4 id="toc_4">NSString最常用的对象方法</h4>
+<h3 id="toc_1">UIImageView</h3>
 
-<p><img src="media/14885942470746/14888092424014.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888094300096.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888095451151.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888099962376.jpg" alt=""/><br/>
-<img src="media/14885942470746/14888102494936.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892006938627.jpg" alt=""/><br/>
-<img src="media/14885942470746/14892007099870.jpg" alt=""/></p>
+<p><img src="media/14966683926548/14967586896546.jpg" alt=""/></p>
+
+<h3 id="toc_2">毛玻璃效果</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UIImageView *imageView = [[UIImageView alloc] init];
+    imageView.backgroundColor = [UIColor redColor];
+    imageView.frame = self.view.bounds;
+    imageView.image = [UIImage imageNamed:@&quot;IMG_2585&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    
+    UIToolbar *toolBar = [[UIToolbar alloc] init];
+    toolBar.frame = imageView.bounds;
+    toolBar.barStyle = UIBarStyleBlack;
+    toolBar.alpha = 0.85;
+    [imageView addSubview:toolBar];
+    
+    [self.view addSubview:imageView];
+}
+</code></pre>
+
+<h3 id="toc_3">四种设置UIImage尺寸的方法</h3>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    UIImageView *imageView = [[UIImageView alloc] init];
+    //第一种方式
+    imageView.frame = CGRectMake(100, 100, 200, 200);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.contentMode = UIViewContentModeScaleAspectFill;
+    //第二种方式
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.frame = CGRectMake(0, 0, image.size.width, image.size.height);
+    imageView.backgroundColor = [UIColor purpleColor];
+    imageView.image = image;
+    //第三种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@&quot;1&quot;]];
+    imageView.center = CGPointMake(100, 300);
+    //第四种方式
+    UIImageView *imageView = [[UIImageView alloc] initWithFrame:(CGRectMake(100, 100, 200, 200))];
+    UIImage *image = [UIImage imageNamed:@&quot;1&quot;];
+    imageView.image = image;
+    
+    [self.view addSubview:imageView];
+}
+</code></pre>
 
                         
                       </div>
@@ -164,10 +216,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/3/4 10:24 AM</span>
+                    <span class="date">2017/6/5 21:13 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -181,41 +233,126 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14879879409983.html">
+                <a class="clearlink" href="14965374170472.html">
                 
-                  <h1>对象与方法</h1>
+                  <h1>UIView</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">分组导航标记</h4>
+                        	<h3 id="toc_0">UIView常见属性</h3>
 
-<p>标记：<br/>
-<code># pragma mark XXXX</code><br/>
-分割线：<br/>
-<code># pragma mark -</code></p>
+<p><code>@property(nonatomic, readonly) UIView *superview;</code><br/>
+* 获取自己的父控件对象</p>
 
-<h4 id="toc_1">类的本质</h4>
+<p><code>@property(nonatomic, readonly, copy) NSArray *subviews;</code><br/>
+* 获取自己的子控件对象</p>
+
+<p><code>@property(nonatomic) NSInteger tag;</code><br/>
+* 控件的ID，父控件可以通过tag来找到对应的子控件</p>
+
+<p><code>@property(nonatomic) CGAffineTransform transform;</code><br/>
+* 控件的形变属性(可以设置旋转角度、比例缩放、平移等属性)</p>
+
+<p><code>@property(nonatomic) CGRect frame;</code><br/>
+* 控件矩形框在父控件中的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGRect bounds;</code><br/>
+* 控件矩形框的位置和尺寸</p>
+
+<p><code>@property(nonatomic) CGPoint center;</code><br/>
+* 控件重点的位置</p>
+
+<pre><code>#import &quot;ViewController.h&quot;
+
+@interface ViewController ()
+
+@property(weak, nonatomic) UILabel *lable;
+
+@end
+
+@implementation ViewController
+
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+    
+    UILabel *lable = [[UILabel alloc] init];
+    lable.frame = CGRectMake(200, 100, 100, 60);
+    lable.backgroundColor = [UIColor redColor];
+    [self.view addSubview:lable];
+    self.lable = lable;
+}
+
+- (IBAction)bounds {
+    self.lable.bounds = CGRectMake(0, 0, 200, 40);
+}
+
+- (IBAction)center {
+    self.lable.center = CGPointMake(self.view.frame.size.width * 0.5, self.view.frame.size.height * 0.5);
+}
+@end
+
+</code></pre>
+
+<h3 id="toc_1">常见的方法</h3>
+
+<pre><code>-(void)loadView{
+    [super loadView];
+}
+
+-(void)viewDidLoad{
+    [super viewDidLoad];
+} 
+
+-(void)didReceiveMemoryWarning{
+    [super didReceiveMemoryWarning];
+}
+</code></pre>
+
+<h5 id="toc_2">viewDidLoad</h5>
 
 <ul>
-<li>类的本质是我们自定义的一个<strong>数据类型</strong></li>
-<li>类可以作为方法的参数:<code>- (void) test : (Dog *)Dog;</code></li>
-<li>一个target钟的类无法直接在另外一个target钟访问；</li>
-<li>类的属性代表这个类所拥有的东西；</li>
-<li>类的方法代表该类所具备的行为和功能；</li>
+<li>系统调用</li>
+<li>controller的View加载完毕的时候调用</li>
+<li>控件的初始化，数据的初始化(懒加载)</li>
 </ul>
 
-<h4 id="toc_2">对象作为类的属性</h4>
-
-<p><img src="media/14879879409983/14880765155478.jpg" alt=""/></p>
+<h5 id="toc_3">didReceiveMemoryWarning</h5>
 
 <ul>
-<li>属性的本质是变量；</li>
-<li>在创建对象的时候，对象中的属性是按照类模板中个规定所创建出来的；</li>
-<li>注意_dog是指针变量；如果对象的属性是另一个类的对象，这个属性仅仅是一个指针变量，并没有对象产生；
-<img src="media/14879879409983/14880768553779.jpg" alt=""/>
-<img src="media/14879879409983/14880772940474.jpg" alt=""/>
-如果要再方法中调用当前对象的另一个方法 <code>[self 方法名]</code></li>
+<li>系统调用</li>
+<li>当控制器接受到内存警告调用</li>
+<li>去除一些不必要的内存，去除耗时的内存</li>
+</ul>
+
+<pre><code>- (void)viewDidLoad {
+    [super viewDidLoad];
+    // Do any additional setup after loading the view, typically from a nib.
+//    NSLog(@&quot;%@&quot;, self.greenView.superview);
+//    NSLog(@&quot;%@&quot;, self.greenView.subviews);
+//    NSLog(@&quot;%@&quot;, self.view.subviews);
+    UISwitch *sw = [[UISwitch alloc] init];
+    [sw setHighlighted:true];
+    [self.view addSubview:sw];
+    [sw removeFromSuperview];
+}
+</code></pre>
+
+<h5 id="toc_4">addSubview</h5>
+
+<ul>
+<li>添加一个子控件
+##### removeFromSuperview</li>
+<li>从父控件中移除
+##### -(UIView *)viewwithTag:(NSInteger)tag;</li>
+<li>根据一个tag找出对应的控件</li>
+<li>不推荐使用tag
+
+<ul>
+<li>tag的效率差</li>
+<li>tag容易乱</li>
+</ul></li>
 </ul>
 
                         
@@ -225,10 +362,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/2/25 9:59 AM</span>
+                    <span class="date">2017/6/4 8:50 AM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Objective-C.html'>Objective-C</a></span>
+          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -322,31 +459,31 @@
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

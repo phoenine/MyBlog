@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Ascetic in the deadlock
+  Python - Ascetic in the deadlock
   
   </title>
   
@@ -109,92 +109,109 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655122908336.html">
+                <a class="clearlink" href="15142090414246.html">
                 
-                  <h1>Python常见的错误<六></h1>
+                  <h1>Python学习之整数比较</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
+                        	<p>最近学习python，发现整数比较时一个有趣的现象：</p>
 
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
+<pre><code class="language-python">a = 256
+b = 256
+print id(a)
+print id(b)
+print(a == b)
+print(a is b)
+print(id(a) == id(b))
+print(id(a) is id(b))
+c = 257
+d = 257
+print id(c)
+print id(d)
+print(c == d)
+print(c is d)
+print(id(c) == id(d))
+print(id(c) is id(d))
 </code></pre>
 
-<pre><code>8
-8
-8
-8
-8
+<p>在pycharm中运行的结果是：</p>
+
+<pre><code>32019104
+32019104
+True
+True
+True
+False
+40550424
+40550424
+True
+True
+True
+False
 </code></pre>
 
-<p>你也许希望获得下面的输出结果：  0  2  4  6  8<br/><br/>
-惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
-<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
-因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
-解决的办法有很多：</p>
+<p>而在Python IDE中运行：</p>
 
-<p>第一种办法是用yield惰性求值：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    for i in range(5): yield lambda x : i * x
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
+<pre><code class="language-python">&gt;&gt;&gt; a = 256
+&gt;&gt;&gt; b = 256
+&gt;&gt;&gt; a == b
+True
+&gt;&gt;&gt; a is b
+True
+&gt;&gt;&gt; id(a)
+32346576L
+&gt;&gt;&gt; id(b)
+32346576L
+&gt;&gt;&gt; c = 257
+&gt;&gt;&gt; d = 257
+&gt;&gt;&gt; c == d
+True
+&gt;&gt;&gt; c is d
+False
+&gt;&gt;&gt; id(c)
+39891736L
+&gt;&gt;&gt; id(d)
+39891712L
 </code></pre>
 
-<pre><code>0
-2
-4
-6
-8
+<p>为什么同样是Python2.7.14，得出的结果迥然不同呢？<br/>
+在Python中一切都是对象，因此整数也是对象。对象之间比较是否相等可以用==，也可以用is，两者的区别主要是：<br/>
+- is比较的是两个对象的id值是否相等，也就是比较俩对象是否为同一个实例对象，是否指向同一个内存地址。<br/>
+- ==比较的是两个对象的内容是否相等，默认会调用对象的__eq__()方法。</p>
+
+<p>因此，代码段中<code>a == b</code>很好理解，因为两个对象的值都是256， 而<code>a is b</code>返回True， 说明a和b都是指向同一对象的。但是当值为257时，为什么指向的不是同一个对象呢？</p>
+
+<p><strong>问题一：256和257，差别在哪里？</strong></p>
+
+<p>出于对性能的考虑，Python内部做了很多的优化工作，对于整数对象，Python把一些频繁使用的整数对象缓存起来，保存到一个叫small_ints的链表中，在Python的整个生命周期内，任何需要引用这些整数对象的地方，都不再重新创建新的对象，而是直接引用缓存中的对象。Python把这些可能频繁使用的整数对象规定在范围[-5, 256)之间的小对象放在small_ints中，注意左闭右开。但凡是需要用些小整数时，就从这里面取，不再去临时创建新的对象。因为257不再小整数范围内，因此尽管a和b的值是一样，但是他们在Python内部却是以两个独立的对象存在的，各自为政，互不干涉。</p>
+
+<p>源码位置：<code>Include/intobject.h | Objects/intobject.c</code></p>
+
+<p><strong>小整数对象池：</strong><br/>
+小整数对象池就是一个<strong>PyIntObject指针数组</strong></p>
+
+<pre><code class="language-C">#ifndef NSMALLPOSINTS
+#define NSMALLPOSINTS 257
+#endif
+#ifndef NSMALLNEGINTS
+#define NSMALLNEGINTS 5
+#endif
+#if NSMALLNEGINTS + NSMALLPOSINTS &gt; 0
+/* References to small integers are saved in this array so that they can be shared. The integers that are saved are those in the range -NSMALLNEGINTS (inclusive) to NSMALLPOSINTS (not inclusive).*/
+static PyIntObject *small_ints[NSMALLNEGINTS + NSMALLPOSINTS];
+#endif
 </code></pre>
 
-<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
-在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
+<p>其结构如下：<br/>
+<img src="media/15142090414246/15142908389467.png" alt=""/></p>
 
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x, i=i: i * x for i in range(5)]
+<p><strong>问题二：都是257，is结局为啥不一样？</strong></p>
 
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
+<p>其实答案就是如此简单：</p>
 
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>还有种替代的方案是，使用偏函数：</p>
-
-<pre><code class="language-python">from functools import partial
-from operator import mul
-def create_multipliers():
-    return [partial(mul, i) for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<blockquote>
-<p>转载自微信，仅供个人学习使用</p>
-</blockquote>
+<p>对于Python而言，存储好的脚本文件（Script file）和在Console中的交互式（interactive）命令，执行方式不同。对于脚本文件，解释器将其当作整个代码块执行，而对于交互性命令行中的每一条命令，解释器将其当作单独的代码块执行。而Python在执行同一个代码块的初始化对象的命令时，会检查是否其值是否已经存在，如果存在，会将其重用（这句话不够严谨，后面会详谈）。所以在给出的例子中，文件执行时（同一个代码块）会把a、b两个变量指向同一个对象；而在命令行执行时，a、b赋值语句分别被当作两个代码块执行，所以会得到两个不同的对象，因而is判断返回False。</p>
 
                         
                       </div>
@@ -203,7 +220,7 @@ for multiplier in create_multipliers():
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:31 PM</span>
+                    <span class="date">2017/12/25 21:37 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -220,56 +237,144 @@ for multiplier in create_multipliers():
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655122526636.html">
+                <a class="clearlink" href="15137747318292.html">
                 
-                  <h1>Python常见的错误<五></h1>
+                  <h1>Python格式化输出与format函数</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误5: 当迭代时修改一个列表（List）</h4>
+                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
 
-<p>我们来看下面这个例子：</p>
+<p><strong>打印整数</strong></p>
 
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-for i in range(len(numbers)):
-     if odd(numbers[i]):
-            del numbers[i]
+<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
+
+&gt;&gt;&gt; I&#39;m number 20  
 </code></pre>
 
-<pre><code>---------------------------------------------------------------------------
+<p><strong>打印浮点数(默认)</strong></p>
 
-IndexError                                Traceback (most recent call last)
+<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
 
-&lt;ipython-input-1-c259828f5d17&gt; in &lt;module&gt;
-      2 numbers = [n for n in range(10)]
-      3 for i in range(len(numbers)):
-----&gt; 4      if odd(numbers[i]):
-      5             del numbers[i]
-
-
-IndexError: list index out of range
+&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
 </code></pre>
 
-<p>当迭代的时候，从一个 列表或者数组中删除元素，对于任何有经验的开发者来说，这是一个众所周知的错误。尽管上面的例子非常明显，但是许多高级开发者在更复杂的代码中也并非是故意而为之的。<br/>
-幸运的是，Python包含大量简洁优雅的编程范例，若使用得当，能大大简化和精炼代码。<br/><br/>
-这样的好处是能得到更简化和更精简的代码，能更好的避免程序中出现当迭代时修改一个列表这样的bug。一个这样的范例是递推式列表（list comprehensions）。<br/><br/>
-<a href="https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps">https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps</a><br/><br/>
-而且，递推式列表（list comprehensions）针对这个问题是特别有用的，通过更改上文中的实现，得到一段极佳的代码：</p>
+<p><strong>打印浮点数(指定位数)</strong></p>
 
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-numbers[:] = [n for n in numbers if not odd(n)]  # ahh, the beauty of it all
-numbers
+<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
+
+&gt;&gt;&gt; His height is 1.73 m 
 </code></pre>
 
-<pre><code>[0, 2, 4, 6, 8]
+<p><strong>打印字符串</strong></p>
+
+<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
+
+&gt;&gt;&gt; My name is terry 
 </code></pre>
 
-<blockquote>
-<p>转载自微信，仅供个人学习使用</p>
-</blockquote>
+<p><strong>打印指定占位符宽度</strong></p>
+
+<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
+
+&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
+</code></pre>
+
+<p><strong>打印指定占位符(左对齐)</strong></p>
+
+<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
+
+&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
+</code></pre>
+
+<p><strong>打印指定占位符(前导0)</strong></p>
+
+<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
+
+&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
+</code></pre>
+
+<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
+用法主要包含以下几类：</p>
+
+<p><strong>通过位置</strong><br/>
+字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
+
+<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
+
+&gt;&gt;&gt; aaa,bbb,aaa  
+</code></pre>
+
+<p><strong>通过关键字参数</strong></p>
+
+<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
+
+&gt;&gt;&gt; Terry,18  
+</code></pre>
+
+<p><strong>通过对象属性</strong></p>
+
+<pre><code class="language-python">class Person:
+    def __init__(self,name,age):
+        self.name = name
+        self.age = age
+
+    def __str__(self):
+        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
+
+print str(Person(&#39;Terry&#39;,18))
+
+&gt;&gt;&gt; This guy is Terry,he is 18 old.
+</code></pre>
+
+<p><strong>通过下标</strong></p>
+
+<pre><code class="language-python">person = [&#39;Terry&#39;,18]
+print(&#39;{0[0]},{0[1]}&#39;.format(person))
+
+&gt;&gt;&gt; Terry,18
+</code></pre>
+
+<p><strong>通过格式</strong><br/>
+如上面的前导0：</p>
+
+<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
+
+&gt;&gt;&gt; 00000189
+&gt;&gt;&gt;      189
+&gt;&gt;&gt; aaaaa189
+</code></pre>
+
+<p>以及浮点数：</p>
+
+<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
+
+&gt;&gt;&gt; 321.33
+</code></pre>
+
+<p><strong>其他类型</strong><br/>
+主要就是二进制b、十进制d、八进制o、十六进制x:</p>
+
+<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
+print(&#39;{:d}&#39;.format(46))
+print(&#39;{:o}&#39;.format(46))
+print(&#39;{:x}&#39;.format(46))
+
+&gt;&gt;&gt; 101110
+&gt;&gt;&gt; 46
+&gt;&gt;&gt; 56
+&gt;&gt;&gt; 2e
+</code></pre>
+
+<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
+
+<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
+
+&gt;&gt;&gt; 99,988,844,333
+</code></pre>
 
                         
                       </div>
@@ -278,7 +383,7 @@ numbers
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:30 PM</span>
+                    <span class="date">2017/12/20 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -300,12 +405,12 @@ numbers
 			<div class="row">
 			  <div class="large-6 columns">
 			  <p class="text-left" style="padding-top:25px;">
-			   <a href="all_9.html">&laquo; Prev Page</a>  
+			   <a href="Python_14.html">&laquo; Prev Page</a>  
 			  </p>
 			  </div>
 			  <div class="large-6 columns">
 			<p class="text-right" style="padding-top:25px;">
-			 <a href="all_11.html">&raquo; Next Page</a> 
+			 <a href="Python_16.html">&raquo; Next Page</a> 
 			</p>
 			  </div>
 			</div>

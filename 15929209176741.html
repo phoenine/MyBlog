@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>
     
-  Python - Ascetic in the deadlock
+  Python数据形态及IO操作 - Ascetic in the deadlock
   
   </title>
   
@@ -100,23 +100,36 @@
        
 
  <script type="text/javascript">
-	$(function(){
-		$('#menu_item_index').addClass('is_active');
-	});
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
 </script>
 <div class="row">
-	<div class="large-8 medium-8 columns">
-		<div class="markdown-body home-categories">
-		
-			<div class="article">
-                <a class="clearlink" href="15929209176741.html">
-                
-                  <h1>Python数据形态及IO操作</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<h2 id="toc_0">1.数据型态</h2>
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>Python数据形态及IO操作</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2020/6/23 22:1 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h2 id="toc_0">1.数据型态</h2>
 
 <p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkN0CekufXU3LkIdEkDb0UUKKhXO9gkCo10kicveu17cyRWhRjmhFqtaSw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
 
@@ -366,191 +379,43 @@ with open(&#39;zj.txt&#39;, &#39;r&#39;) as f:
 <p>转载自微信，仅供个人学习使用</p>
 </blockquote>
 
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2020/6/23 22:1 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
 
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-			<div class="article">
-                <a class="clearlink" href="15929207363484.html">
-                
-                  <h1>Python 为什么要保留显式的 self</h1>
-                  <div class="a-content">
-                      
-                      <div class="a-content-text">
-                        
-                        	<p>布鲁斯·埃克尔（Bruce Eckel）<strong>发了篇博文</strong>[1]，提议从类方法的形参列表中删除“self”。我将解释为什么这个提议不能通过。（译注：Bruce 是《Thinking in Java》、《Thinking in C++》等多本书籍的作者，也是个 Python 开发者。他的文章总结了当年在巴西 Pycon 上的一次讨论，主要观点是在定义类方法时，形参中的“self”是多余的，而且由它引发的报错信息具有一定的误导性。）</p>
+    
 
-<h2 id="toc_0"><strong>Bruce 的提议</strong></h2>
+      </div>
 
-<p>Bruce 知道，我们需要一种方法来区分对实例变量的引用和对其它变量的引用，因此他建议将“self”设为关键字。</p>
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+          <a href="15929209361947.html" 
+          title="Previous Post: 超详解 matplotlib 中的折线图方法 plot()">&laquo; 超详解 matplotlib 中的折线图方法 plot()</a>
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15929207363484.html" 
+          title="Next Post: Python 为什么要保留显式的 self">Python 为什么要保留显式的 self &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
 
-<p>考虑一种典型的类，它有一个方法，例如：</p>
+          
 
-<pre><code class="language-C">class C:
-   def meth(self, arg):
-      self.val = arg
-      return self.val
-</code></pre>
-
-<p>跟据 Bruce 的提议，这将变为：</p>
-
-<pre><code class="language-C">class C:
-   def meth(arg):# Look ma, no self!
-      self.val = arg
-      return self.val
-</code></pre>
-
-<p>这样每个方法会节省 6 个字符。但我不觉得 Bruce 提出这个建议是为了减少打字。</p>
-
-<p>我认为他真正关心的是程序员（可能来自其它语言）所浪费的时间，有时候似乎不需要指定“self”参数，而且他们偶尔忘记了要加（即使他们十分清楚——习惯是一种强大的力量）。确实，与忘记在实例变量或方法引用之前键入“self.”相比，从参数列表中省略“self”，往往会导致很模糊的错误消息。</p>
-
-<p>也许更糟糕的是（如 Bruce 所述），当正确地声明了方法，但是在调用时的参数数量不对，这时收到的错误消息。如 Bruce 给出的以下示例：</p>
-
-<pre><code>Traceback (most recent call last):
-File &quot;classes.py&quot;, line 9, in
-   obj.m2(1)
-TypeError: m2() takes exactly 3 arguments (2 given)
-</code></pre>
-
-<p>我赞同它是令人困惑的，但是我宁愿去解决此错误消息，而不是修改语言。</p>
-
-<h2 id="toc_1"><strong>为什么 Bruce 的提议不可行</strong></h2>
-
-<p>首先，让我提出一些与 Bruce 的提议相反的典型论点。</p>
-
-<p>这有一个很好的论据可以证明，在参数列表中使用显式的“self”，可以增强以下两种调用方法在理论上的等效性。假设“ foo”是“C”的一个实例：</p>
-
-<pre><code>foo.meth(arg) == C.meth(foo, arg)
-</code></pre>
-
-<p>（译注：说实话，我没有理解这个例子的意思。以下仅是个人看法。在类的内部定义方法时，可能会产生几种不同的方法：<strong>实例方法</strong>、<strong>类方法</strong>和 <strong>静态方法</strong>。它们的作用和行为是不同的，那么在定义和调用时怎么做区分呢？Python 约定了一种方式，即在定义时用第一个参数作区分：self 表示实例方法、cls或其它符号 表示类方法……三种方法都可以被类的实例调用，而且看起来一模一样，如上例的等号左侧那样。这时候就要靠定义时赋予的参数来区分了，像上例等号右侧，第一个参数是实例对象，表明此处是个实例方法。）</p>
-
-<p>另一个论据是，在参数列表中使用显式的“self”，将一个函数插入一个类，获得动态地修改一个类的能力，创建出相应的一个类方法。</p>
-
-<p>例如，我们可以创建一个与上面的“C”完全等效的类，如下所示：</p>
-
-<pre><code># Define an empty class:
-class C:
-   pass
-
-# Define a global function:
-def meth(myself, arg):
-   myself.val = arg
-   return myself.val
-
-# Poke the method into the class:
-C.meth = meth
-</code></pre>
-
-<p>请注意，我将“self”参数重命名为“myself”，以强调（在语法上）我们不是在此处定义一个方法（译注：类外部的是<strong>函数</strong>，即 function，类内部的是<strong>方法</strong>，即 method）。</p>
-
-<p>这样之后，C 的实例就具有了一个“meth”方法，该方法有一个参数，且功能跟之前的完全一样。对于在把方法插入类之前就创建的那些 C 的实例，它甚至也适用。</p>
-
-<p>我想 Bruce 并不特别在意前述的等效性。我同意这只是理论上的重要。我能想到的唯一例外是旧式的调用超级方法的习语（idiom）。但是，这个习语很容易出错（正是由于需要显式地传递&quot;self&quot;的原因），这就是为什么在 Python 3000中，我建议在所有情况下都使用&quot;super()&quot;的原因。</p>
-
-<p>Bruce 可能会想到一种使第二个等效例子起作用的方法——在某些情况下，这种等效性真的很重要。我不知道 Bruce 花了多少时间思考如何实现他的提议，但是我想他正在考虑将一个名为“self”的额外形参自动地添加到直接地在类内部定义的所有方法的思路（我必须说是“直接地”，以便那些嵌套在方法内部的函数，能免于这种自动操作）。这样，可以使第一个等效例子保持等效。</p>
-
-<p>但是，有一种情况我认为 Bruce 不能在不向编译器中添加某种 ESP 的情况下解决：<strong>装饰器。</strong>我相信这是 Bruce 的提议的最终败笔。</p>
-
-<p>当装饰一个方法时，我们不知道是否要自动地给它加一个“self”参数：装饰器可以将函数变成一个静态方法（没有“self”）或一个类方法（有一个有趣的 self，它指向一个类而不是一个实例），或者可以做一些完全不同的事情（用纯 Python 实现“ @classmethod”或“ @staticmethod”的装饰器是繁琐的）。除非知道装饰器的用途，否则没有其它办法来确定是否要赋予正在定义的方法一个隐式的“self”参数。</p>
-
-<p>我拒绝诸如特殊包装的“@classmethod”和“@staticmethod”之类的黑科技。我也认为除了自检外，自动地确定某个方法是类方法（class method）、实例方法（instance method）还是静态方法（static method），这不是一个好主意（就像在 Bruce 的文章的评论中，有人建议的那样）：这使得很难仅仅根据方法前的“def”，来决定应该怎样调用该方法。</p>
-
-<p>（译注：对于一个方法，在当前的添加了相应参数的情况下，可以简单地加装饰器，区分它是哪种方法，调用时也容易区分调用；但是，如果没有加参数，即使可以用神奇的自动机制来区分出它是哪种方法，但在调用时，你不好确定该怎么调用）。</p>
-
-<p>在评论中，我看到了一些非常极端的对 Bruce 的提议的附和，但通常的代价是使得规则难以遵循，或者要求对语言进行更深层的修改，这令我们极其难以接受它，特别是合入 Python 3.1。顺便说一句，对于 3.1，再次声明我们的规则，新特性只有在保持向后兼容的情况下才是可接受的。</p>
-
-<p>有一个似乎可行的建议（可以使它向后兼容）是把类中的</p>
-
-<pre><code>def foo(self, arg): ...
-</code></pre>
-
-<p>改成这样的语法糖：</p>
-
-<pre><code>def self.foo(arg): ...
-</code></pre>
-
-<p>但我不认同它把“self”变为保留字（reserved word），或者要求前缀必须是“self”。如果这样做了，那对于类方法，很容易也出现这种情况：</p>
-
-<pre><code>@classmethod
-def cls.foo(arg): ...
-</code></pre>
-
-<p>好了，相比于现状，我并没有更喜欢这个。但是相比于 Bruce 的提议或在他的博客评论区中提出的更极端的说法，我认为这个要好得多，而且它具有向后兼容的巨大优势，并且不需要很费力，就可以写成带有参考实现的 PEP。（我想 Bruce 应该会发现自己提案中的缺陷，如果他真的付出努力尝试编写可靠的 PEP 或者尝试实现它。）</p>
-
-<p>我可以继续聊很多，但这是一个阳光明媚的周日早晨，而我还有其它的计划... :-)</p>
-
-<p>作者：Guido van Rossum，写于：2008.10.26</p>
-
-<p><strong>参考资料</strong></p>
-
-<p>[1] Bruce博文：<a href="http://www.artima.com/weblogs/viewpost.jsp?thread=239003">http://www.artima.com/weblogs/viewpost.jsp?thread=239003</a></p>
-
-<p>[2] Guido原文: <a href="https://neopythonic.blogspot.com/2008/10/why-explicit-self-has-to-stay.html">https://neopythonic.blogspot.com/2008/10/why-explicit-self-has-to-stay.html</a></p>
-
-<blockquote>
-<p>转载自微信，仅供个人学习使用</p>
-</blockquote>
-
-                        
-                      </div>
-                  </div>
-                </a>
-                <div class="read-more clearfix">
-                  <div class="more-left left">
-                  
-                    <span class="date">2020/6/23 21:58 PM</span>
-                    <span>posted in&nbsp;</span> 
-          				  
-          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
-          				   
-                  </div>
-                  <div class="more-right right">
-                  <span class="comments">
-                      
-
-                       
-                  </span>
-                  </div>
-                </div>
-              </div><!-- article -->
-        
-              
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
 
 
-			<div class="row">
-			  <div class="large-6 columns">
-			  <p class="text-left" style="padding-top:25px;">
-			   <a href="Python.html">&laquo; Prev Page</a>  
-			  </p>
-			  </div>
-			  <div class="large-6 columns">
-			<p class="text-right" style="padding-top:25px;">
-			 <a href="Python_2.html">&raquo; Next Page</a> 
-			</p>
-			  </div>
-			</div>
-		</div>
-	</div><!-- large 8 -->
+
 
  <div class="large-4 medium-4 columns">
   <div class="hide-for-small">

@@ -109,88 +109,202 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15142078830298.html">
+                <a class="clearlink" href="15156751072902.html">
                 
-                  <h1>Auto Migrate Tool</h1>
+                  <h1>Python对象的浅拷贝与深拷贝</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
+                        	<p>我们知道，对象赋值实际上是简单的对象引用。也就是说，当你创建了一个对象，然后把它赋值给另外一个变量的时候，Python并没有拷贝这个对象，而是拷贝了这个对象的引用。<br/>
+举例说明：</p>
 
-<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
-function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
-function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
-function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
-
-COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
-UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
-OPTIMAL_COMPUTER=&#39;&#39;
-INIT_USED=8.0
-for COMPUTER in $COMPUTER_LIST
-    do
-        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
-        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
-        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
-            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
-            OPTIMAL_COMPUTER=$COMPUTER
-            break
-        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
-            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
-            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$CPUS_USED
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            fi
-        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
-            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
-            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
-            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
-            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
-            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
-                INIT_USED=$USED_RATE
-                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
-                OPTIMAL_COMPUTER=$COMPUTER
-                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
-            else
-                continue
-            fi
-        else
-            echo__red &quot;This computer node is full.&quot;
-        fi
-    done
-echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
-echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
-nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
-UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
-if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
-    echo &quot;Still migrating, please wait...&quot;
-    sleep 5
-fi
-echo__green &quot;Live migration is successfully.&quot;  
+<pre><code class="language-python">x = 3.14
+y = x
 </code></pre>
 
-<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
+<p>语句<code>x = 3.14</code>创建了一个浮点型对象并将其引用赋值给x。<br/>
+x是第一个引用。<br/>
+语句<code>y = x</code>创建了一个指向同一对象的别名y，而事实上并没有为y创建一个新对象(该对象引用计数变成了2)。<br/>
+<img src="media/15156751072902/15156757071783.jpg" alt=""/></p>
+
+<h3 id="toc_0">对象赋值</h3>
+
+<p>直接看一段代码：</p>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = will
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出为：<br/>
+<img src="media/15156751072902/15156770585054.png" alt=""/></p>
+
+<p>下面来分析一下这段代码：</p>
 
 <ul>
-<li><p>通过bc</p>
+<li>首先，创建了一个名为will的变量，这个变量指向一个list对象，从第一张图中可以看到所有对象的地址（每次运行，结果可能不同）</li>
+<li>然后，通过will变量对wilber变量进行赋值，那么wilber变量将指向will变量对应的对象（内存地址），也就是说&quot;wilber is will&quot;，&quot;wilber[i] is will[i]&quot;
 
-<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
+<ul>
+<li>可以理解为，Python中，对象的赋值都是进行对象引用（内存地址）传递</li>
+</ul></li>
+<li>第三张图中，由于will和wilber指向同一个对象，所以对will的任何修改都会体现在wilber上
 
-<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
-</code></pre></li>
-<li><p>通过dc<br/>
-可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
-<li><p>expr<br/>
-expr竟然也可以？先保存下来，下次再试试：</p>
-
-<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
-echo $b is bigger
-else
-echo $a is bigger
-fi
-</code></pre></li>
+<ul>
+<li>这里需要注意的一点是，str是不可变类型，所以当修改的时候会替换旧的对象，产生一个新的地址39758496
+<img src="media/15156751072902/15156771227464.png" alt=""/></li>
+</ul></li>
 </ul>
+
+<h3 id="toc_1">浅拷贝</h3>
+
+<p>下面就来看看浅拷贝的结果：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.copy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156771638072.png" alt=""/><br/>
+分析一下这段代码：</p>
+
+<ul>
+<li>首先，依然使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的浅拷贝函数copy()，对will指向的对象进行浅拷贝，然后浅拷贝生成的新对象赋值给wilber变量
+
+<ul>
+<li>浅拷贝会创建一个新的对象，这个例子中&quot;wilber is not will&quot;</li>
+<li>但是，对于对象中的元素，浅拷贝就只会使用原始元素的引用（内存地址），也就是说&quot;wilber[i] is will[i]&quot;</li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，所以will的修改结果会相应的反应到wilber上
+<img src="media/15156751072902/15156771821899.png" alt=""/>
+总结一下，当我们使用下面的操作的时候，会产生浅拷贝的效果：</li>
+</ul></li>
+<li>使用切片[:]操作</li>
+<li>使用工厂函数（如list/dir/set）</li>
+<li>使用copy模块中的copy()函数
+例如：</li>
+</ul>
+
+<pre><code class="language-python">will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+willber = will[:]
+wiww = list(will)
+</code></pre>
+
+<h3 id="toc_2">深拷贝</h3>
+
+<p>最后来看看深拷贝：</p>
+
+<pre><code class="language-python">import copy
+
+will = [&quot;Will&quot;, 28, [&quot;Python&quot;, &quot;C#&quot;, &quot;JavaScript&quot;]]
+wilber = copy.deepcopy(will)
+
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+
+will[0] = &quot;Wilber&quot;
+will[2].append(&quot;CSS&quot;)
+print id(will)
+print will
+print [id(ele) for ele in will]
+print id(wilber)
+print wilber
+print [id(ele) for ele in wilber]
+</code></pre>
+
+<p>代码的输出结果如下：<br/>
+<img src="media/15156751072902/15156773634373.png" alt=""/></p>
+
+<p>分析一下这段代码：</p>
+
+<ul>
+<li>首先，同样使用一个will变量，指向一个list类型的对象</li>
+<li>然后，通过copy模块里面的深拷贝函数deepcopy()，对will指向的对象进行深拷贝，然后深拷贝生成的新对象赋值给wilber变量
+
+<ul>
+<li>跟浅拷贝类似，深拷贝也会创建一个新的对象，这个例子中&quot;wilber is not will&quot; </li>
+<li>但是，对于对象中的元素，深拷贝都会重新生成一份（有特殊情况，下面会说明），而不是简单的使用原始元素的引用（内存地址）
+
+<ul>
+<li>例子中will的第三个元素指向39737304，而wilber的第三个元素是一个全新的对象39773088，也就是说，&quot;wilber[2] is not will[2]&quot;</li>
+</ul></li>
+</ul></li>
+<li>当对will进行修改的时候
+
+<ul>
+<li>由于list的第一个元素是不可变类型，所以will对应的list的第一个元素会使用一个新的对象39758496</li>
+<li>但是list的第三个元素是一个可不类型，修改操作不会产生新的对象，但是由于&quot;wilber[2] is not will[2]&quot;，所以will的修改不会影响wilber
+<img src="media/15156751072902/15156773891985.png" alt=""/></li>
+</ul></li>
+</ul>
+
+<h3 id="toc_3">拷贝的特殊情况</h3>
+
+<p>其实，对于拷贝有一些特殊情况：</p>
+
+<ul>
+<li>对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有拷贝这一说
+
+<ul>
+<li>也就是说，对于这些类型，&quot;obj is copy.copy(obj)&quot; 、&quot;obj is copy.deepcopy(obj)&quot;</li>
+</ul></li>
+<li>如果元祖变量只包含原子类型对象，则不能深拷贝，看下面的例子
+<img src="media/15156751072902/15156774222287.png" alt=""/></li>
+</ul>
+
+<h3 id="toc_4">总结</h3>
+
+<p>本文介绍了对象的赋值和拷贝，以及它们之间的差异：<br/>
+* Python中对象的赋值都是进行对象引用（内存地址）传递<br/>
+* 使用copy.copy()，可以进行对象的浅拷贝，它复制了对象，但对于对象中的元素，依然使用原始的引用.<br/>
+* 如果需要复制一个容器对象，以及它里面的所有元素（包含元素的子元素），可以使用copy.deepcopy()进行深拷贝<br/>
+* 对于非容器类型（如数字、字符串、和其他&#39;原子&#39;类型的对象）没有被拷贝一说<br/>
+* 如果元祖变量只包含原子类型对象，则不能深拷贝.</p>
+
+<p>文章引用：<br/>
+<a href=""></a><a href="https://www.cnblogs.com/wilber2013/p/4645353.html">https://www.cnblogs.com/wilber2013/p/4645353.html</a></p>
 
                         
                       </div>
@@ -199,10 +313,10 @@ fi
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/25 21:18 PM</span>
+                    <span class="date">2018/1/11 20:51 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -216,144 +330,40 @@ fi
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15137747318292.html">
+                <a class="clearlink" href="15142967450536.html">
                 
-                  <h1>Python格式化输出与format函数</h1>
+                  <h1>Pyhton变量变换原理</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
+                        	<p>我们在C语言中实现变量交换，往往会使用到通过中间变量来交换两个变量的值：</p>
 
-<p><strong>打印整数</strong></p>
-
-<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
-
-&gt;&gt;&gt; I&#39;m number 20  
+<pre><code class="language-C">tmp = x;
+x = y;
+y = tmp;
 </code></pre>
 
-<p><strong>打印浮点数(默认)</strong></p>
+<p>而在python中，则无需中间变量即可实现：</p>
 
-<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
-
-&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
+<pre><code class="language-python">x , y = y, x
 </code></pre>
 
-<p><strong>打印浮点数(指定位数)</strong></p>
+<p>看起来很神奇，那么具体实现机制是什么呢？<br/>
+将这个之前，我们先来了解python的多元赋值机制(《python核心编程3.2》)。通常形式是这样的：</p>
 
-<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
-
-&gt;&gt;&gt; His height is 1.73 m 
+<pre><code class="language-python">x, y , z = 1, 2, &#39;a string&#39;
 </code></pre>
 
-<p><strong>打印字符串</strong></p>
+<p>采取这种方式的赋值是，等号两边的对象其实都是元祖，即：</p>
 
-<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
-
-&gt;&gt;&gt; My name is terry 
+<pre><code class="language-python">(x, y, z) = (1, 2, &#39;a string&#39;)
 </code></pre>
 
-<p><strong>打印指定占位符宽度</strong></p>
-
-<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
-
-&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
-</code></pre>
-
-<p><strong>打印指定占位符(左对齐)</strong></p>
-
-<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
-
-&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
-</code></pre>
-
-<p><strong>打印指定占位符(前导0)</strong></p>
-
-<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
-
-&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
-</code></pre>
-
-<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
-用法主要包含以下几类：</p>
-
-<p><strong>通过位置</strong><br/>
-字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
-
-<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
-
-&gt;&gt;&gt; aaa,bbb,aaa  
-</code></pre>
-
-<p><strong>通过关键字参数</strong></p>
-
-<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
-
-&gt;&gt;&gt; Terry,18  
-</code></pre>
-
-<p><strong>通过对象属性</strong></p>
-
-<pre><code class="language-python">class Person:
-    def __init__(self,name,age):
-        self.name = name
-        self.age = age
-
-    def __str__(self):
-        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
-
-print str(Person(&#39;Terry&#39;,18))
-
-&gt;&gt;&gt; This guy is Terry,he is 18 old.
-</code></pre>
-
-<p><strong>通过下标</strong></p>
-
-<pre><code class="language-python">person = [&#39;Terry&#39;,18]
-print(&#39;{0[0]},{0[1]}&#39;.format(person))
-
-&gt;&gt;&gt; Terry,18
-</code></pre>
-
-<p><strong>通过格式</strong><br/>
-如上面的前导0：</p>
-
-<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
-print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
-
-&gt;&gt;&gt; 00000189
-&gt;&gt;&gt;      189
-&gt;&gt;&gt; aaaaa189
-</code></pre>
-
-<p>以及浮点数：</p>
-
-<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
-
-&gt;&gt;&gt; 321.33
-</code></pre>
-
-<p><strong>其他类型</strong><br/>
-主要就是二进制b、十进制d、八进制o、十六进制x:</p>
-
-<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
-print(&#39;{:d}&#39;.format(46))
-print(&#39;{:o}&#39;.format(46))
-print(&#39;{:x}&#39;.format(46))
-
-&gt;&gt;&gt; 101110
-&gt;&gt;&gt; 46
-&gt;&gt;&gt; 56
-&gt;&gt;&gt; 2e
-</code></pre>
-
-<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
-
-<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
-
-&gt;&gt;&gt; 99,988,844,333
-</code></pre>
+<p>变量名x, y, z都是引用，内存开辟除了三个空间分别存储1, 2, &#39;a string&#39;，三个变量分别指向这三块地址。由这三个变量构造的元组tuple，<strong>它有三个元素，这三个元素并不是x,y,z这三个变量，而是这三个变量所指向的地址空间里的内容</strong>。如果此时再另x=4,此时在地址空间会另开辟出一块空间存储4，x进而指向这块空间，而元组内的三个值仍保持不变。<br/>
+接着我们来解读x, y = y, x， 同样， 它等价于(x, y) = (y, x)。<br/>
+运行时，首先构造一个元组(y, x)，然后构造另一个元组(x, y)，接着用元组(y, x)赋值给(x, y)，元组赋值过程从左到右，依次进行。假如x=1,y=2，先令x=y,此时x=2,然后令y=x,y等于1。<br/>
+<img src="media/15142967450536/15142979681246.jpg" alt=""/></p>
 
                         
                       </div>
@@ -362,7 +372,7 @@ print(&#39;{:x}&#39;.format(46))
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/12/20 20:58 PM</span>
+                    <span class="date">2017/12/26 21:59 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -459,31 +469,31 @@ print(&#39;{:x}&#39;.format(46))
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

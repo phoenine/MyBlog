@@ -109,88 +109,59 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655122908336.html">
+                <a class="clearlink" href="15656215590319.html">
                 
-                  <h1>Python常见的错误<六></h1>
+                  <h1>Python常见的错误<十></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
+                        	<h4 id="toc_0">常见错误10: 浮点与整除</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
 
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
+<pre><code class="language-python">def div1(x,y):
+    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
+def div2(x,y):
+    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
+div1(5,2)
+div1(5.,2)
+div2(5,2)
+div2(5.,2.)
 </code></pre>
 
-<pre><code>8
-8
-8
-8
-8
+<pre><code>5/2 = 2.5
+5.0/2 = 2.5
+5//2 = 2
+5.0//2.0 = 2.0
 </code></pre>
 
-<p>你也许希望获得下面的输出结果：  0  2  4  6  8<br/><br/>
-惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
-<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
-因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
-解决的办法有很多：</p>
+<p>在Python3下结果会有怎样的不同？<br/><br/>
+在Python2中，上述代码输出将是<br/><br/>
+5/2 = 2<br/><br/>
+5.0/2 = 2.5<br/><br/>
+5//2 = 2<br/><br/>
+5.0//2.0 = 2.0  </p>
 
-<p>第一种办法是用yield惰性求值：</p>
+<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
+注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
 
-<pre><code class="language-python">def create_multipliers():
-    for i in range(5): yield lambda x : i * x
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
+<pre><code class="language-python">from future import division
 </code></pre>
 
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
+<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
+然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
+因此，在Python3中，将会是如下结果：<br/><br/>
+5/2 = 2.5<br/><br/>
+5.0/2 = 2.5<br/><br/>
+5//2 = 2<br/><br/>
+5.0//2.0 = 2.0  </p>
 
-<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
-在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
+<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
 
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x, i=i: i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>还有种替代的方案是，使用偏函数：</p>
-
-<pre><code class="language-python">from functools import partial
-from operator import mul
-def create_multipliers():
-    return [partial(mul, i) for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
                         
                       </div>
@@ -199,7 +170,7 @@ for multiplier in create_multipliers():
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:31 PM</span>
+                    <span class="date">2019/8/12 22:52 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -216,52 +187,95 @@ for multiplier in create_multipliers():
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655122526636.html">
+                <a class="clearlink" href="15655124741455.html">
                 
-                  <h1>Python常见的错误<五></h1>
+                  <h1>Python常见的错误<九></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误5: 当迭代时修改一个列表（List）</h4>
+                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>请看下面这个 filefoo.py:</p>
 
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-for i in range(len(numbers)):
-     if odd(numbers[i]):
-            del numbers[i]
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
+
+bad()
 </code></pre>
 
-<pre><code>---------------------------------------------------------------------------
+<p>在Python 2中运行正常：</p>
 
-IndexError                                Traceback (most recent call last)
-
-&lt;ipython-input-1-c259828f5d17&gt; in &lt;module&gt;
-      2 numbers = [n for n in range(10)]
-      3 for i in range(len(numbers)):
-----&gt; 4      if odd(numbers[i]):
-      5             del numbers[i]
-
-
-IndexError: list index out of range
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
 </code></pre>
 
-<p>当迭代的时候，从一个 列表或者数组中删除元素，对于任何有经验的开发者来说，这是一个众所周知的错误。尽管上面的例子非常明显，但是许多高级开发者在更复杂的代码中也并非是故意而为之的。<br/>
-幸运的是，Python包含大量简洁优雅的编程范例，若使用得当，能大大简化和精炼代码。<br/><br/>
-这样的好处是能得到更简化和更精简的代码，能更好的避免程序中出现当迭代时修改一个列表这样的bug。一个这样的范例是递推式列表（list comprehensions）。<br/><br/>
-<a href="https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps">https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps</a><br/><br/>
-而且，递推式列表（list comprehensions）针对这个问题是特别有用的，通过更改上文中的实现，得到一段极佳的代码：</p>
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
 
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-numbers[:] = [n for n in numbers if not odd(n)]  # ahh, the beauty of it all
-numbers
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
 </code></pre>
 
-<pre><code>[0, 2, 4, 6, 8]
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
+
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
+
+<pre><code class="language-python">import sys
+
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
+
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
 </code></pre>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
                         
                       </div>
@@ -270,7 +284,7 @@ numbers
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:30 PM</span>
+                    <span class="date">2019/8/11 16:34 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -367,31 +381,31 @@ numbers
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

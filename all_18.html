@@ -109,167 +109,88 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="14991719231835.html">
+                <a class="clearlink" href="15142078830298.html">
                 
-                  <h1>自定义控件</h1>
+                  <h1>Auto Migrate Tool</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIView的封装</h3>
+                        	<p>最近需要测试NFV某个node的性能，所以需要Node ei-0单独在一个computer上，所以写了一个脚本：</p>
 
-<p>如果一个view内部的子控件比较多，一般会考虑自定义一个view，把它内部子控件的创建屏蔽起来，不让外界关心。外界可以传入对应的模型数据给view，view拿到模型数据后给内部的子控件设置对应的数据继承自系统自带的控件，写一个属于自己的控件。<br/>
-* 目的：封装空间内部的细节，不让外界关心</p>
+<pre><code class="language-sh">function echo__blue()      { echo -e &quot;\e[0;34;1m$1\e[0m&quot;;}
+function echo__red()       { echo -e &quot;\e[0;31;1m$1\e[0m&quot;;}
+function echo__green()     { echo -e &quot;\e[0;32;1m$1\e[0m&quot;;}
+function echo__yellow()    { echo -e &quot;\e[0;33;1m$1\e[0m&quot;;}
 
-<h3 id="toc_1">UIView的封装有两种方式</h3>
-
-<p>通过纯代码封装：<br/>
-1. 新建一个继承UIView的类<br/>
-2. 在刚刚新建类的类扩展中添加子控件属性（用weak声明，防止内存泄露）<br/>
-3. 在initWithFrame:方法中添加子控件<br/>
-4. 在layoutSubviews方法中设置子控件的frame（在该方法中一定要调用[super layoutSubviews]方法）<br/>
-5. 提供一个模型属性，重写模型属性的set方法<br/>
-6. 在该setter方法中取出模型属性，给对应的子控件赋值<br/>
-UIView的封装代码如下：</p>
-
-<pre><code> /**
-  *  CustomView.h文件
-  */
-
- // 步骤1 新建一个继承UIView的类
- #import &lt;UIKit/UIKit.h&gt;
- @class CustomModel;
- @interface CustomView : UIView
- // 在这里为了方便，可以自行添加构造方法，方便使用
- // 步骤5 提供一个`模型`属性，重写模型属性的set方法
- @property (nonatomic, strong) CustomModel *model;
- @end
+COMPUTER_LIST=`nova hypervisor-list | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39;`
+UE_NODE_NAME=`nova list | grep ei-0 | awk &#39;{print $4}&#39;`
+OPTIMAL_COMPUTER=&#39;&#39;
+INIT_USED=8.0
+for COMPUTER in $COMPUTER_LIST
+    do
+        CPUS_USED=`nova hypervisor-show $COMPUTER | grep -i &quot;vcpus_used&quot; | awk &#39;{print $4}&#39; | head -1`
+        echo__blue &quot;$COMPUTER node&#39;s vcpus_used is :  $CPUS_USED&quot;
+        if [[ $(echo &quot;$CPUS_USED == 0.0&quot;|bc) = 1 ]];then
+            echo__blue &quot;Greate! $COMPUTER is a optimal computer.&quot;
+            OPTIMAL_COMPUTER=$COMPUTER
+            break
+        elif [[ $(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt; 8.0 &quot;|bc) = 1 ]];then
+            echo__green &quot;Maybe $COMPUTER is a selectable computer.&quot;
+            if [[ $(echo &quot;$CPUS_USED &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$CPUS_USED
+                OPTIMAL_COMPUTER=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            fi
+        elif [[ $(echo &quot;$CPUS_USED &gt;= 8.0&quot;|bc) = 1 ]] &amp;&amp; [[ $(echo &quot;$CPUS_USED &lt;= 13.0 &quot;|bc) = 1 ]];then
+            echo__red &quot;Maybe $COMPUTER is not a good choice.&quot;
+            INSTANCE_NUMBER=`nova hypervisor-servers compute-159 | awk &#39;{print $4}&#39; | awk &#39;NR&gt;2&#39; | awk &#39;{if(length!=0) print $0}&#39; | wc -l`
+            USED_RATE=$(echo &quot;$CPUS_USED / $INSTANCE_NUMBER&quot; | bc)
+            echo &quot;===========USED_RATE: $USED_RATE=============&quot;
+            if [[ $(echo &quot;$USED_RATE &lt; $INIT_USED&quot;|bc) = 1 ]];then
+                INIT_USED=$USED_RATE
+                echo &quot;===========INIT_USED: $INIT_USED=============&quot;
+                OPTIMAL_COMPUTER=$COMPUTER
+                echo__blue &quot;Now OPTIMAL_COMPUTER is: $COMPUTER.&quot;
+            else
+                continue
+            fi
+        else
+            echo__red &quot;This computer node is full.&quot;
+        fi
+    done
+echo &quot;===========Finally the chosen computer is $OPTIMAL_COMPUTER.==============&quot;
+echo__green &quot;==============Begin to migrate UE node to $OPTIMAL_COMPUTER.=====================&quot;
+nova live-migration $UE_NODE_NAME $OPTIMAL_COMPUTER
+UE_NODE_STATE=`nova list | grep ei-0 | awk &#39;{print $10}&#39;`
+if [ &quot;Running&quot; != &quot;$UE_NODE_STATE&quot; ];then
+    echo &quot;Still migrating, please wait...&quot;
+    sleep 5
+fi
+echo__green &quot;Live migration is successfully.&quot;  
 </code></pre>
 
-<pre><code>/**
- *  CustomView.m文件
- */
- #import &quot;CustomView.h&quot;
- #import &quot;CustomModel.h&quot;
- @interface CustomView ()
- // 步骤2 在刚刚新建类的`类扩展`中添加子控件属性（用`weak`声明，防止内存泄露）
- @property (nonatomic, weak) UIImageView *iconImageView;
- @property (nonatomic, weak) UILabel *nameLabel;
- @end
+<p>shell不是经常使用，所以编写过程中才发现浮点数不能判断以及计算的问题，因此记录下，遇到问题可以这么写：</p>
 
- @implementation CustomView
- // 步骤3 在initWithFrame:方法中添加子控件
- - (instancetype)initWithFrame:(CGRect)frame
- {
-     if (self = [super initWithFrame:frame]) {
-     // 注意：该处不要给子控件设置frame与数据，可以在这里初始化子控件的属性
-     UIImageView *iconImageView = [[UIImageView alloc] init];
-     self.iconImageView = iconImageView;
-     [self addSubview:iconImageView];
+<ul>
+<li><p>通过bc</p>
 
-     UILabel *nameLabel = [[UILabel alloc] init];
-     // 设置子控件的属性
-     nameLabel.textAlignment = NSTextAlignmentCenter;
-     nameLabel.font = [UIFont systemFontOfSize:10];
-     self.nameLabel = nameLabel;
-     [self addSubview:nameLabel];
-     }
-     return self;
- }
+<p>bc是一种任意精度的计算语言，注意是一种语言，它提供了一些语法结构，比如条件判断、循环等，可以说是很强大的，其中一个用途就是用来进行运算以及进制转换。我们经常使用的expr只支持整数运算，对于浮点运算就无能为力了，而且expr不能进行指数运算，而都有bc这些都不再话下。</p>
 
- // 步骤4 在`layoutSubviews`方法中设置子控件的`frame`（在该方法中一定要调用`[super layoutSubviews]`方法）
- - (void)layoutSubviews
- {
-     [super layoutSubviews];
+<pre><code class="language-sh">$(echo &quot;$CPUS_USED &gt; 0.0&quot;|bc) = 1
+</code></pre></li>
+<li><p>通过dc<br/>
+可能你曾经知道有此命令，也可能你还不知道。dc相比与bc要复杂，但是简单操作还是比较简单。简单的说dc是一直压栈操作，和bc一样，它也可以交互使用，或者与echo一起配合使用，它也支持浮点运算。dc后续再作研究。</p></li>
+<li><p>expr<br/>
+expr竟然也可以？先保存下来，下次再试试：</p>
 
-     CGFloat iconImageViewX = 0;
-     CGFloat iconImageViewY = 0;
-     CGFloat iconImageViewW = self.bounds.size.width;
-     CGFloat iconImageViewH = 80;
-     self.iconImageView.frame = CGRectMake(iconImageViewX, iconImageViewY, iconImageViewW, iconImageViewH);
-
-     CGFloat nameLabelX = 0;
-     CGFloat nameLabelY = iconImageViewH;
-     CGFloat nameLabelW = iconImageViewW;
-     CGFloat nameLabelH = self.bounds.size.height - iconImageViewH;
-     self.iconImageView.frame = CGRectMake(nameLabelX, nameLabelY, nameLabelW, nameLabelH);
- }
-
- // 步骤6 在该`setter`方法中取出模型属性，给对应的子控件赋值
- - (void)setModel:(CustomModel *)model
- {
-     _model = model;
-     self.iconImageView.image = [UIImage imageNamed:model.icon];
-     self.nameLabel.text = model.name;
- }
- @end
-</code></pre>
-
-<p>layoutSubviews在以下情况下会被调用：<br/>
-1. init初始化不会触发layoutSubviews<br/>
-2. addSubview会触发layoutSubviews<br/>
-3. 设置view的Frame会触发layoutSubviews，当然前提是frame的值设置前后发生了变化<br/>
-4. 滚动一个UIScrollView会触发layoutSubviews<br/>
-5. 旋转Screen会触发父UIView上的layoutSubviews事件<br/>
-6. 改变一个UIView大小的时候也会触发父UIView上的layoutSubviews事件</p>
-
-<p>模型代码如下：</p>
-
-<pre><code> /**
-  *  CustomModel.h文件
-  */
- #import &lt;Foundation/Foundation.h&gt;
-
- @interface CustomModel : NSObject
-    /**
-     *  名字
-     */
- @property (nonatomic, copy) NSString *name;
-    /**
-     *  图片
-     */
- @property (nonatomic, copy) NSString *icon;
-
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon;
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon;
-
- @end
-</code></pre>
-
-<pre><code> /**
-  *  CustomModel.m文件
-  */
- #import &quot;CustomModel.h&quot;
-
- @implementation CustomModel
- + (instancetype)modelWithName:(NSString *)name icon:(NSString *)icon
- {
-     return [[self alloc] initWithName:name icon:icon];
- }
-
- - (instancetype)initWithName:(NSString *)name icon:(NSString *)icon
- {
-     if (self = [super init]) {
-         self.name = name;
-         self.icon = icon;
-     }
-     return self;
- }
- @end
-</code></pre>
-
-<p>如何使用？只需在控制器代码中执行4个步骤，简单方便：</p>
-
-<pre><code>// 创建自定义的View
- CustomView *customView = [[CustomView alloc] init];
-// 设置数据
- CustomModel *model = [CustomModel modelWithName:@&quot;hosea_zhou&quot; icon:@&quot;1&quot;];
- customView.model = model;
-// 设置frame
- customView.frame = CGRectMake(100, 100, 67, 100);
-// 添加子控件
- [self.view addSubview:customView];
-</code></pre>
+<pre><code class="language-sh">if [ `expr $a \&gt; $b` -eq 0 ];then
+echo $b is bigger
+else
+echo $a is bigger
+fi
+</code></pre></li>
+</ul>
 
                         
                       </div>
@@ -278,10 +199,10 @@ UIView的封装代码如下：</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/7/4 20:38 PM</span>
+                    <span class="date">2017/12/25 21:18 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          					    <span class="posted-in"><a href='Linux.html'>Linux</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -295,61 +216,144 @@ UIView的封装代码如下：</p>
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="14976187081535.html">
+                <a class="clearlink" href="15137747318292.html">
                 
-                  <h1>UIButton</h1>
+                  <h1>Python格式化输出与format函数</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">UIButton的状态</h3>
+                        	<p>本文主要整理和汇总python一系列的格式化输出方式：</p>
 
-<ul>
-<li><p>normal(普通状态)</p>
+<p><strong>打印整数</strong></p>
 
-<ul>
-<li>默认情况（DEFAULT）</li>
-<li>对应的枚举常量： UIControlStateNormal</li>
-</ul></li>
-<li><p>highlighted (高亮状态)</p>
+<pre><code class="language-python">print (&quot;I&#39;m number %d&quot; % (20))
 
-<ul>
-<li>按钮被按下去的时候</li>
-<li>对应的枚举常量： UIControlStateHighlighted</li>
-</ul></li>
-<li><p>disabled (失效状态)</p>
-
-<ul>
-<li>如果enabled属性为NO，就是出于disabled状态，代表按钮不可以被点击</li>
-<li>对应的枚举变量： UIControlStateDisabled</li>
-</ul></li>
-</ul>
-
-<h3 id="toc_1">UIButton代码应用</h3>
-
-<pre><code>- (void)viewDidLoad {
-    [super viewDidLoad];
-    // Do any additional setup after loading the view, typically from a nib.
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    button.frame = CGRectMake(100, 300, 200, 100);
-    button.backgroundColor = [UIColor redColor];
-    [button setTitle:@&quot;Mytest&quot; forState:UIControlStateNormal];
-    [button setTitleColor:[UIColor yellowColor] forState:UIControlStateNormal];
-    [button setTitle:@&quot;HighLight&quot; forState:UIControlStateHighlighted];
-    [button setTitleColor:[UIColor blueColor] forState:UIControlStateHighlighted];
-    [button setImage:[UIImage imageNamed:@&quot;makefg&quot;] forState:UIControlStateNormal];
-
-    [self.view addSubview:button];
-    [button addTarget:self action:@selector(clickButton:) forControlEvents:UIControlEventTouchDown];
-}
-
--(IBAction)clickButton:(UIButton *)button {
-    button.enabled = NO;
-
-}
+&gt;&gt;&gt; I&#39;m number 20  
 </code></pre>
 
-<h3 id="toc_2">九宫格布局</h3>
+<p><strong>打印浮点数(默认)</strong></p>
+
+<pre><code class="language-python">print(&quot;This book&#39;s weight is %f kg&quot; % (0.85))
+
+&gt;&gt;&gt; This book&#39;s height is 0.850000 kg 
+</code></pre>
+
+<p><strong>打印浮点数(指定位数)</strong></p>
+
+<pre><code class="language-python">print(&quot;His height is %.2f m&quot; % (1.73))
+
+&gt;&gt;&gt; His height is 1.73 m 
+</code></pre>
+
+<p><strong>打印字符串</strong></p>
+
+<pre><code class="language-python">print(&quot;My name is %s&quot; % (&#39;terry&#39;))
+
+&gt;&gt;&gt; My name is terry 
+</code></pre>
+
+<p><strong>打印指定占位符宽度</strong></p>
+
+<pre><code class="language-python">print(&quot;Type:%9s Value:%3d Latency:%5.2f&quot; % (&#39;AVP_KMOD&#39;, 44, 0.45))
+
+&gt;&gt;&gt; Type: AVP_KMOD Value: 44 Latency: 0.45 
+</code></pre>
+
+<p><strong>打印指定占位符(左对齐)</strong></p>
+
+<pre><code class="language-python">print(&quot;Name:%-10s Age:%-8d Height:%-8.2f&quot;%(&quot;Terry&quot;,25,1.83))
+
+&gt;&gt;&gt; Name:Terry      Age:25       Height:1.83 
+</code></pre>
+
+<p><strong>打印指定占位符(前导0)</strong></p>
+
+<pre><code class="language-python">print (&quot;Speed:%010d Rate:%08d Height:%08.2f&quot;%(1000,25,1.83))
+
+&gt;&gt;&gt; Speed:0000001000 Rate:00000025 Height:00001.83 
+</code></pre>
+
+<p>在python2.6之后，又增加了一种格式化字符串的函数str.format()，通过{}来代替%。<br/>
+用法主要包含以下几类：</p>
+
+<p><strong>通过位置</strong><br/>
+字符串的format函数可以接受不限个参数，位置可以不按顺序，可以不用或者用多次:</p>
+
+<pre><code class="language-python">print(&#39;{0},{1},{0}&#39;.format(&#39;aaa&#39;, &#39;bbb&#39;))
+
+&gt;&gt;&gt; aaa,bbb,aaa  
+</code></pre>
+
+<p><strong>通过关键字参数</strong></p>
+
+<pre><code class="language-python">print(&#39;{name},{age}&#39;.format(age=18,name=&#39;Terry&#39;))
+
+&gt;&gt;&gt; Terry,18  
+</code></pre>
+
+<p><strong>通过对象属性</strong></p>
+
+<pre><code class="language-python">class Person:
+    def __init__(self,name,age):
+        self.name = name
+        self.age = age
+
+    def __str__(self):
+        return &#39;This guy is {self.name},he is {self.age} old.&#39;.format(self=self)
+
+print str(Person(&#39;Terry&#39;,18))
+
+&gt;&gt;&gt; This guy is Terry,he is 18 old.
+</code></pre>
+
+<p><strong>通过下标</strong></p>
+
+<pre><code class="language-python">person = [&#39;Terry&#39;,18]
+print(&#39;{0[0]},{0[1]}&#39;.format(person))
+
+&gt;&gt;&gt; Terry,18
+</code></pre>
+
+<p><strong>通过格式</strong><br/>
+如上面的前导0：</p>
+
+<pre><code class="language-python">print(&#39;{:0&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:&gt;8}&#39;.format(&#39;189&#39;))
+print(&#39;{:a&gt;8}&#39;.format(&#39;189&#39;))
+
+&gt;&gt;&gt; 00000189
+&gt;&gt;&gt;      189
+&gt;&gt;&gt; aaaaa189
+</code></pre>
+
+<p>以及浮点数：</p>
+
+<pre><code class="language-python">print(&#39;{:.2f}&#39;.format(321.33345))
+
+&gt;&gt;&gt; 321.33
+</code></pre>
+
+<p><strong>其他类型</strong><br/>
+主要就是二进制b、十进制d、八进制o、十六进制x:</p>
+
+<pre><code class="language-python">print(&#39;{:b}&#39;.format(46))
+print(&#39;{:d}&#39;.format(46))
+print(&#39;{:o}&#39;.format(46))
+print(&#39;{:x}&#39;.format(46))
+
+&gt;&gt;&gt; 101110
+&gt;&gt;&gt; 46
+&gt;&gt;&gt; 56
+&gt;&gt;&gt; 2e
+</code></pre>
+
+<p>此外， 用逗号还能用来做金额的千位分隔符。</p>
+
+<pre><code class="language-python">print(&#39;{:,}&#39;.format(99988844333))
+
+&gt;&gt;&gt; 99,988,844,333
+</code></pre>
 
                         
                       </div>
@@ -358,10 +362,10 @@ UIView的封装代码如下：</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2017/6/16 21:11 PM</span>
+                    <span class="date">2017/12/20 20:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='UI%20Basic.html'>UI Basic</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -455,31 +459,31 @@ UIView的封装代码如下：</p>
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

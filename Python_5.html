@@ -109,55 +109,83 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15656215590319.html">
+                <a class="clearlink" href="15662165783528.html">
                 
-                  <h1>Python常见的错误<十></h1>
+                  <h1>Python常见的错误<十四></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误10: 浮点与整除</h4>
+                        	<h4 id="toc_0">常见错误14: Python 调用机制</h4>
 
-<p>下面这段代码在Python2下输出结果将是什么？请解释。</p>
+<p>我们知道 __call__ 方法可以用来重载圆括号调用，好的，以为问题就这么简单？ Naive ！</p>
 
-<pre><code class="language-python">def div1(x,y):
-    print(&quot;%s/%s = %s&quot; % (x, y, x/y))
-def div2(x,y):
-    print(&quot;%s//%s = %s&quot; % (x, y, x//y))
-div1(5,2)
-div1(5.,2)
-div2(5,2)
-div2(5.,2.)
+<pre><code class="language-python">class A(object):
+    def __call__(self):
+        print(&quot;invoking __call__ from A!&quot;)
 </code></pre>
 
-<pre><code>5/2 = 2.5
-5.0/2 = 2.5
-5//2 = 2
-5.0//2.0 = 2.0
+<pre><code class="language-python">a = A()
+a()
 </code></pre>
 
-<p>在Python3下结果会有怎样的不同？<br/><br/>
-在Python2中，上述代码输出将是<br/><br/>
-5/2 = 2<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
-
-<p>默认情况下，Python 2 自动执行整形计算如果两者都是整数。因此,5/2 结果是2，而5./2结果是2.5。<br/><br/>
-注意，在Python2中，你可以通过增加以下引用来覆写这个行为。  </p>
-
-<pre><code class="language-python">from future import division
+<pre><code>invoking __call__ from A!
 </code></pre>
 
-<p>同时要注意的是，//操作符将总是执行整形除法，不管操作符的类型。这就是为什么即使在Python 2中5.0//2.0的结果是2.0。<br/><br/>
-然而在Python3中，没有此类特性。例如，在两端都是整形的情况下，它不会执行整形除法。<br/><br/>
-因此，在Python3中，将会是如下结果：<br/><br/>
-5/2 = 2.5<br/><br/>
-5.0/2 = 2.5<br/><br/>
-5//2 = 2<br/><br/>
-5.0//2.0 = 2.0  </p>
+<p>现在我们可以看到 a() 似乎等价于 a.__call__() ,看起来很 Easy 对吧，好的，我现在想作死，又写出了如下的代码:</p>
 
-<p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
+<pre><code class="language-python">a.__call__ = lambda: &quot;invoking __call__ from lambda&quot;
+print(a.__call__())
+a()
+</code></pre>
+
+<pre><code>invoking __call__ from lambda
+invoking __call__ from A!
+</code></pre>
+
+<p>为什么 a() 没有调用出 a.__call__()</p>
+
+<p>原因在于，在 Python 中，新式类（ new class  )的内建特殊方法，和实例的属性字典是相互隔离的，具体可以看看 Python 官方文档对于这一情况的说明:</p>
+
+<blockquote>
+<p>For new - style classes , implicit invocations of special methods are only guaranteed to work correctly if defined on an object &#39; s type , not in the object &#39; s instance dictionary. <br/>
+That behaviour is the reason why the following code raises an exception  ( unlike the equivalent example with old - style classes ):</p>
+</blockquote>
+
+<p>同时官方也给出了一个例子：</p>
+
+<pre><code class="language-python">class C(object):
+    pass
+
+c = C()
+c.__len__ = lambda: 5
+len(c)
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+TypeError                                 Traceback (most recent call last)
+
+&lt;ipython-input-4-7039f902a29c&gt; in &lt;module&gt;
+      4 c = C()
+      5 c.__len__ = lambda: 5
+----&gt; 6 len(c)
+
+
+TypeError: object of type &#39;C&#39; has no len()
+</code></pre>
+
+<pre><code class="language-python">c.__len__()
+</code></pre>
+
+<pre><code>5
+</code></pre>
+
+<p>回到我们的例子上来，当我们在执行 a.__call__ = lambda :&quot; invoking __call__ from lambda &quot; 时，的确在我们在 a.__dict__ 中新增加了一个 key 为 __call__ 的 item ，但是当我们执行 a () 时，因为涉及特殊方法的调用，因此我们的调用过程不会从 a.__dict__ 中寻找属性，而是从 tyee ( a ). __dict__ 中寻找属性。因此，就会出现如上所述的情况。</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
                         
                       </div>
@@ -166,7 +194,7 @@ div2(5.,2.)
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/12 22:52 PM</span>
+                    <span class="date">2019/8/19 20:9 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -183,91 +211,112 @@ div2(5.,2.)
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655124741455.html">
+                <a class="clearlink" href="15662165446488.html">
                 
-                  <h1>Python常见的错误<九></h1>
+                  <h1>Python常见的错误<十三></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
+                        	<h4 id="toc_0">常见错误13: 装饰器</h4>
 
-<p>请看下面这个 filefoo.py:</p>
+<p>我想写一个类装饰器用来度量函数/方法运行时间：</p>
 
-<pre><code class="language-python">import sys
+<pre><code class="language-python">import time
 
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-
-def bad():
-    e = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        print(&#39;value error&#39;)
-    print(e)
-
-bad()
+class Timeit(object):
+    def __init__(self, func):
+        self._wrapped = func
+    
+    def __call__(self, *args, **kws):
+        start_time = time.time()
+        result = self._wrapped(*args, **kws)
+        print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
+        return result
 </code></pre>
 
-<p>在Python 2中运行正常：</p>
+<p>希望这个装饰器能够运行在普通函数上：</p>
 
-<pre><code class="language-python">$ python foo.py 1
-key error
-1
-$ python foo.py 2
-value error
-2
+<pre><code class="language-python">@Timeit
+def func():
+    time.sleep(1)
+    return &quot;invoking function func&quot;
 </code></pre>
 
-<p>但是，现在让我们把它在Python 3中运行一下：</p>
+<p>这个装饰器能够运行在普通函数上：</p>
 
-<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
-key error
-Traceback (most recent call last):
-  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
-    bad()
-  File &quot;foo.py&quot;, line 17, in bad
-    print(e)
-UnboundLocalError: local variable &#39;e&#39; referenced before assignment
+<pre><code class="language-python">func()
 </code></pre>
 
-<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
+<pre><code>elapsed time is 1.0005531311035156 
 
-<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
 
-<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
 
-<pre><code class="language-python">import sys
 
-def bar(i):
-    if i == 1:
-        raise KeyError(1)
-    if i == 2:
-        raise ValueError(2)
-        
-def good():
-    exception = None
-    try:
-        bar(int(sys.argv[1]))
-    except KeyError as e:
-        exception = e
-        print(&#39;key error&#39;)
-    except ValueError as e:
-        exception = e
-        print(&#39;value error&#39;)
-    print(exception)
 
-sys.argv.append(1)
-good()
-sys.argv.append(2)
-good()
+&#39;invoking function func&#39;
 </code></pre>
+
+<p>但是运行在方法上会报错，为什么？</p>
+
+<pre><code class="language-python">class A(object):
+    @Timeit
+    def func(self):
+        time.sleep(1)
+        return &#39;invoking method func&#39;
+</code></pre>
+
+<pre><code class="language-python">a = A()
+a.func()
+</code></pre>
+
+<pre><code>---------------------------------------------------------------------------
+
+TypeError                                 Traceback (most recent call last)
+
+&lt;ipython-input-27-27f4a5f7197a&gt; in &lt;module&gt;
+      1 a = A()
+----&gt; 2 a.func()
+
+
+&lt;ipython-input-25-0a38ed0ff6ce&gt; in __call__(self, *args, **kws)
+      7     def __call__(self, *args, **kws):
+      8         start_time = time.time()
+----&gt; 9         result = self._wrapped(*args, **kws)
+     10         print(&quot;elapsed time is %s &quot; % (time.time() - start_time))
+     11         return result
+
+
+TypeError: func() missing 1 required positional argument: &#39;self&#39;
+</code></pre>
+
+<p>使用类装饰器后，在调用 func 函数的过程中其对应的 instance 并不会传递给 __call__ 方法，造成其 mehtod unbound ,那么解决方法是什么呢？</p>
+
+<pre><code class="language-python">class Timeite(object):
+    def __init__(self, func):
+        self.func = func
+    def __call__(self, *args, **kws):
+        print(&#39;invoking Timer&#39;)
+    def __get__(self, instance, owner):
+        return lambda *args, **kws: self.func(instance, *args, **kws)
+</code></pre>
+
+<pre><code class="language-python">class A(object):
+    @Timeite
+    def func(self):
+        time.sleep(1)
+        return &#39;invoking method func&#39;
+    
+a = A()
+a.func()
+</code></pre>
+
+<pre><code>&#39;invoking method func&#39;
+</code></pre>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
                         
                       </div>
@@ -276,7 +325,7 @@ good()
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:34 PM</span>
+                    <span class="date">2019/8/19 20:9 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -373,31 +422,31 @@ good()
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

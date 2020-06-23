@@ -109,212 +109,175 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15928352455072.html">
+                <a class="clearlink" href="15929209495893.html">
                 
-                  <h1>【pythonic】详解Python 3.8的海象算子</h1>
+                  <h1>**高性能 Pandas 方法：query 和 eval**</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<p>最近，Python 社区发布了该语言的 3.8 版本。作为 Python 语法糖的爱好者，我探索了发布说明，关注到了其中一个独特的算子。这个算子被称为「海象算子（Walrus Operator）」或「命名表达式算子（Named Expression operator）」，符号为「:=」。</p>
+                        	<h2 id="toc_0">为什么不喜欢写方括号</h2>
 
-<h2 id="toc_0"><b>海象算子</b></h2>
+<p>对于一个最开始从 R 语言的 Tidyverse 生态中转到 Pandas 中的人来说，除了管道操作符和链式调用的方式外，最不习惯的方式就是 Pandas 在对 DataFrame 做条件筛选或查询时，使用过多的方括号。</p>
+
+<p>先看看在 R 语言的 Tidyverse 生态中筛选操作是怎样的（主要基于 <code>dplyr</code> 包），这里以 iris 数据集为例。</p>
+
+<pre><code>library(tidyverse)
+
+# normal way
+iris[which(iris$Sepal.Length &gt; 5 &amp; iris$Petal.Length &lt;= 1.5), ]
+
+# Tidyverse way
+iris %&gt;% filter(
+    Sepal.Length &gt; 5 &amp; 
+    Petal.Length &lt;= 1.5
+)
+</code></pre>
+
+<p>虽然在 R 语言也可以用方括号加 <code>which</code> 的方式来进行行索引定位，但是相比于 <code>filter</code> 来说反而略显啰嗦。因此 <code>filter</code> 的方式反而更容易被记住且频繁使用。</p>
+
+<p>在 Pandas 中，大部分人往往在初学时最先接触到的就是通过方括号的形式来进行筛选查询，像是这样：</p>
+
+<pre><code># !pip install seaborn
+import pandas as pd
+import seaborn as sns
+
+# Load iris dataset
+iris = sns.load_dataset(&#39;iris&#39;)
+
+# 等价于 iris[(iris.sepal_length &gt; 5) &amp; (iris.petal_length &lt;= 1.5)]
+iris[(iris[&#39;sepal_length&#39;] &gt; 5) &amp; (iris[&#39;petal_length&#39;] &lt;= 1.5)]
+</code></pre>
+
+<p>尽管可以直接通过 <code>iris.column</code> 的形式来调用相应的字段，但是这很容易和方法混在一起，因此在实际项目中往往我更偏好用方括号和引号来表示字段，以增强可读性并同方法相区分。</p>
+
+<p>可我们也很容易看到 Pandas 的筛选写法其实相当冗长，同时这样的形式即便是熟练使用 Pandas 的「老鸟」也会经常这么写，甚至在各种课程中也屡见不鲜。</p>
+
+<p>但其实对于每个使用 Pandas 库的人来说，让代码更简洁才符合 <strong>Pythonic</strong> 的风格。这就是为什么本文所要谈论 <code>query</code> 和 <code>eval</code> 这两个方法的原因。</p>
+
+<h2 id="toc_1">query 和 eval</h2>
+
+<p><code>query</code> 和 <code>eval</code> 方法在 2014年 1 月 3 日的 0.13.0 版本中首次加入，它们允许使用者以传入字符串表达式（Expression）的形式来对 DataFrame 进行操作。</p>
+
+<h3 id="toc_2">用法一：条件筛选与查询</h3>
+
+<p>前面分所述的写法其实可以变成这样：</p>
+
+<pre><code># query
+iris.query(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+
+# eval
+cond = iris.eval(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+iris[cond]
+</code></pre>
+
+<p>相比于传统的括号写法，<code>query</code> 和<code>eval</code> 方法能有效减少在筛选查询时符号冗余的情况，尤其是 <code>query</code> 方法能够紧密地同链式调用相结合从而达到了 R 语言 Tidyverse 中的 <code>filter</code> 用法，类似于这样：</p>
+
+<pre><code>(iris
+    .query(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+    .assign(sepal_len_cut = lambda df: df[&#39;sepal_length&#39;]
+                .pipe(pd.cut, bins=3), 
+            petal_len_cut = lambda df: df[&#39;petal_length&#39;]
+                .pipe(pd.cut, bins=3))
+    .groupby([&#39;sepal_len_cut&#39;, &#39;petal_len_cut&#39;])
+    .sum()
+    .dropna()
+)
+</code></pre>
+
+<p>当筛选的条件为多条件时，除了使用六个引号的长字符串之外，还<strong>需要注意</strong>的就是手动加上<code>\</code> 进行断行，就像这样：</p>
+
+<pre><code>iris.query(
+    &quot;&quot;&quot;
+    sepal_length &gt; 5 &amp; \
+    petal_length &lt;= 1.5
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<p>否则会导致报错，因为这段查询表达式的字符串中<strong>多出了不恰当的换行符</strong>，从而导致表达式不能够被正确解析。</p>
+
+<p>同时需要注意的是，如果你的数据字段命存在一些空格或者下划线之类的特殊符号，那么可能也会同样导致报错。在 R 语言中你可以通过加上反引号「``」（键盘上 Esc 键下面的那个符号）来避免，就像这样：</p>
+
+<pre><code>library(tidyverse)
+
+df &lt;- data.frame(
+  A = seq(0,10,2),
+  B = seq(1,11,2)
+) 
+
+df %&gt;% 
+  rename(`B B` = &quot;B&quot;) %&gt;% 
+  filter(`B B` &gt; 5)
+</code></pre>
+
+<p>当然，在 Python 中你也可以同样如此，Pandas 对此也已经进行了支持：</p>
+
+<pre><code>df = pd.DataFrame(np.arange(12).reshape(6,2), columns=[&quot;A&quot;, &quot;B B&quot;])
+
+df.query(&quot;B B == 3&quot;) # error
+df.query(&quot;`B B` == 3&quot;) # right
+</code></pre>
+
+<h3 id="toc_3">用法二：结合 DataFrame 之外的其他对象进行操作</h3>
+
+<p><code>query</code> 和<code>eval</code> 方法还能有效将数据同非 DataFrame 之外的变量进行结合并操作，只需要在表达式字符串中加入<code>@</code>符号，就像这样：</p>
+
+<pre><code>sepal_len, petal_len = 5, 1.5
+iris.query(
+    &quot;&quot;&quot;
+    sepal_length &gt; @sepal_len &amp; \
+    petal_length &lt;= @petal_len
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<p>当条件过长时，对条件进行适当分解之后通过这样的用法，也能提高代码的可读性以及简洁程度。</p>
+
+<p>除此之外，你也可以用来创建新字段、对字段作运算等（限于 <code>eval</code>），以下例子源自于 Pandas 官方文档，详细的示例可以参考Pandas 官方的这部分内容。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSghaTv14YnII1IFibuscYbgjRpFgkkCGTroIkBJdbWeowINPqaiaVpyTg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>eval官方例子</p>
+
+<p>你甚至也可以直接在表达式字符串中写入代码语句，但是我<strong>不太建议你这么操作</strong>，即便是可行的。因为一旦表达式在执行时出现错误，Debug 时很有可能无法定位到当中代码语句的错误。</p>
+
+<pre><code>other = iris.copy()
+
+iris.query(
+    &quot;&quot;&quot;
+    species in @other.query(&quot;species==&#39;setosa&#39;&quot;)[&#39;species&#39;]
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<h1 id="toc_4">尾巴</h1>
+
+<p><code>query</code> 和 <code>eval</code> 方法应该是每个适用 Pandas 应该掌握的一种技巧，当进行多条件索引筛选或查询时，裹脚布般的方括号及当中的条件括号简直就是噩梦般的存在。</p>
+
+<p>这两个方法都是基于 <code>numexpr</code> 这一个库实现，该库由 C/C++ 编写，在性能上就不用多说；同时，在官方文档中也可以看到，处理大数据集时使用 <code>query</code> 或 <code>eval</code> 方法是多么高效：</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSKyE66UfaZZNR5GS8IIBQhuicDH9HMaarPYb9XqoKfg7z45b7StVfBJg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>numexpr性能表现</p>
+
+<p>尽管官方文档中有说明，当数据中的记录小于 10000 行时，性能表现上 <code>numexpr</code> 略逊于 Python 原生的解析器；但是从图可以看到，在小数据集中使用二者的差别连一秒钟都不到，因此也不必有所顾虑。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsS2jQlTRibTkuTxKYMkwk4ShFcVhIQaa671aWcl0fTiaENKLKyFibFecicCw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>原生解析器表现</p>
+
+<p>虽然 <code>query</code> 和 <code>eval</code> 默认使用 <code>numexpr</code> 作为解析引擎，但在源码中可以发现，在你使用这两个方法时，都会预先检查你是否安装了 <code>numexpr</code> 库，如果不存在则会调用 Python 原生的解析器，这一点在文档中也有所说明。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSNiaOP14zq7JjfF22aaWnNKfeTvs7gOUCBx4TKiak7vuYhQGNf75thiaHw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>引擎检查源码</p>
+
+<p>如果不需要中间变量、步骤不需要分解且保证最后返回的就是 DataFrame 类型，那么就愉快地使用链式调用方法来完成你的数据流程吧！</p>
 
 <blockquote>
-<p>官网介绍：Assignment expressions（赋值表达式）<br/>
-There is new syntax := that assigns values to variables as part of a larger expression. It is affectionately known as “the walrus operator” due to its resemblance to the eyes and tusks of a walrus.</p>
+<p>转载自微信，仅供个人学习使用</p>
 </blockquote>
-
-<p>这个新算子（:=）能让我们为表达式中的一个变量赋值。这个符号看起来颇有些类似于海象的眼睛和犬齿。</p>
-
-<p>我们先来看看下面一段代码：</p>
-
-<pre><code class="language-python">countries = [&quot;India&quot;, &quot;USA&quot;, &quot;France&quot;, &quot;Germany&quot;]
-</code></pre>
-
-<pre><code class="language-python">if len(countries) &lt; 5:
-    print(&quot;Length of countries is {}&quot;.format(len(countries)))
-</code></pre>
-
-<pre><code>Length of countries is 4
-</code></pre>
-
-<p>在上面的代码段中，我们两次调用了函数 len()。我们可以避免重复计算以提升可读性吗？当然可以，我们可对这段代码进行如下改进：</p>
-
-<pre><code class="language-python">country_size = len(countries)
-if country_size &lt; 5:
-    print (&quot;Length of countries is {}&quot;.format(country_size))
-</code></pre>
-
-<pre><code>Length of countries is 4
-</code></pre>
-
-<p>还有进一步改进的空间吗？我们可以不用单独一行来给「country_size」赋值吗？</p>
-
-<pre><code class="language-python">if (country_size := len(countries)) &lt; 5 :
-        print (&quot;Length of countries is {}&quot;.format(country_size))
-</code></pre>
-
-<pre><code>Length of countries is 4
-</code></pre>
-
-<p>这就是 Python 3.8 引入的海象算子的用武之地。我们可以在 if 语句之中直接执行声明和赋值操作。我们下面进一步探索该算子的能力。</p>
-
-<h2 id="toc_1"><b>代码行数与复杂度的平衡</b></h2>
-
-<p>先看看以下示例:</p>
-
-<pre><code class="language-python">def get_count():
-    &quot;Fetches count of records from a database&quot;
-    return 100
-    
-powers = [get_count(), get_count()**2, get_count()**3]
-print(powers)
-</code></pre>
-
-<pre><code>[100, 10000, 1000000]
-</code></pre>
-
-<p>上面的示例是通过多次调用一个高成本的函数 get_count() 来填充一个列表。 </p>
-
-<p>有了海象算子的帮助，我们可以避免多次调用函数 get_count()，其具体的功能是将结果存储到一个变量中，然后我们可在后续的计算中复用同一个变量。下面演示了海象算子的用法：</p>
-
-<pre><code class="language-python">powers =[result:= get_count(), result**2, result**3]
-print(powers)
-</code></pre>
-
-<pre><code>[100, 10000, 1000000]
-</code></pre>
-
-<p>从上面的例子可以看到，海象算子可以减少代码行数，让代码更可读，因此能简化代码审查人员的工作。此外，这也能实现代码行数和代码复杂度的平衡。</p>
-
-<h2 id="toc_2"><b>解决理解低效的问题</b></h2>
-
-<p>看下面这个例子：</p>
-
-<pre><code class="language-python">employees = []
-employee_ids = {1:&quot;Tommy&quot;, 2:&quot;Tobey&quot;, 3:&quot;Evan&quot;, 4:&quot;Golf&quot;}
-for key in employee_ids:
-    employee = employee_ids[key]
-    if employee:
-        employees.append(employee)
-print(employees)
-</code></pre>
-
-<pre><code>[&#39;Tommy&#39;, &#39;Tobey&#39;, &#39;Evan&#39;, &#39;Golf&#39;]
-</code></pre>
-
-<p>上面的示例需要多次执行循环。一开始，我们创建一个空列表，然后在 id 列表上迭代并通过检查结果是否有效来填充我们创建的列表。</p>
-
-<p>我们可以简化上面的代码，将其浓缩为一行：</p>
-
-<pre><code class="language-python">employees = [result for key in employee_ids if (result:= employee_ids[key])]
-print(employees)
-</code></pre>
-
-<pre><code>[&#39;Tommy&#39;, &#39;Tobey&#39;, &#39;Evan&#39;, &#39;Golf&#39;]
-</code></pre>
-
-<h2 id="toc_3"><b>文件分块处理</b></h2>
-
-<p>在处理大文件时，我们会将文件分块读取。每当读取一个分块时，都会检查它的值，并且该值也是 while 循环的终止条件。</p>
-
-<pre><code class="language-python">chunk = file.read(256)
-
-while chunk:
-    process(chunk)
-    chunk = file.read(256)
-</code></pre>
-
-<p>我们可以在 while 循环表达式中读取数据以及为要读取的数据赋值。由此我们就能避免在 while 循环之外显式地声明变量。如下示例：</p>
-
-<pre><code class="language-python">while (chunk := file.read(256)):
-    process(chunk)
-</code></pre>
-
-<h2 id="toc_4"><b>正则表达式匹配</b></h2>
-
-<p>正则表达式匹配是一个两步式过程。第一步是检查是否有匹配，第二步是提取匹配的部分。</p>
-
-<pre><code class="language-python">import re
-obj = re.match(r&quot;(\d+)\.(\d+)&quot;, &quot;24.1632&quot;).group(1) if re.match(r&quot;(\d+)\.(\d+)&quot;, &quot;24.1632&quot;) else None
-print(obj)
-</code></pre>
-
-<pre><code>24
-</code></pre>
-
-<p>从上面的代码可以观察到，我们在一次匹配中重复计算了 re.match(r&quot;(\d+).(\d+)&quot;, &quot;24.1632&quot;)。这会减慢该程序的执行速度，而且数据量越大减慢得越明显。上面的代码可以重写为如下形式，从而避免重复计算：</p>
-
-<pre><code class="language-python">obj = match.group(1) if (match := re.match(r&quot;(\d+)\.(\d+)&quot;, &quot;24.1632&quot;)) else None
-print(obj)
-</code></pre>
-
-<pre><code>24
-</code></pre>
-
-<h2 id="toc_5"><b>不能使用海象算子的地方</b></h2>
-
-<h3 id="toc_6">为变量赋值</h3>
-
-<pre><code class="language-python">a = 5 # 有效
-a := 5 # 无效
-</code></pre>
-
-<pre><code>  File &quot;&lt;ipython-input-50-7471f449f795&gt;&quot;, line 2
-    a := 5 # 无效
-      ^
-SyntaxError: invalid syntax
-</code></pre>
-
-<pre><code class="language-python">empty_list = [] # 有效
-empty_list := [] # 无效
-</code></pre>
-
-<pre><code>  File &quot;&lt;ipython-input-51-c637bed9e3c4&gt;&quot;, line 2
-    empty_list := [] # 无效
-               ^
-SyntaxError: invalid syntax
-</code></pre>
-
-<p>如上所示，我们不能使用 := 替代 =。海象算子只能是一个表达式的一部分。</p>
-
-<h3 id="toc_7">加法/减法赋值</h3>
-
-<pre><code class="language-python">a += 5 # 有效
-a :+=5 # 无效
-</code></pre>
-
-<pre><code>  File &quot;&lt;ipython-input-52-d36dacdf957b&gt;&quot;, line 2
-    a :+=5 # 无效
-       ^
-SyntaxError: invalid syntax
-</code></pre>
-
-<h3 id="toc_8">在 lambda 函数中为表达式赋值</h3>
-
-<pre><code class="language-python">(lambda: a:= 5) # 无效
-(lambda: (a := 5)) # 有效但无用
-(var := lambda: 5) # 有效
-</code></pre>
-
-<pre><code>  File &quot;&lt;ipython-input-53-257421e1abae&gt;&quot;, line 1
-    (lambda: a:= 5) # 无效
-     ^
-SyntaxError: cannot use named assignment with lambda
-</code></pre>
-
-<h3 id="toc_9">PEP-572 及其争议</h3>
-
-<p>海象算子是作为 PEP-572（Python 改进提议）的一部分而引入的。如果要为 Python 语言引入一项新功能，总是需要经由 PEP 来实现，而且必须得到 Python 的发明者 Guido van Rossum 或他选择的代表的批准。</p>
-
-<p>围绕海象算子的争议非常多，而且由此引发的「战争」导致了 Python 之父 Guido van Rossum 告退，不再担任 Python 社区的终身仁慈独裁者（BDFL）。海象算子的争议点有很多，下面是其中几个：</p>
-
-<ul>
-<li>句法变化问题：开发者们为 := 提议了多种替代方案，比如「表达式 -&gt; NAME」、「NAME -&gt; 表达式」、「{表达式} NAME」等等。少数人建议使用现有的关键字，其他人则使用了新的算子。</li>
-<li>后向兼容问题：这个特性无法向后兼容，也无法运行在之前的 Python 版本上。</li>
-<li>算子名称问题：人们建议不要使用「海象算子」这样的代号，而是使用「赋值算子」、「命名表达式算子」、「成为算子」等术语，以免人们不明白。</li>
-</ul>
 
                         
                       </div>
@@ -323,7 +286,7 @@ SyntaxError: cannot use named assignment with lambda
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2020/6/22 22:14 PM</span>
+                    <span class="date">2020/6/23 22:2 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -340,46 +303,482 @@ SyntaxError: cannot use named assignment with lambda
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15726710349835.html">
+                <a class="clearlink" href="15929209361947.html">
                 
-                  <h1>Swift基本语法</h1>
+                  <h1>超详解 matplotlib 中的折线图方法 plot()</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h3 id="toc_0">1. Swift交互式解释器</h3>
-
-<h4 id="toc_1">1.1 Terminal上运行swift进入REPL解释器</h4>
-
-<pre><code class="language-swift">  1&gt; let a = &quot;100&quot;
-a: String = &quot;100&quot;
-  2&gt; Int(a)
-$R0: Int? = 100
-  3&gt; let b = $R0 + 50
-error: repl.swift:3:9: error: value of optional type &#39;Int?&#39; must be unwrapped to a value of type &#39;Int&#39;
-let b = $R0 + 50
-        ^
-
-repl.swift:3:9: note: coalesce using &#39;??&#39; to provide a default when the optional value contains &#39;nil&#39;
-let b = $R0 + 50
-        ^
-        (   ?? &lt;#default value#&gt;)
-
-repl.swift:3:9: note: force-unwrap using &#39;!&#39; to abort execution if the optional value contains &#39;nil&#39;
-let b = $R0 + 50
-        ^
-           !
-  3&gt; let b = $R0! + 50
-b: Int = 150
+                        	<pre><code class="language-python">import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib 
 </code></pre>
 
+<h1 id="toc_0">目的</h1>
+
+<ul>
+<li>对最基本的折线图plot做详细的解读，为绘制其他类型的图形打好基础。</li>
+</ul>
+
+<h1 id="toc_1">plt.plot()的定义及调用</h1>
+
+<p>定义：</p>
+
+<ul>
+<li>plt.plot(*args, scalex=True, scaley=True, data=None, **kwargs)</li>
+</ul>
+
+<p>调用：</p>
+
+<ul>
+<li>plot([x], y, [fmt], *, data=None, **kwargs)</li>
+<li>plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)</li>
+</ul>
+
+<p>位置参数：</p>
+
+<ul>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked />, y, [fmt]
+</li>
+</ul>
+
+<p>关键字传参：</p>
+
+<ul>
+<li>*后面的参数</li>
+</ul>
+
+<h1 id="toc_2">x序列的不同类型</h1>
+
+<h2 id="toc_3">文本型的x序列</h2>
+
+<pre><code class="language-python"># data
+X = [8,3,5,&#39;t&#39;] # 会按顺序【0,1,2,3】被定位在x轴的刻度上
+Y = [1,2,3,4]
+
+
+plt.plot(X,Y,marker = &#39;o&#39;,c=&#39;g&#39;)
+
+ax = plt.gca()
+print(&#39;x轴刻度：&#39;,plt.xticks())  #list
+xticklabels_lst = ax.get_xticklabels()
+print(&#39;-&#39;*70)
+x轴刻度：([0, 1, 2, 3], &lt;a list of 4 Text xticklabel objects&gt;)
+----------------------------------------------------------------------
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST390MkazC65gic6xXs71nTgFic392z2PGvEqRYyRP6RWDKpwYowicxoicm1WQ/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">print(&#39;x轴刻度标签：&#39;,list(xticklabels_lst))  #是个文本标签
+x轴刻度标签：[Text(0, 0, &#39;8&#39;), Text(1, 0, &#39;3&#39;), Text(2, 0, &#39;5&#39;), Text(3, 0, &#39;t&#39;)]
+</code></pre>
+
+<h2 id="toc_4">数字型的x序列</h2>
+
+<pre><code class="language-python"># data
+X = [8,3,5,1] # 会按数字【8，3,5,1】被定位在x轴的刻度上
+
+Y = [1,2,3,4]
+
+plt.plot(X,Y,marker = &#39;o&#39;,c=&#39;g&#39;)
+
+ax = plt.gca()
+
+print(&#39;x轴刻度：&#39;,plt.xticks()) # array
+xticklabels_lst = ax.get_xticklabels()
+print(&#39;-&#39;*70)
+x轴刻度：(array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]), &lt;a list of 10 Text xticklabel objects&gt;)
+----------------------------------------------------------------------
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39OKgxoQ3cmeYtXvz9Bh9qia1rBAgWnowab9IWHnRNCBDPXKia0icQuBPLA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">print(&#39;x轴刻度标签：&#39;,list(xticklabels_lst))  #是个按序号排列的文本标签
+x轴刻度标签：[Text(0.0, 0, &#39;0&#39;), Text(1.0, 0, &#39;1&#39;), Text(2.0, 0, &#39;2&#39;), Text(3.0, 0, &#39;3&#39;), Text(4.0, 0, &#39;4&#39;), Text(5.0, 0, &#39;5&#39;), Text(6.0, 0, &#39;6&#39;), Text(7.0, 0, &#39;7&#39;), Text(8.0, 0, &#39;8&#39;), Text(9.0, 0, &#39;9&#39;)]
+</code></pre>
+
+<h2 id="toc_5">2种类型-2条线</h2>
+
+<pre><code class="language-python"># data
+X1 = [8,3,5,&#39;t&#39;]
+X2 = [8,3,5,1]
+Y = [1,2,3,4]
+
+plt.plot(X2,Y,marker = &#39;o&#39;,c=&#39;r&#39;)
+plt.plot(X1,Y,marker = &#39;o&#39;,c=&#39;g&#39;)
+
+ax = plt.gca()
+
+print(&#39;x轴刻度：&#39;,plt.xticks())
+xticklabels_lst = ax.get_xticklabels()
+print(&#39;-&#39;*70)
+x轴刻度：([0, 1, 2, 3], &lt;a list of 4 Text xticklabel objects&gt;)
+----------------------------------------------------------------------
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39A8sPBEXTRvWeaDtSEFCX2F44brXCQkdRWYvq7D2fz1owcbRg5CZrLA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">print(&#39;x轴刻度标签：&#39;,list(xticklabels_lst)) 
+x轴刻度标签：[Text(0, 0, &#39;8&#39;), Text(1, 0, &#39;3&#39;), Text(2, 0, &#39;5&#39;), Text(3, 0, &#39;t&#39;)]
+</code></pre>
+
+<h1 id="toc_6">提供不同数量的位置参数</h1>
+
+<p>几种方式的调用</p>
+
+<h2 id="toc_7">无参数</h2>
+
+<pre><code class="language-python">#返回一个空列表
+plt.plot()
+[]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39yDIvkHokd5EXMXzl0lJFoH1mD6CIjjFv23b2vgSkYl3CE28ic4A00rw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>plot([x], y, [fmt], *, data=None, **kwargs) plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)</p>
+
+<h2 id="toc_8">1个参数</h2>
+
+<pre><code class="language-python">#提供一个数（点）
+plt.plot(4.5,marker=&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f0352f978&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST390MFB3c55Dd4fctH67xEdZAjBAccicZR9xibGX9KpwgPurCWvhgTriaJ2A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">#提供一个数字序列
+plt.plot([4.5,2,3],marker=&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f0350d438&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39QRWpOpOvC9h6pqVAMUkNtDiadpgPBIfBz6MenvTCib4lbPDQkKRWcGPA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_9">2个参数</h2>
+
+<p>自动解析位置参数的原则</p>
+
+<h3 id="toc_10">(x,y）形式</h3>
+
+<pre><code class="language-python"># x/y 为序列
+plt.plot([2,1,3],[0.5,2,2.5],marker=&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f034735c0&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST397PIE0wXefnff0seMFesYiavgIC3k9xUAkSUkIqlUVhaTXP608fiafrZg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python"># x/y 为标量
+plt.plot(2,[&#39;z&#39;],marker = &#39;o&#39;) 
+[&lt;matplotlib.lines.Line2D at 0x7f6f03461b38&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39CZ8MdAibecAibWlkD3L6wSJzKwumMsyRWvAaRq17GOicCR9HVP2huQutw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h3 id="toc_11">(y,fmt)形式</h3>
+
+<pre><code class="language-python"># plt.plot(2,&#39;z&#39;,marker = &#39;o&#39;) #Unrecognized character z in format string
+# y 为标量 
+plt.plot(2,&#39;r&#39;,marker = &#39;o&#39;) 
+[&lt;matplotlib.lines.Line2D at 0x7f6f033b7cf8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST3938jXcMiarekvStV0e2aI3K1RjGibvo5iaP964zY7fA0dmibH94q66UB0Zw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python"># y 为序列
+plt.plot([2,1,3],&#39;r--*&#39;) 
+[&lt;matplotlib.lines.Line2D at 0x7f6f033a1cf8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39QiboMicydP9kTiaiajMK6UEqqTQnfNHyp3NySbvMsRp1UfD76WgAklnsoA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_12">3个参数</h2>
+
+<h3 id="toc_13">（[x],y,[fmt]）形式</h3>
+
+<pre><code class="language-python">plt.plot([2,1,3],[0.5,2,2.5],&#39;p--g&#39;, 
+#          marker=&#39;o&#39;
+         markersize = 15
+        )
+[&lt;matplotlib.lines.Line2D at 0x7f6f0331e048&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39U9qQviar0ovic5XJdITv7UuBDNGC7g9l7TV0PeaJfJeQpdT5LWYWPUQQ/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python"># fmt不写，或者‘’，则使用默认样式
+plt.plot([2,1,3],[0.5,2,2.5],&#39;&#39;,
+#          marker=&#39;o&#39;
+         markersize = 15
+        )
+[&lt;matplotlib.lines.Line2D at 0x7f6f03289390&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39yKjNZACg9R33F1DvfW9AARQERJyCNQxuPWExRdrfjhS5tNIksMlh4A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_14">绘图Line2D</h1>
+
+<h2 id="toc_15">仅画线：绘图的默认情况</h2>
+
+<p>默认样式：蓝色的【线】【无标记】</p>
+
+<pre><code class="language-python"># marker = None 表示不做设置
+plt.plot([2,2.5,1])
+[&lt;matplotlib.lines.Line2D at 0x7f6f031f86a0&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39fG59O2RMPT6hQiaNhDYFw7ficIrT7JobbBbcQrdAFpFSqljdNxemicnWw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_16">仅画标记</h2>
+
+<pre><code class="language-python">plt.plot([2,2.5,1],&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f03afcba8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39cZMibaLWr6wotXqib2UoGnPO2MBCmm3qOr6MDO7XibUyE06ibZDMFWx3zw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_17">画线+标记</h2>
+
+<pre><code class="language-python">plt.plot([2,2.5,1],&#39;o-&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f031d62e8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39I4BQ2ZiawZjxsJlpkiadlktj9zJxQCwdJbKHNHic2Fu4gehN8YAr6vD0Q/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">plt.plot([2,1,3],&#39;bo--&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f0317b128&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39Rj7EuEPqtXJbKE81a9tL3ec0sQaum1XN8VYI2CTGNgXWkbzz3rNo8w/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_18">fmt的组合顺序随意的？</h1>
+
+<h2 id="toc_19">6图合一及结论</h2>
+
+<pre><code class="language-python"># 6种组合
+# [color][marker][line],3种任意组合为6种可能
+
+# b :蓝色
+# o: 圆圈标记
+# --：虚线
+
+fmt = [&#39;bo--&#39;,&#39;b--o&#39;,&#39;ob--&#39;,&#39;o--b&#39;,&#39;--bo&#39;,&#39;--ob&#39;]
+for i in range(len(fmt)):
+    plt.subplot(2,3,i+1)
+    plt.plot([2,1,3],fmt[i])
+    
+# 结论：[color][marker][line]，每个都是可选的，每个属性可以选择写或者不写
+# 而且与组合中它们所在的位置顺序无关
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39WhhJjtR4ibibs2l3ggYbcLeqUovOYdV0J4xBpiaogusYV3mWAr9SRWuFQ/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_20">fmt支持的【线】-line</h2>
+
+<p><strong>Line Styles</strong></p>
+
+<p>==== character description ====</p>
+
+<p><code>&#39;-&#39;</code> solid line style <code>&#39;--&#39;</code> dashed line style <code>&#39;-.&#39;</code> dash-dot line style <code>&#39;:&#39;</code> dotted line style </p>
+
+<h2 id="toc_21">fmt支持的【标记】-marker</h2>
+
+<p><strong>Markers</strong></p>
+
+<p>==== character description ====</p>
+
+<p><code>&#39;.&#39;</code> point marker <code>&#39;,&#39;</code> pixel marker <code>&#39;o&#39;</code> circle marker <code>&#39;v&#39;</code> triangle_down marker <code>&#39;^&#39;</code> triangle_up marker <code>&#39;&lt;&#39;</code> triangle_left marker <code>&#39;&gt;&#39;</code> triangle_right marker <code>&#39;1&#39;</code> tri_down marker <code>&#39;2&#39;</code> tri_up marker <code>&#39;3&#39;</code> tri_left marker <code>&#39;4&#39;</code> tri_right marker <code>&#39;s&#39;</code> square marker <code>&#39;p&#39;</code> pentagon marker <code>&#39;*&#39;</code> star marker <code>&#39;h&#39;</code> hexagon1 marker <code>&#39;H&#39;</code> hexagon2 marker <code>&#39;+&#39;</code> plus marker <code>&#39;x&#39;</code> x marker <code>&#39;D&#39;</code> diamond marker <code>&#39;d&#39;</code> thin_diamond marker <code>&#39;|&#39;</code> vline marker <code>&#39;_&#39;</code> hline marker</p>
+
+<h2 id="toc_22">fmt支持的【颜色】-color</h2>
+
+<p><strong>Colors</strong></p>
+
+<p>The supported color abbreviations are the single letter codes</p>
+
+<p>==== character color ====</p>
+
+<p><code>&#39;b&#39;</code> blue <code>&#39;g&#39;</code> green <code>&#39;r&#39;</code> red <code>&#39;c&#39;</code> cyan <code>&#39;m&#39;</code> magenta <code>&#39;y&#39;</code> yellow <code>&#39;k&#39;</code> black <code>&#39;w&#39;</code> white </p>
+
+<h2 id="toc_23">所有样式：标记、线、颜色参考大全</h2>
+
+<p>链接：<strong><a href="https://www.kesci.com/home/project/5ea4e5da105d91002d506ac6">https://www.kesci.com/home/project/5ea4e5da105d91002d506ac6</a></strong></p>
+
+<pre><code>
+</code></pre>
+
+<h1 id="toc_24">样式属性</h1>
+
+<h2 id="toc_25">线条的属性</h2>
+
+<pre><code class="language-python"># 包含：(颜色除外）
+# 线的样式、线的宽度
+# linestyle or ls: {&#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;, &#39;&#39;, }
+# linewidth or lw: float
+
+ls_lst = [&#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;,] 
+lw_lst = [1,3,5,7]
+for i in range(len(ls_lst)):
+    plt.plot([1,2,3,4],[i+1]*4,ls_lst[i],lw = lw_lst[i])
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39c0a9u0s52BHVc7JsJkAWtBdB7ibCRy7ZPUIuulVU3jT0yNxicoIz5fMA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_26">标记的属性</h2>
+
+<pre><code class="language-python"># 包含：
+&#39;&#39;&#39;
+marker: marker style
+#边框（颜色及边框粗细）
+markeredgecolor or mec: color
+markeredgewidth or mew: float
+#面颜色
+markerfacecolor or mfc: color
+markerfacecoloralt or mfcalt: color  #备用标记颜色
+#标记的大小
+markersize or ms: float
+markevery: None or int or (int, int) or slice or List[int] or float or (float, float)
+&#39;&#39;&#39;
+
+# linestyle = None 表示不做设置，以默认值方式
+# linestyle = &#39;&#39;  linestyle = &#39;none&#39; 表示无格式，无线条
+
+plt.plot([4,2,1,3],linestyle = &#39;none&#39;, 
+         marker = &#39;o&#39;,
+         markersize = 30,
+         # edge
+         markeredgecolor = &#39;r&#39;,
+         markeredgewidth = 5,
+         # face 
+         markerfacecolor = &#39;g&#39;,
+#          markerfacecolor = &#39;none&#39;,
+#          markerfacecolor = None,
+        )
+[&lt;matplotlib.lines.Line2D at 0x7f6f02f085c0&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39IO2mK8Wc6op7qb66crQZnTNFhvKICicMBQZOhPAoDeYFsRxDPZ1b77Q/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_27">综合：带有空心圆标记的线条图</h1>
+
+<pre><code class="language-python">&#39;&#39;&#39;
+标记点是覆盖在线条的上面，位于上层
+
+图层层次：[top]  spines &gt; marker &gt; line &gt; backgroud  [bottom]
+spines：轴的4个边框
+spines 将线条图围在里面
+&#39;&#39;&#39;
+
+plt.plot([1,5,3,4], 
+         marker = &#39;o&#39;,
+         markersize = 20,
+         # edge
+         markeredgecolor = &#39;r&#39;,
+         markeredgewidth = 5,
+         # face 
+         markerfacecolor = &#39;w&#39;,    # 白色，与背景色相同，把线条覆盖着，营造空心的视觉效果
+#          markerfacecolor = &#39;none&#39;, # 无色，透明，会看到线条
+#          markerfacecolor = None, # 不设置，默认颜色
+        )
+
+# markerfacecolor = &#39; &#39;, # 无法识别
+# markerfacecolor = &#39;&#39;, # 无法识别
+[&lt;matplotlib.lines.Line2D at 0x7f6f02e6e470&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39RUIgr2Mu3lWzya5OMyP8nBWDINmXrBBw2accly5s8e5smh6xNumicng/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_28">data关键字的使用</h1>
+
+<h2 id="toc_29">字典数据</h2>
+
+<pre><code class="language-python">#字典数据
+d = {&#39;name&#39;:list(&#39;abcd&#39;),&#39;age&#39;:[22,20,18,27]}
+plt.plot(&#39;name&#39;,&#39;age&#39;,data = d)
+[&lt;matplotlib.lines.Line2D at 0x7f6f02e52e48&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39RdZ6iaHpKRvD3iblvyZe6dzeuhiaxXiaUemmGUj0qfn24xo2Mg2PHGyZpA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_30">DataFrame数据</h2>
+
+<pre><code class="language-python">#DataFrame数据
+d = {&#39;name&#39;:list(&#39;abcd&#39;),&#39;age&#39;:[22,20,18,27]}
+df = pd.DataFrame(d)
+df
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left"></th>
+<th style="text-align: left">name</th>
+<th style="text-align: left">age</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left">0</td>
+<td style="text-align: left">a</td>
+<td style="text-align: left">22</td>
+</tr>
+<tr>
+<td style="text-align: left">1</td>
+<td style="text-align: left">b</td>
+<td style="text-align: left">20</td>
+</tr>
+<tr>
+<td style="text-align: left">2</td>
+<td style="text-align: left">c</td>
+<td style="text-align: left">18</td>
+</tr>
+<tr>
+<td style="text-align: left">3</td>
+<td style="text-align: left">d</td>
+<td style="text-align: left">27</td>
+</tr>
+</tbody>
+</table>
+
+<pre><code>plt.plot(&#39;name&#39;,&#39;age&#39;,data = df)
+[&lt;matplotlib.lines.Line2D at 0x7f6f02d7a940&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39RdZ6iaHpKRvD3iblvyZe6dzeuhiaxXiaUemmGUj0qfn24xo2Mg2PHGyZpA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_31">总结</h1>
+
+<p>定义：</p>
+
+<ul>
+<li>plt.plot(<em>args,scalex = True,scaley = True,data = None ,</em>*kwargs)</li>
+</ul>
+
+<p>调用：</p>
+
+<ul>
+<li>plot([x], y, [fmt], *, data=None, **kwargs)</li>
+<li>plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)</li>
+</ul>
+
+<p>x,y,fmt均不能使用关键字传参</p>
+
+<p>推荐使用：</p>
+
+<ul>
+<li>plt.plot(x,y,fmt)</li>
+<li>多组数据时，再次调用</li>
+<li>plt.plot(x2,y2,fmt2) 画第2条线即可...</li>
+<li>默认样式：蓝色的【线】+【无标记】，即无标记的线</li>
+<li>可使用fmt来快捷控制线条的基本属性：颜色、线、标记</li>
+<li>[color][marker][line]</li>
+<li>fmt与关键字属性可混合使用，当两者有冲突时，以关键字的为准。</li>
+<li>对于已有的带标签的数据如df，可使用</li>
+<li>plt.plot(&#39;columns_name1&#39;,&#39;columns_name2&#39;,data = df)</li>
+</ul>
+
 <blockquote>
-<p>$R0 : Int?  </p>
+<p>转载自微信，仅供个人学习使用</p>
 </blockquote>
-
-<p>可选值， 需要解包</p>
-
-<h4 id="toc_2">1.2 swift palyground 学习的乐园</h4>
 
                         
                       </div>
@@ -388,10 +787,10 @@ b: Int = 150
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/11/2 13:3 PM</span>
+                    <span class="date">2020/6/23 22:2 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
-          					    <span class="posted-in"><a href='Swift.html'>Swift</a></span>
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -485,31 +884,31 @@ b: Int = 150
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

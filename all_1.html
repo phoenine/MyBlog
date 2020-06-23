@@ -109,14 +109,263 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15726710075785.html">
+                <a class="clearlink" href="15929209176741.html">
                 
-                  <h1></h1>
+                  <h1>Python数据形态及IO操作</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	
+                        	<h2 id="toc_0">1.数据型态</h2>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkN0CekufXU3LkIdEkDb0UUKKhXO9gkCo10kicveu17cyRWhRjmhFqtaSw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<ul>
+<li><strong>定性数据（Qualitative or Categorical Data）：是一组表示事物性质、规定事物类别的文字表述型数据，不能将其量化，只能将其定性。</strong></li>
+<li>叙述特性或种类</li>
+<li><strong>定量数据（Quantitative or Numerical Data）：可以被计数或测量。</strong></li>
+</ul>
+
+<blockquote>
+<ul>
+<li>定性分析与定量分析应该是统一的，相互补充的；定性分析是定量分析的基本前提，没有定性的定量是一种盲目的、毫无价值的定量；定量分析使定性分析更加科学、准确，它可以促使定性分析得出广泛而深入的结论。</li>
+<li>定量分析是依据统计数据，建立数学模型，并用数学模型计算出分析对象的各项指标及其数值的一种方法。定性分析则是主要凭分析者的直觉、经验，凭分析对象过去和现在的延续状况及最新的信息资料，对分析对象的性质、特点、发展变化规律作出判断的一种方法。</li>
+<li>相比而言，前一种方法更加科学，但需要较高深的数学知识，而后一种方法虽然较为粗糙，但在数据资料不够充分或分析者数学基础较为薄弱时比较适用，更适合于一般的投资者与经济工作者。但是必须指出，两种分析方法对数学知识的要求虽然有高有低，但并不能就此把定性分析与定量分析截然划分开来。事实上，现代定性分析方法同样要采用数学工具进行计算，而定量分析则必须建立在定性预测基础上，二者相辅相成，定性是定量的依据，定量是定性的具体化，二者结合起来灵活运用才能取得最佳效果。</li>
+<li>不同的分析方法各有其不同的特点与性能，但是都具有一个共同之处，即它们一般都是通过比较对照来分析问题和说明问题的。正是通过对各种指标的比较或不同时期同一指标的对照才反映出数量的多少、质量的优劣、效率的高低、消耗的大小、发展速度的快慢等等，才能作为鉴别、下判断提供确凿有据的信息。</li>
+</ul>
+</blockquote>
+
+<p>举个例子：</p>
+
+<p><strong>◆ 定性分析：</strong><br/>
+分析: _ 知几写了很多篇文章<br/>
+<strong>◆ 定量分析：</strong><br/>
+分析:_ 知几写了107篇文章。</p>
+
+<blockquote>
+<p>我的理解是定量分析主要关注的是频率；定性分析关注的是意义。</p>
+</blockquote>
+
+<h3 id="toc_1">定量数据又可分为：</h3>
+
+<ul>
+<li><p><strong>离散数据（Discrete Data）：</strong>指其数值只能用自然数或整数单位计算，例如企业的人数</p></li>
+<li><ul>
+<li>只能用自然数或整数单位计算</li>
+</ul>
+
+<ul>
+<li>只能按计量单位数计数，可由一般计数方法取得</li>
+</ul></li>
+<li><p><strong>连续数据（Continuous Data）：</strong>在一定区间内可以任意取值的数据，其数值是连续不断的，例如人的身高</p></li>
+<li><ul>
+<li>一定区间内可以任意取值的数据，其数值是连续不断的，相邻两个数值可取无限个数值</li>
+</ul>
+
+<ul>
+<li>其数值只能用测量或计量的方法获得</li>
+</ul></li>
+</ul>
+
+<h2 id="toc_2">2.结构化vs半结构化vs非结构化数据</h2>
+
+<ul>
+<li>结构化数据</li>
+<li>每笔数据都有固定的字段、固定的格式，方便程序进行后续取用与分析</li>
+<li>例如数据库</li>
+<li>半结构化数据</li>
+<li>数据介于数据化结构与非结构化数据之间</li>
+<li>数据具有字段，也可以依据字段来进行查找，使用方便，但每笔数据的字段可能不一致</li>
+<li>例如：XML，JSON</li>
+<li>非结构化数据</li>
+<li>没有固定的格式，必须整理以后才能存取</li>
+<li>没有格式的文字、网页数据</li>
+</ul>
+
+<h3 id="toc_3">1.结构化数据</h3>
+
+<ul>
+<li>结构化数据也称作行数据，是由二维表结构来逻辑表达和实现的数据，严格地遵循数据格式与长度规范，主要通过关系型数据库进行存储和管理。</li>
+<li>对数据的处理和捞取可以通过<strong>SQL语句</strong>。</li>
+</ul>
+
+<h3 id="toc_4">2.半结构化数据 - XML</h3>
+
+<pre><code>&lt;users&gt;
+    &lt;user&gt;
+        &lt;name&gt;xsl&lt;/name&gt;
+        &lt;gender&gt;boy&lt;/gender&gt;
+        &lt;age&gt;23&lt;/age&gt;
+    &lt;/user&gt;
+    &lt;user&gt;
+      &lt;name&gt;xlm&lt;/name&gt;
+      &lt;gender&gt;girl&lt;/gender&gt;
+    &lt;/user&gt;
+&lt;/users&gt;
+</code></pre>
+
+<ul>
+<li>可以使用字段存储数据内容</li>
+<li>字段不固定，例如xlm就少了age字段</li>
+<li>可以弹性的存放各种字段格式的数据</li>
+</ul>
+
+<h3 id="toc_5">3.半结构化数据 - JSON</h3>
+
+<pre><code>[
+  user:{
+    name:xsl,
+    gender:boy,
+    age:12,
+},
+  user:{
+    name:xsl,
+    gender:girl,
+}
+]
+</code></pre>
+
+<ul>
+<li>如同XML可以使用字段存储数据内容</li>
+<li>使用<code>Key:Value</code>存放数据</li>
+<li>不用宣告字段的结尾，可以比XML更快更有效传输数据</li>
+</ul>
+
+<h3 id="toc_6">4.非结构化数据</h3>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkNu1m3OjWzaOCHJ7cvHFBh32b80KuXjY9HkhUCpKNEkd28852RPs6V5A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<ul>
+<li>没有固定的数据格式</li>
+<li>例如网站数据</li>
+<li>必须透过ETL(Extract,Transformation,Loading)工具将数据转换为结构化数据才能取用</li>
+</ul>
+
+<p>由于我们常见的数据是非结构化数据，为了进行数据分析，我们就需要从非结构化数据中挖掘数据，我们就需要先把非结构化数据转换成结构化数据，此时我们就可以使用ETL工具。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkNiaHTjH8cxjFFfJOufjXPnMFibxZ1VvhSja3LiabTMiaicQKkIbSk0KPteOA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="数据抽取、转换、存储过程"/></p>
+
+<p>​                                                                                                   数据抽取、转换、存储过程</p>
+
+<h2 id="toc_7">3.Python IO与档案处理</h2>
+
+<p>Python提供了默认操作文件所必需的基本功能和方法。可以使用文件对象执行大部分文件操作。</p>
+
+<h3 id="toc_8">打开文件</h3>
+
+<p>在读取或写入文件之前，需要使用Python的内置<code>open()</code>函数打开文件。此函数创建一个文件对象，该对象将用于调用与其相关联的其他支持方法。</p>
+
+<p><strong>语法：</strong></p>
+
+<pre><code>f = open(file_name [, access_mode][, buffering])
+</code></pre>
+
+<ul>
+<li><code>file_name</code>参数是一个字符串值，指定要访问的文件的名称。</li>
+<li><code>access_mode</code>确定文件打开的模式，即读取，写入，追加等。可能的值的完整列表如下表所示。这是一个可选参数，默认文件访问模式为(r - 也就是只读)。</li>
+<li><code>bufferin</code>如果buffering值设置为0，则不会发生缓冲。如果缓冲值buffering为1，则在访问文件时执行行缓冲。如果将缓冲值buffering指定为大于1的整数，则使用指定的缓冲区大小执行缓冲操作。如果为负，则缓冲区大小为系统默认值(默认行为)。</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: center">编号</th>
+<th style="text-align: left">模式</th>
+<th style="text-align: left">描述</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: center">1</td>
+<td style="text-align: left"><code>r</code></td>
+<td style="text-align: left">打开的文件为只读模式。文件指针位于文件的开头，这是默认模式。</td>
+</tr>
+<tr>
+<td style="text-align: center">2</td>
+<td style="text-align: left"><code>rb</code></td>
+<td style="text-align: left">打开仅用二进制格式读取的文件。文件指针位于文件的开头，这是默认模式。</td>
+</tr>
+<tr>
+<td style="text-align: center">3</td>
+<td style="text-align: left"><code>r+</code></td>
+<td style="text-align: left">打开读写文件。文件指针放在文件的开头。</td>
+</tr>
+<tr>
+<td style="text-align: center">4</td>
+<td style="text-align: left"><code>rb+</code></td>
+<td style="text-align: left">以二进制格式打开一个用于读写文件。文件指针放在文件的开头。</td>
+</tr>
+<tr>
+<td style="text-align: center">5</td>
+<td style="text-align: left"><code>w</code></td>
+<td style="text-align: left">打开仅供写入的文件。如果文件存在，则覆盖该文件。如果文件不存在，则创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">6</td>
+<td style="text-align: left"><code>wb</code></td>
+<td style="text-align: left">打开仅用二进制格式写入的文件。如果文件存在，则覆盖该文件。如果文件不存在，则创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">7</td>
+<td style="text-align: left"><code>w+</code></td>
+<td style="text-align: left">打开写入和取读的文件。如果文件存在，则覆盖现有文件。如果文件不存在，创建一个新文件进行阅读和写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">8</td>
+<td style="text-align: left"><code>wb+</code></td>
+<td style="text-align: left">打开一个二进制格式的写入和读取文件。如果文件存在，则覆盖现有文件。如果文件不存在，创建一个新文件进行阅读和写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">9</td>
+<td style="text-align: left"><code>a</code></td>
+<td style="text-align: left">打开一个文件进行追加。如果文件存在，则文件指针位于文件末尾。也就是说，文件处于追加模式。如果文件不存在，它将创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">10</td>
+<td style="text-align: left"><code>ab</code></td>
+<td style="text-align: left">打开一个二进制格式的文件。如果文件存在，则文件指针位于文件末尾。也就是说，文件处于追加模式。如果文件不存在，它将创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">11</td>
+<td style="text-align: left"><code>a+</code></td>
+<td style="text-align: left">打开一个文件，用于追加和阅读。如果文件存在，则文件指针位于文件末尾。文件以附加模式打开。如果文件不存在，它将创建一个新文件进行阅读和写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">12</td>
+<td style="text-align: left"><code>ab+</code></td>
+<td style="text-align: left">打开一个二进制格式的附加和读取文件。如果文件存在，则文件指针位于文件末尾。文件以附加模式打开。如果文件不存在，它将创建一个新文件进行读取和写入。</td>
+</tr>
+</tbody>
+</table>
+
+<ul>
+<li><strong>write()方法</strong>：将任何字符串写入打开的文件。重要的是要注意，Python字符串可以是二进制数据，而不仅仅是文本。</li>
+<li><strong>close()方法</strong>：刷新任何未写入的信息并关闭文件对象，之后不能再进行写入操作。</li>
+</ul>
+
+<pre><code>f =open(&#39;zj.txt&#39;, &#39;w&#39;)  #读写模式
+f.write(&#39;hello xlm&#39;) #写入 hello xlm
+f.close() 关闭文件
+
+#用with写
+with open(&#39;zj.txt&#39;, &#39;r&#39;) as f:
+    print(f.read()) #全部读取
+
+with open(&#39;zj.txt&#39;, &#39;r&#39;) as f:
+    for line in f.readlines():
+        print(line)   #分行打印出来
+        print(line.strip())  #去除多余的换行
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkNR8icWZHiaC8ZV2fcvDKsicUUJlR2D9J9HJAYnBlpolnXUtKcsLc0TWW1A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="打开本地文件，可以看到&lt;code&gt;hello xlm&lt;/code&gt; 已经写入文件"/>   </p>
+
+<p>打开本地文件，可以看到<code>hello xlm</code> 已经写入文件</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
                         
                       </div>
                   </div>
@@ -124,8 +373,10 @@
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/11/2 13:3 PM</span>
-                    
+                    <span class="date">2020/6/23 22:1 PM</span>
+                    <span>posted in&nbsp;</span> 
+          				  
+          					    <span class="posted-in"><a href='Python.html'>Python</a></span>
           				   
                   </div>
                   <div class="more-right right">
@@ -139,574 +390,126 @@
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15662172714318.html">
+                <a class="clearlink" href="15929207363484.html">
                 
-                  <h1>Python Modules - 03 - Python itertools</h1>
+                  <h1>Python 为什么要保留显式的 self</h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">Module-1: itertools 模块总结</h4>
+                        	<p>布鲁斯·埃克尔（Bruce Eckel）<strong>发了篇博文</strong>[1]，提议从类方法的形参列表中删除“self”。我将解释为什么这个提议不能通过。（译注：Bruce 是《Thinking in Java》、《Thinking in C++》等多本书籍的作者，也是个 Python 开发者。他的文章总结了当年在巴西 Pycon 上的一次讨论，主要观点是在定义类方法时，形参中的“self”是多余的，而且由它引发的报错信息具有一定的误导性。）</p>
 
-<p>我们知道，迭代器的特点是：惰性求值（Lazy evaluation），即只有当迭代至某个值时，它才会被计算，这个特点使得迭代器特别适合于遍历大文件或无限集合等，因为我们不用一次性将它们存储在内存中。</p>
+<h2 id="toc_0"><strong>Bruce 的提议</strong></h2>
 
-<p>Python 内置的 itertools 模块包含了一系列用来产生不同类型迭代器的函数或类，这些函数的返回都是一个迭代器，我们可以通过 for 循环来遍历取值，也可以使用 next() 来取值。<br/><br/>
-itertools 模块提供的迭代器函数有以下几种类型：<br/>
-- 无限迭代器：生成一个无限序列，比如自然数序列 1, 2, 3, 4, ...；<br/>
-- 有限迭代器：接收一个或多个序列（sequence）作为参数，进行组合、分组和过滤等；<br/>
-- 组合生成器：序列的排列、组合，求序列的笛卡儿积等；</p>
+<p>Bruce 知道，我们需要一种方法来区分对实例变量的引用和对其它变量的引用，因此他建议将“self”设为关键字。</p>
 
-<pre><code class="language-python">import itertools
+<p>考虑一种典型的类，它有一个方法，例如：</p>
+
+<pre><code class="language-C">class C:
+   def meth(self, arg):
+      self.val = arg
+      return self.val
 </code></pre>
 
-<p><b>无限迭代器</b></p>
+<p>跟据 Bruce 的提议，这将变为：</p>
 
-<p>itertools 模块提供了三个函数（事实上，它们是类）用于生成一个无限序列迭代器：<br/>
-- count(firstval=0, step=1)创建一个从 firstval (默认值为 0) 开始，以 step (默认值为 1) 为步长的的无限整数迭代器<br/>
-- cycle(iterable)对 iterable 中的元素反复执行循环，返回迭代器<br/>
-- repeat(object [,times]反复生成 object，如果给定 times，则重复次数为 times，否则为无限</p>
-
-<ol>
-<li><b>count</b></li>
-</ol>
-
-<p>count() 接收两个参数，第一个参数指定开始值，默认为 0，第二个参数指定步长，默认为 1：</p>
-
-<pre><code class="language-python">nums = itertools.count()
-for i in nums:
-    if i &gt; 5:
-        break
-    print(i)
+<pre><code class="language-C">class C:
+   def meth(arg):# Look ma, no self!
+      self.val = arg
+      return self.val
 </code></pre>
 
-<pre><code>0
-1
-2
-3
-4
-5
+<p>这样每个方法会节省 6 个字符。但我不觉得 Bruce 提出这个建议是为了减少打字。</p>
+
+<p>我认为他真正关心的是程序员（可能来自其它语言）所浪费的时间，有时候似乎不需要指定“self”参数，而且他们偶尔忘记了要加（即使他们十分清楚——习惯是一种强大的力量）。确实，与忘记在实例变量或方法引用之前键入“self.”相比，从参数列表中省略“self”，往往会导致很模糊的错误消息。</p>
+
+<p>也许更糟糕的是（如 Bruce 所述），当正确地声明了方法，但是在调用时的参数数量不对，这时收到的错误消息。如 Bruce 给出的以下示例：</p>
+
+<pre><code>Traceback (most recent call last):
+File &quot;classes.py&quot;, line 9, in
+   obj.m2(1)
+TypeError: m2() takes exactly 3 arguments (2 given)
 </code></pre>
 
-<pre><code class="language-python">nums = itertools.count(10, 2)
-for i in nums:
-    if i &gt; 20:
-        break
-    print(i)
+<p>我赞同它是令人困惑的，但是我宁愿去解决此错误消息，而不是修改语言。</p>
+
+<h2 id="toc_1"><strong>为什么 Bruce 的提议不可行</strong></h2>
+
+<p>首先，让我提出一些与 Bruce 的提议相反的典型论点。</p>
+
+<p>这有一个很好的论据可以证明，在参数列表中使用显式的“self”，可以增强以下两种调用方法在理论上的等效性。假设“ foo”是“C”的一个实例：</p>
+
+<pre><code>foo.meth(arg) == C.meth(foo, arg)
 </code></pre>
 
-<pre><code>10
-12
-14
-16
-18
-20
+<p>（译注：说实话，我没有理解这个例子的意思。以下仅是个人看法。在类的内部定义方法时，可能会产生几种不同的方法：<strong>实例方法</strong>、<strong>类方法</strong>和 <strong>静态方法</strong>。它们的作用和行为是不同的，那么在定义和调用时怎么做区分呢？Python 约定了一种方式，即在定义时用第一个参数作区分：self 表示实例方法、cls或其它符号 表示类方法……三种方法都可以被类的实例调用，而且看起来一模一样，如上例的等号左侧那样。这时候就要靠定义时赋予的参数来区分了，像上例等号右侧，第一个参数是实例对象，表明此处是个实例方法。）</p>
+
+<p>另一个论据是，在参数列表中使用显式的“self”，将一个函数插入一个类，获得动态地修改一个类的能力，创建出相应的一个类方法。</p>
+
+<p>例如，我们可以创建一个与上面的“C”完全等效的类，如下所示：</p>
+
+<pre><code># Define an empty class:
+class C:
+   pass
+
+# Define a global function:
+def meth(myself, arg):
+   myself.val = arg
+   return myself.val
+
+# Poke the method into the class:
+C.meth = meth
 </code></pre>
 
-<ol>
-<li><b>cycle</b></li>
-</ol>
+<p>请注意，我将“self”参数重命名为“myself”，以强调（在语法上）我们不是在此处定义一个方法（译注：类外部的是<strong>函数</strong>，即 function，类内部的是<strong>方法</strong>，即 method）。</p>
 
-<p>cycle() 用于对 iterable 中的元素反复执行循环：</p>
+<p>这样之后，C 的实例就具有了一个“meth”方法，该方法有一个参数，且功能跟之前的完全一样。对于在把方法插入类之前就创建的那些 C 的实例，它甚至也适用。</p>
 
-<pre><code class="language-python">cycle_strings = itertools.cycle(&#39;ABC&#39;)
-i = 1
-for string in cycle_strings:
-    if i == 10:
-        break
-    print(i, string)
-    i += 1
+<p>我想 Bruce 并不特别在意前述的等效性。我同意这只是理论上的重要。我能想到的唯一例外是旧式的调用超级方法的习语（idiom）。但是，这个习语很容易出错（正是由于需要显式地传递&quot;self&quot;的原因），这就是为什么在 Python 3000中，我建议在所有情况下都使用&quot;super()&quot;的原因。</p>
+
+<p>Bruce 可能会想到一种使第二个等效例子起作用的方法——在某些情况下，这种等效性真的很重要。我不知道 Bruce 花了多少时间思考如何实现他的提议，但是我想他正在考虑将一个名为“self”的额外形参自动地添加到直接地在类内部定义的所有方法的思路（我必须说是“直接地”，以便那些嵌套在方法内部的函数，能免于这种自动操作）。这样，可以使第一个等效例子保持等效。</p>
+
+<p>但是，有一种情况我认为 Bruce 不能在不向编译器中添加某种 ESP 的情况下解决：<strong>装饰器。</strong>我相信这是 Bruce 的提议的最终败笔。</p>
+
+<p>当装饰一个方法时，我们不知道是否要自动地给它加一个“self”参数：装饰器可以将函数变成一个静态方法（没有“self”）或一个类方法（有一个有趣的 self，它指向一个类而不是一个实例），或者可以做一些完全不同的事情（用纯 Python 实现“ @classmethod”或“ @staticmethod”的装饰器是繁琐的）。除非知道装饰器的用途，否则没有其它办法来确定是否要赋予正在定义的方法一个隐式的“self”参数。</p>
+
+<p>我拒绝诸如特殊包装的“@classmethod”和“@staticmethod”之类的黑科技。我也认为除了自检外，自动地确定某个方法是类方法（class method）、实例方法（instance method）还是静态方法（static method），这不是一个好主意（就像在 Bruce 的文章的评论中，有人建议的那样）：这使得很难仅仅根据方法前的“def”，来决定应该怎样调用该方法。</p>
+
+<p>（译注：对于一个方法，在当前的添加了相应参数的情况下，可以简单地加装饰器，区分它是哪种方法，调用时也容易区分调用；但是，如果没有加参数，即使可以用神奇的自动机制来区分出它是哪种方法，但在调用时，你不好确定该怎么调用）。</p>
+
+<p>在评论中，我看到了一些非常极端的对 Bruce 的提议的附和，但通常的代价是使得规则难以遵循，或者要求对语言进行更深层的修改，这令我们极其难以接受它，特别是合入 Python 3.1。顺便说一句，对于 3.1，再次声明我们的规则，新特性只有在保持向后兼容的情况下才是可接受的。</p>
+
+<p>有一个似乎可行的建议（可以使它向后兼容）是把类中的</p>
+
+<pre><code>def foo(self, arg): ...
 </code></pre>
 
-<pre><code>1 A
-2 B
-3 C
-4 A
-5 B
-6 C
-7 A
-8 B
-9 C
+<p>改成这样的语法糖：</p>
+
+<pre><code>def self.foo(arg): ...
 </code></pre>
 
-<ol>
-<li><b>repeat</b></li>
-</ol>
+<p>但我不认同它把“self”变为保留字（reserved word），或者要求前缀必须是“self”。如果这样做了，那对于类方法，很容易也出现这种情况：</p>
 
-<p>repeat() 用于反复生成一个 object：</p>
-
-<pre><code class="language-python">for item in itertools.repeat(&#39;hello world&#39;, 3):
-    print(item)
+<pre><code>@classmethod
+def cls.foo(arg): ...
 </code></pre>
 
-<pre><code>hello world
-hello world
-hello world
-</code></pre>
+<p>好了，相比于现状，我并没有更喜欢这个。但是相比于 Bruce 的提议或在他的博客评论区中提出的更极端的说法，我认为这个要好得多，而且它具有向后兼容的巨大优势，并且不需要很费力，就可以写成带有参考实现的 PEP。（我想 Bruce 应该会发现自己提案中的缺陷，如果他真的付出努力尝试编写可靠的 PEP 或者尝试实现它。）</p>
 
-<p><b>有限迭代器</b></p>
+<p>我可以继续聊很多，但这是一个阳光明媚的周日早晨，而我还有其它的计划... :-)</p>
 
-<p>itertools 模块提供了多个函数（类），接收一个或多个迭代对象作为参数，对它们进行组合、分组和过滤等：<br/>
-- chain()<br/>
-- compress()<br/>
-- dropwhile()<br/>
-- groupby()<br/>
-- ifilter()<br/>
-- ifilterfalse()<br/>
-- islice()<br/>
-- imap()<br/>
-- starmap()<br/>
-- tee()<br/>
-- takewhile()<br/>
-- izip()<br/>
-- izip_longest()</p>
+<p>作者：Guido van Rossum，写于：2008.10.26</p>
 
-<ol>
-<li><b>chain</b></li>
-</ol>
+<p><strong>参考资料</strong></p>
 
-<p>chain 的使用形式如下：</p>
+<p>[1] Bruce博文：<a href="http://www.artima.com/weblogs/viewpost.jsp?thread=239003">http://www.artima.com/weblogs/viewpost.jsp?thread=239003</a></p>
+
+<p>[2] Guido原文: <a href="https://neopythonic.blogspot.com/2008/10/why-explicit-self-has-to-stay.html">https://neopythonic.blogspot.com/2008/10/why-explicit-self-has-to-stay.html</a></p>
 
 <blockquote>
-<p>chain(iterable1, iterable2, iterable3, ...)     </p>
+<p>转载自微信，仅供个人学习使用</p>
 </blockquote>
-
-<p>chain 接收多个可迭代对象作为参数，将它们『连接』起来，作为一个新的迭代器返回。</p>
-
-<pre><code class="language-python">from itertools import chain
-for item in chain([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;]):
-    print(item)
-</code></pre>
-
-<pre><code>1
-2
-3
-a
-b
-c
-</code></pre>
-
-<p>chain 还有一个常见的用法：</p>
-
-<blockquote>
-<p>chain.from_iterable(iterable)</p>
-</blockquote>
-
-<p>接收一个可迭代对象作为参数，返回一个迭代器：</p>
-
-<pre><code class="language-python">#扁平列表
-a = [[1, 2], [3, 4], [5, 6]]
-b = list(chain.from_iterable(a))
-print(b)
-
-#还有个更有意思的扁平列表
-print(sum(a, []))
-
-str = chain.from_iterable(&#39;ABCDEF&#39;)
-# 注意python3是next(), python2是.next()
-print(next(str))
-</code></pre>
-
-<pre><code>[1, 2, 3, 4, 5, 6]
-[1, 2, 3, 4, 5, 6]
-A
-</code></pre>
-
-<ol>
-<li><b>compress</b></li>
-</ol>
-
-<p>compress 的使用形式如下：</p>
-
-<blockquote>
-<p>compress(data, selectors)</p>
-</blockquote>
-
-<p>compress 可用于对数据进行筛选，当 selectors 的某个元素为 true 时，则保留 data 对应位置的元素，否则去除：</p>
-
-<pre><code class="language-python">from itertools import compress
-a = list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1, 0, 1]))
-print(a)
-b = list(compress(&#39;ABCDEF&#39;, [1, 1, 0, 1]))
-print(b)
-c = list(compress(&#39;ABCDEF&#39;, [True, False, True]))
-print(c)
-</code></pre>
-
-<pre><code>[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;, &#39;F&#39;]
-[&#39;A&#39;, &#39;B&#39;, &#39;D&#39;]
-[&#39;A&#39;, &#39;C&#39;]
-</code></pre>
-
-<ol>
-<li><b>dropwhile</b></li>
-</ol>
-
-<p>dropwhile 的使用形式如下：</p>
-
-<blockquote>
-<p>dropwhile(predicate, iterable)</p>
-</blockquote>
-
-<p>其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则丢弃该元素，否则返回该项及所有后续项。<br/><br/>
-predicate 断言，断定。 注意其返回项是丢弃元素判定失败后的后续项</p>
-
-<pre><code class="language-python">from itertools import dropwhile
-a = list(dropwhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
-print(a)
-b = list(dropwhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
-print(b)
-</code></pre>
-
-<pre><code>[6, 2, 1]
-[2, 1, 6, 5, 4]
-</code></pre>
-
-<ol>
-<li><b>groupby</b></li>
-</ol>
-
-<p>groupby 用于对序列进行分组，它的使用形式如下：</p>
-
-<blockquote>
-<p>groupby(iterable[, keyfunc])</p>
-</blockquote>
-
-<p>其中，iterable 是一个可迭代对象，keyfunc 是分组函数，用于对 iterable 的连续项进行分组，如果不指定，则默认对 iterable 中的连续相同项进行分组，返回一个 (key, sub-iterator) 的迭代器。</p>
-
-<pre><code class="language-python">from itertools import groupby
-for key, value_iter in groupby(&#39;aaabbbaaccd&#39;):
-    print(key, &#39;:&#39;, list(value_iter))
-print(&quot;================================&quot;)
-data = [&#39;a&#39;, &#39;bb&#39;, &#39;ccc&#39;, &#39;dd&#39;, &#39;eee&#39;, &#39;f&#39;]
-for key, value_iter in groupby(data, len):   # 使用 len 函数作为分组函数
-    print(key, &#39;:&#39;, list(value_iter))
-print(&quot;================================&quot;)
-data = [&#39;a&#39;, &#39;bb&#39;, &#39;cc&#39;, &#39;ddd&#39;, &#39;eee&#39;, &#39;f&#39;]
-for key, value_iter in groupby(data, len):
-    print(key, &#39;:&#39;, list(value_iter))
-</code></pre>
-
-<pre><code>a : [&#39;a&#39;, &#39;a&#39;, &#39;a&#39;]
-b : [&#39;b&#39;, &#39;b&#39;, &#39;b&#39;]
-a : [&#39;a&#39;, &#39;a&#39;]
-c : [&#39;c&#39;, &#39;c&#39;]
-d : [&#39;d&#39;]
-================================
-1 : [&#39;a&#39;]
-2 : [&#39;bb&#39;]
-3 : [&#39;ccc&#39;]
-2 : [&#39;dd&#39;]
-3 : [&#39;eee&#39;]
-1 : [&#39;f&#39;]
-================================
-1 : [&#39;a&#39;]
-2 : [&#39;bb&#39;, &#39;cc&#39;]
-3 : [&#39;ddd&#39;, &#39;eee&#39;]
-1 : [&#39;f&#39;]
-</code></pre>
-
-<ol>
-<li><b>ifilter</b> (Python3已不再提供)</li>
-</ol>
-
-<p>ifilter 的使用形式如下：</p>
-
-<blockquote>
-<p>ifilter(function or None, sequence)</p>
-</blockquote>
-
-<p>将 iterable 中 function(item) 为 True 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 True 的项。</p>
-
-<pre><code class="language-python">#from itertools import ifilter          # Python3已经不再提供，python3使用filter()
-
-#a = list(ifilter(lambda x: x &lt; 6, range(10)))
-a = list(filter(lambda x: x &lt; 6, range(10)))
-print(a)
-#b = list(ifilter(None, [0, 1, 2, 0, 3, 4]))
-b = list(filter(None, [0, 1, 2, 0, 3, 4]))
-print(b)
-</code></pre>
-
-<pre><code>[0, 1, 2, 3, 4, 5]
-[1, 2, 3, 4]
-</code></pre>
-
-<ol>
-<li><b>ifilterfalse</b> (Python3已不再提供)</li>
-</ol>
-
-<p>ifilterfalse 的使用形式和 ifilter 类似，它将 iterable 中 function(item) 为 False 的元素组成一个迭代器返回，如果 function 是 None，则返回 iterable 中所有计算为 False 的项。</p>
-
-<pre><code class="language-python">#from itertools import ifilterfalse
-#list(ifilterfalse(lambda x: x &lt; 6, range(10)))
-#[6, 7, 8, 9]
-#list(ifilter(None, [0, 1, 2, 0, 3, 4]))
-#[0, 0]
-</code></pre>
-
-<ol>
-<li><b>islice</b></li>
-</ol>
-
-<p>islice 是切片选择，它的使用形式如下：</p>
-
-<blockquote>
-<p>islice(iterable, [start,] stop [, step])</p>
-</blockquote>
-
-<p>其中，iterable 是可迭代对象，start 是开始索引，stop 是结束索引，step 是步长，start 和 step 可选。</p>
-
-<pre><code class="language-python">from itertools import count, islice
-a = list(islice([10, 6, 2, 8, 1, 3, 9], 5))
-print(a)
-b = list(islice(count(), 6))
-print(b)
-c = list(islice(count(), 3, 10))
-print(c)
-d = list(islice(count(), 3, 10 ,2))
-print(d)
-</code></pre>
-
-<pre><code>[10, 6, 2, 8, 1]
-[0, 1, 2, 3, 4, 5]
-[3, 4, 5, 6, 7, 8, 9]
-[3, 5, 7, 9]
-</code></pre>
-
-<ol>
-<li><b>imap</b> (Python3已不再提供) </li>
-</ol>
-
-<p>imap 类似 map 操作，它的使用形式如下：</p>
-
-<blockquote>
-<p>imap(func, iter1, iter2, iter3, ...)</p>
-</blockquote>
-
-<p>imap 返回一个迭代器，元素为 func(i1, i2, i3, ...)，i1，i2 等分别来源于 iter, iter2。</p>
-
-<pre><code class="language-python">#from itertools import imap
-#print(imap(str, [1, 2, 3, 4]))
-#&lt;itertools.imap object at 0x10556d050&gt;
-#print(list(imap(str, [1, 2, 3, 4])))
-#[&#39;1&#39;, &#39;2&#39;, &#39;3&#39;, &#39;4&#39;]
-#print(list(imap(pow, [2, 3, 10], [4, 2, 3])))
-#[16, 9, 1000]
-</code></pre>
-
-<ol>
-<li><b>tee</b></li>
-</ol>
-
-<p>tee 的使用形式如下：</p>
-
-<blockquote>
-<p>tee(iterable [,n])</p>
-</blockquote>
-
-<p>tee 用于从 iterable 创建 n 个独立的迭代器，以元组的形式返回，n 的默认值是 2。</p>
-
-<pre><code class="language-python">from itertools import tee
-print(tee(&#39;abcd&#39;))   # n 默认为 2，创建两个独立的迭代器
-iter1, iter2 = tee(&#39;abcde&#39;)
-print(list(iter1))
-print(list(iter2))
-print(tee(&#39;abc&#39;, 3))  # 创建三个独立的迭代器
-</code></pre>
-
-<pre><code>(&lt;itertools._tee object at 0x000001F91721CF88&gt;, &lt;itertools._tee object at 0x000001F917221788&gt;)
-[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-[&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]
-(&lt;itertools._tee object at 0x000001F917221848&gt;, &lt;itertools._tee object at 0x000001F917221608&gt;, &lt;itertools._tee object at 0x000001F917221888&gt;)
-</code></pre>
-
-<ol>
-<li><b>takewhile</b></li>
-</ol>
-
-<p>takewhile 的使用形式如下：</p>
-
-<blockquote>
-<p>takewhile(predicate, iterable)</p>
-</blockquote>
-
-<p>其中，predicate 是函数，iterable 是可迭代对象。对于 iterable 中的元素，如果 predicate(item) 为 true，则保留该元素，只要 predicate(item) 为 false，则立即停止迭代。</p>
-
-<pre><code class="language-python">from itertools import takewhile
-a = list(takewhile(lambda x: x &lt; 5, [1, 3, 6, 2, 1]))
-print(a)
-b = list(takewhile(lambda x: x &gt; 3, [2, 1, 6, 5, 4]))
-print(b)
-</code></pre>
-
-<pre><code>[1, 3]
-[]
-</code></pre>
-
-<ol>
-<li><b>zip</b> (Python3已不再提供) </li>
-</ol>
-
-<p>izip 用于将多个可迭代对象对应位置的元素作为一个元组，将所有元组『组成』一个迭代器，并返回。它的使用形式如下：</p>
-
-<blockquote>
-<p>izip(iter1, iter2, ..., iterN)</p>
-</blockquote>
-
-<p>如果某个可迭代对象不再生成值，则迭代停止。</p>
-
-<pre><code class="language-python">#from itertools import izip
-#for item in izip(&#39;ABCD&#39;, &#39;xy&#39;):
-#    print(item)    
-#for item in izip([1, 2, 3], [&#39;a&#39;, &#39;b&#39;, &#39;c&#39;, &#39;d&#39;, &#39;e&#39;]):
-#    print(item)
-</code></pre>
-
-<ol>
-<li><b>izip_longest</b> (Python3已不再提供) </li>
-</ol>
-
-<p>izip_longest 跟 izip 类似，但迭代过程会持续到所有可迭代对象的元素都被迭代完。它的形式如下：</p>
-
-<blockquote>
-<p>izip_longest(iter1, iter2, ..., iterN, [fillvalue=None])</p>
-</blockquote>
-
-<p>如果有指定 fillvalue，则会用其填充缺失的值，否则为 None。</p>
-
-<pre><code class="language-python">#from itertools import izip_longest
-#for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;):
-#    print(item)
-#for item in izip_longest(&#39;ABCD&#39;, &#39;xy&#39;, fillvalue=&#39;-&#39;):
-#    print(item)
-
-####output:
-#(&#39;A&#39;, &#39;x&#39;)
-#(&#39;B&#39;, &#39;y&#39;)
-#(&#39;C&#39;, None)
-#(&#39;D&#39;, None)
-
-#(&#39;A&#39;, &#39;x&#39;)
-#(&#39;B&#39;, &#39;y&#39;)
-#(&#39;C&#39;, &#39;-&#39;)
-#(&#39;D&#39;, &#39;-&#39;)
-</code></pre>
-
-<p><b>组合生成器</b></p>
-
-<p>itertools 模块还提供了多个组合生成器函数，用于求序列的排列、组合等：<br/><br/>
-- product<br/>
-- permutations<br/>
-- combinations<br/>
-- combinations_with_replacement    </p>
-
-<p>这些都是排列组合必备良方</p>
-
-<ol>
-<li><b>product</b></li>
-</ol>
-
-<p>product 用于求多个可迭代对象的笛卡尔积，它跟嵌套的 for 循环等价。它的一般使用形式如下：</p>
-
-<blockquote>
-<p>product(iter1, iter2, ... iterN, [repeat=1])</p>
-</blockquote>
-
-<p>其中，repeat 是一个关键字参数，用于指定重复生成序列的次数，</p>
-
-<pre><code class="language-python">from itertools import product
-for item in product(&#39;ABCD&#39;, &#39;xy&#39;):
-    print(item)
-</code></pre>
-
-<pre><code>(&#39;A&#39;, &#39;x&#39;)
-(&#39;A&#39;, &#39;y&#39;)
-(&#39;B&#39;, &#39;x&#39;)
-(&#39;B&#39;, &#39;y&#39;)
-(&#39;C&#39;, &#39;x&#39;)
-(&#39;C&#39;, &#39;y&#39;)
-(&#39;D&#39;, &#39;x&#39;)
-(&#39;D&#39;, &#39;y&#39;)
-</code></pre>
-
-<pre><code class="language-python">a = list(product(&#39;ab&#39;, range(3)))
-print(a)
-</code></pre>
-
-<pre><code>[(&#39;a&#39;, 0), (&#39;a&#39;, 1), (&#39;a&#39;, 2), (&#39;b&#39;, 0), (&#39;b&#39;, 1), (&#39;b&#39;, 2)]
-</code></pre>
-
-<pre><code class="language-python">b = list(product((0,1), (0,1), (0,1)))
-print(b)
-</code></pre>
-
-<pre><code>[(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), (1, 0, 0), (1, 0, 1), (1, 1, 0), (1, 1, 1)]
-</code></pre>
-
-<pre><code class="language-python">c = list(product(&#39;ABC&#39;, repeat=2))
-print(c)
-</code></pre>
-
-<pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;C&#39;)]
-</code></pre>
-
-<ol>
-<li><b>permutations</b></li>
-</ol>
-
-<p>permutations 用于生成一个排列，它的一般使用形式如下：</p>
-
-<blockquote>
-<p>permutations(iterable[, r])</p>
-</blockquote>
-
-<p>其中，r 指定生成排列的元素的长度，如果不指定，则默认为可迭代对象的元素长度。</p>
-
-<pre><code class="language-python">from itertools import permutations
-a = permutations(&#39;ABC&#39;, 2)
-print(a)
-b = list(permutations(&#39;ABC&#39;, 2))
-print(b)
-c = list(permutations(&#39;ABC&#39;))
-print(c)
-</code></pre>
-
-<pre><code>&lt;itertools.permutations object at 0x000001F9171C7DB0&gt;
-[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;A&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;B&#39;)]
-[(&#39;A&#39;, &#39;B&#39;, &#39;C&#39;), (&#39;A&#39;, &#39;C&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;, &#39;A&#39;), (&#39;C&#39;, &#39;A&#39;, &#39;B&#39;), (&#39;C&#39;, &#39;B&#39;, &#39;A&#39;)]
-</code></pre>
-
-<ol>
-<li><b>combinations</b></li>
-</ol>
-
-<p>combinations 用于求序列的组合，它的使用形式如下：</p>
-
-<blockquote>
-<p>combinations(iterable, r)</p>
-</blockquote>
-
-<p>其中，r 指定生成组合的元素的长度。</p>
-
-<pre><code class="language-python">from itertools import combinations
-list(combinations(&#39;ABC&#39;, 2))
-</code></pre>
-
-<pre><code>[(&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;C&#39;)]
-</code></pre>
-
-<ol>
-<li><b>combinations_with_replacement</b></li>
-</ol>
-
-<p>combinations_with_replacement 和 combinations 类似，但它生成的组合包含自身元素。</p>
-
-<pre><code class="language-python">from itertools import combinations_with_replacement
-list(combinations_with_replacement(&#39;ABC&#39;, 2))
-</code></pre>
-
-<pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;C&#39;)]
-</code></pre>
 
                         
                       </div>
@@ -715,7 +518,7 @@ list(combinations_with_replacement(&#39;ABC&#39;, 2))
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/19 20:21 PM</span>
+                    <span class="date">2020/6/23 21:58 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -812,31 +615,31 @@ list(combinations_with_replacement(&#39;ABC&#39;, 2))
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

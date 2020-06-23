@@ -4,7 +4,7 @@
   <title><![CDATA[Ascetic in the deadlock]]></title>
   <link href="https://sparkbye.github.io/myBlog/atom.xml" rel="self"/>
   <link href="https://sparkbye.github.io/myBlog/"/>
-  <updated>2020-06-22T18:08:10+08:00</updated>
+  <updated>2020-06-23T22:03:19+08:00</updated>
   <id>https://sparkbye.github.io/myBlog/</id>
   <author>
     <name><![CDATA[]]></name>
@@ -13,7 +13,1040 @@
   <generator uri="http://www.mweb.im/">MWeb</generator>
   
   <entry>
-    <title type="html"><![CDATA[【pythonic】详解Python 3.8的海象算子]]></title>
+    <title type="html"><![CDATA[**高性能 Pandas 方法：query 和 eval**]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15929209495893.html"/>
+    <updated>2020-06-23T22:02:29+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15929209495893.html</id>
+    <content type="html"><![CDATA[
+<h2 id="toc_0">为什么不喜欢写方括号</h2>
+
+<p>对于一个最开始从 R 语言的 Tidyverse 生态中转到 Pandas 中的人来说，除了管道操作符和链式调用的方式外，最不习惯的方式就是 Pandas 在对 DataFrame 做条件筛选或查询时，使用过多的方括号。</p>
+
+<p>先看看在 R 语言的 Tidyverse 生态中筛选操作是怎样的（主要基于 <code>dplyr</code> 包），这里以 iris 数据集为例。</p>
+
+<pre><code>library(tidyverse)
+
+# normal way
+iris[which(iris$Sepal.Length &gt; 5 &amp; iris$Petal.Length &lt;= 1.5), ]
+
+# Tidyverse way
+iris %&gt;% filter(
+    Sepal.Length &gt; 5 &amp; 
+    Petal.Length &lt;= 1.5
+)
+</code></pre>
+
+<p>虽然在 R 语言也可以用方括号加 <code>which</code> 的方式来进行行索引定位，但是相比于 <code>filter</code> 来说反而略显啰嗦。因此 <code>filter</code> 的方式反而更容易被记住且频繁使用。</p>
+
+<p>在 Pandas 中，大部分人往往在初学时最先接触到的就是通过方括号的形式来进行筛选查询，像是这样：</p>
+
+<pre><code># !pip install seaborn
+import pandas as pd
+import seaborn as sns
+
+# Load iris dataset
+iris = sns.load_dataset(&#39;iris&#39;)
+
+# 等价于 iris[(iris.sepal_length &gt; 5) &amp; (iris.petal_length &lt;= 1.5)]
+iris[(iris[&#39;sepal_length&#39;] &gt; 5) &amp; (iris[&#39;petal_length&#39;] &lt;= 1.5)]
+</code></pre>
+
+<p>尽管可以直接通过 <code>iris.column</code> 的形式来调用相应的字段，但是这很容易和方法混在一起，因此在实际项目中往往我更偏好用方括号和引号来表示字段，以增强可读性并同方法相区分。</p>
+
+<p>可我们也很容易看到 Pandas 的筛选写法其实相当冗长，同时这样的形式即便是熟练使用 Pandas 的「老鸟」也会经常这么写，甚至在各种课程中也屡见不鲜。</p>
+
+<p>但其实对于每个使用 Pandas 库的人来说，让代码更简洁才符合 <strong>Pythonic</strong> 的风格。这就是为什么本文所要谈论 <code>query</code> 和 <code>eval</code> 这两个方法的原因。</p>
+
+<h2 id="toc_1">query 和 eval</h2>
+
+<p><code>query</code> 和 <code>eval</code> 方法在 2014年 1 月 3 日的 0.13.0 版本中首次加入，它们允许使用者以传入字符串表达式（Expression）的形式来对 DataFrame 进行操作。</p>
+
+<h3 id="toc_2">用法一：条件筛选与查询</h3>
+
+<p>前面分所述的写法其实可以变成这样：</p>
+
+<pre><code># query
+iris.query(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+
+# eval
+cond = iris.eval(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+iris[cond]
+</code></pre>
+
+<p>相比于传统的括号写法，<code>query</code> 和<code>eval</code> 方法能有效减少在筛选查询时符号冗余的情况，尤其是 <code>query</code> 方法能够紧密地同链式调用相结合从而达到了 R 语言 Tidyverse 中的 <code>filter</code> 用法，类似于这样：</p>
+
+<pre><code>(iris
+    .query(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+    .assign(sepal_len_cut = lambda df: df[&#39;sepal_length&#39;]
+                .pipe(pd.cut, bins=3), 
+            petal_len_cut = lambda df: df[&#39;petal_length&#39;]
+                .pipe(pd.cut, bins=3))
+    .groupby([&#39;sepal_len_cut&#39;, &#39;petal_len_cut&#39;])
+    .sum()
+    .dropna()
+)
+</code></pre>
+
+<p>当筛选的条件为多条件时，除了使用六个引号的长字符串之外，还<strong>需要注意</strong>的就是手动加上<code>\</code> 进行断行，就像这样：</p>
+
+<pre><code>iris.query(
+    &quot;&quot;&quot;
+    sepal_length &gt; 5 &amp; \
+    petal_length &lt;= 1.5
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<p>否则会导致报错，因为这段查询表达式的字符串中<strong>多出了不恰当的换行符</strong>，从而导致表达式不能够被正确解析。</p>
+
+<p>同时需要注意的是，如果你的数据字段命存在一些空格或者下划线之类的特殊符号，那么可能也会同样导致报错。在 R 语言中你可以通过加上反引号「``」（键盘上 Esc 键下面的那个符号）来避免，就像这样：</p>
+
+<pre><code>library(tidyverse)
+
+df &lt;- data.frame(
+  A = seq(0,10,2),
+  B = seq(1,11,2)
+) 
+
+df %&gt;% 
+  rename(`B B` = &quot;B&quot;) %&gt;% 
+  filter(`B B` &gt; 5)
+</code></pre>
+
+<p>当然，在 Python 中你也可以同样如此，Pandas 对此也已经进行了支持：</p>
+
+<pre><code>df = pd.DataFrame(np.arange(12).reshape(6,2), columns=[&quot;A&quot;, &quot;B B&quot;])
+
+df.query(&quot;B B == 3&quot;) # error
+df.query(&quot;`B B` == 3&quot;) # right
+</code></pre>
+
+<h3 id="toc_3">用法二：结合 DataFrame 之外的其他对象进行操作</h3>
+
+<p><code>query</code> 和<code>eval</code> 方法还能有效将数据同非 DataFrame 之外的变量进行结合并操作，只需要在表达式字符串中加入<code>@</code>符号，就像这样：</p>
+
+<pre><code>sepal_len, petal_len = 5, 1.5
+iris.query(
+    &quot;&quot;&quot;
+    sepal_length &gt; @sepal_len &amp; \
+    petal_length &lt;= @petal_len
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<p>当条件过长时，对条件进行适当分解之后通过这样的用法，也能提高代码的可读性以及简洁程度。</p>
+
+<p>除此之外，你也可以用来创建新字段、对字段作运算等（限于 <code>eval</code>），以下例子源自于 Pandas 官方文档，详细的示例可以参考Pandas 官方的这部分内容。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSghaTv14YnII1IFibuscYbgjRpFgkkCGTroIkBJdbWeowINPqaiaVpyTg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>eval官方例子</p>
+
+<p>你甚至也可以直接在表达式字符串中写入代码语句，但是我<strong>不太建议你这么操作</strong>，即便是可行的。因为一旦表达式在执行时出现错误，Debug 时很有可能无法定位到当中代码语句的错误。</p>
+
+<pre><code>other = iris.copy()
+
+iris.query(
+    &quot;&quot;&quot;
+    species in @other.query(&quot;species==&#39;setosa&#39;&quot;)[&#39;species&#39;]
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<h1 id="toc_4">尾巴</h1>
+
+<p><code>query</code> 和 <code>eval</code> 方法应该是每个适用 Pandas 应该掌握的一种技巧，当进行多条件索引筛选或查询时，裹脚布般的方括号及当中的条件括号简直就是噩梦般的存在。</p>
+
+<p>这两个方法都是基于 <code>numexpr</code> 这一个库实现，该库由 C/C++ 编写，在性能上就不用多说；同时，在官方文档中也可以看到，处理大数据集时使用 <code>query</code> 或 <code>eval</code> 方法是多么高效：</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSKyE66UfaZZNR5GS8IIBQhuicDH9HMaarPYb9XqoKfg7z45b7StVfBJg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>numexpr性能表现</p>
+
+<p>尽管官方文档中有说明，当数据中的记录小于 10000 行时，性能表现上 <code>numexpr</code> 略逊于 Python 原生的解析器；但是从图可以看到，在小数据集中使用二者的差别连一秒钟都不到，因此也不必有所顾虑。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsS2jQlTRibTkuTxKYMkwk4ShFcVhIQaa671aWcl0fTiaENKLKyFibFecicCw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>原生解析器表现</p>
+
+<p>虽然 <code>query</code> 和 <code>eval</code> 默认使用 <code>numexpr</code> 作为解析引擎，但在源码中可以发现，在你使用这两个方法时，都会预先检查你是否安装了 <code>numexpr</code> 库，如果不存在则会调用 Python 原生的解析器，这一点在文档中也有所说明。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSNiaOP14zq7JjfF22aaWnNKfeTvs7gOUCBx4TKiak7vuYhQGNf75thiaHw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>引擎检查源码</p>
+
+<p>如果不需要中间变量、步骤不需要分解且保证最后返回的就是 DataFrame 类型，那么就愉快地使用链式调用方法来完成你的数据流程吧！</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[超详解 matplotlib 中的折线图方法 plot()]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15929209361947.html"/>
+    <updated>2020-06-23T22:02:16+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15929209361947.html</id>
+    <content type="html"><![CDATA[
+<pre><code class="language-python">import pandas as pd 
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib 
+</code></pre>
+
+<h1 id="toc_0">目的</h1>
+
+<ul>
+<li>对最基本的折线图plot做详细的解读，为绘制其他类型的图形打好基础。</li>
+</ul>
+
+<h1 id="toc_1">plt.plot()的定义及调用</h1>
+
+<p>定义：</p>
+
+<ul>
+<li>plt.plot(*args, scalex=True, scaley=True, data=None, **kwargs)</li>
+</ul>
+
+<p>调用：</p>
+
+<ul>
+<li>plot([x], y, [fmt], *, data=None, **kwargs)</li>
+<li>plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)</li>
+</ul>
+
+<p>位置参数：</p>
+
+<ul>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" checked />, y, [fmt]
+</li>
+</ul>
+
+<p>关键字传参：</p>
+
+<ul>
+<li>*后面的参数</li>
+</ul>
+
+<h1 id="toc_2">x序列的不同类型</h1>
+
+<h2 id="toc_3">文本型的x序列</h2>
+
+<pre><code class="language-python"># data
+X = [8,3,5,&#39;t&#39;] # 会按顺序【0,1,2,3】被定位在x轴的刻度上
+Y = [1,2,3,4]
+
+
+plt.plot(X,Y,marker = &#39;o&#39;,c=&#39;g&#39;)
+
+ax = plt.gca()
+print(&#39;x轴刻度：&#39;,plt.xticks())  #list
+xticklabels_lst = ax.get_xticklabels()
+print(&#39;-&#39;*70)
+x轴刻度：([0, 1, 2, 3], &lt;a list of 4 Text xticklabel objects&gt;)
+----------------------------------------------------------------------
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST390MkazC65gic6xXs71nTgFic392z2PGvEqRYyRP6RWDKpwYowicxoicm1WQ/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">print(&#39;x轴刻度标签：&#39;,list(xticklabels_lst))  #是个文本标签
+x轴刻度标签：[Text(0, 0, &#39;8&#39;), Text(1, 0, &#39;3&#39;), Text(2, 0, &#39;5&#39;), Text(3, 0, &#39;t&#39;)]
+</code></pre>
+
+<h2 id="toc_4">数字型的x序列</h2>
+
+<pre><code class="language-python"># data
+X = [8,3,5,1] # 会按数字【8，3,5,1】被定位在x轴的刻度上
+
+Y = [1,2,3,4]
+
+plt.plot(X,Y,marker = &#39;o&#39;,c=&#39;g&#39;)
+
+ax = plt.gca()
+
+print(&#39;x轴刻度：&#39;,plt.xticks()) # array
+xticklabels_lst = ax.get_xticklabels()
+print(&#39;-&#39;*70)
+x轴刻度：(array([0., 1., 2., 3., 4., 5., 6., 7., 8., 9.]), &lt;a list of 10 Text xticklabel objects&gt;)
+----------------------------------------------------------------------
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39OKgxoQ3cmeYtXvz9Bh9qia1rBAgWnowab9IWHnRNCBDPXKia0icQuBPLA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">print(&#39;x轴刻度标签：&#39;,list(xticklabels_lst))  #是个按序号排列的文本标签
+x轴刻度标签：[Text(0.0, 0, &#39;0&#39;), Text(1.0, 0, &#39;1&#39;), Text(2.0, 0, &#39;2&#39;), Text(3.0, 0, &#39;3&#39;), Text(4.0, 0, &#39;4&#39;), Text(5.0, 0, &#39;5&#39;), Text(6.0, 0, &#39;6&#39;), Text(7.0, 0, &#39;7&#39;), Text(8.0, 0, &#39;8&#39;), Text(9.0, 0, &#39;9&#39;)]
+</code></pre>
+
+<h2 id="toc_5">2种类型-2条线</h2>
+
+<pre><code class="language-python"># data
+X1 = [8,3,5,&#39;t&#39;]
+X2 = [8,3,5,1]
+Y = [1,2,3,4]
+
+plt.plot(X2,Y,marker = &#39;o&#39;,c=&#39;r&#39;)
+plt.plot(X1,Y,marker = &#39;o&#39;,c=&#39;g&#39;)
+
+ax = plt.gca()
+
+print(&#39;x轴刻度：&#39;,plt.xticks())
+xticklabels_lst = ax.get_xticklabels()
+print(&#39;-&#39;*70)
+x轴刻度：([0, 1, 2, 3], &lt;a list of 4 Text xticklabel objects&gt;)
+----------------------------------------------------------------------
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39A8sPBEXTRvWeaDtSEFCX2F44brXCQkdRWYvq7D2fz1owcbRg5CZrLA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">print(&#39;x轴刻度标签：&#39;,list(xticklabels_lst)) 
+x轴刻度标签：[Text(0, 0, &#39;8&#39;), Text(1, 0, &#39;3&#39;), Text(2, 0, &#39;5&#39;), Text(3, 0, &#39;t&#39;)]
+</code></pre>
+
+<h1 id="toc_6">提供不同数量的位置参数</h1>
+
+<p>几种方式的调用</p>
+
+<h2 id="toc_7">无参数</h2>
+
+<pre><code class="language-python">#返回一个空列表
+plt.plot()
+[]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39yDIvkHokd5EXMXzl0lJFoH1mD6CIjjFv23b2vgSkYl3CE28ic4A00rw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>plot([x], y, [fmt], *, data=None, **kwargs) plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)</p>
+
+<h2 id="toc_8">1个参数</h2>
+
+<pre><code class="language-python">#提供一个数（点）
+plt.plot(4.5,marker=&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f0352f978&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST390MFB3c55Dd4fctH67xEdZAjBAccicZR9xibGX9KpwgPurCWvhgTriaJ2A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">#提供一个数字序列
+plt.plot([4.5,2,3],marker=&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f0350d438&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39QRWpOpOvC9h6pqVAMUkNtDiadpgPBIfBz6MenvTCib4lbPDQkKRWcGPA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_9">2个参数</h2>
+
+<p>自动解析位置参数的原则</p>
+
+<h3 id="toc_10">(x,y）形式</h3>
+
+<pre><code class="language-python"># x/y 为序列
+plt.plot([2,1,3],[0.5,2,2.5],marker=&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f034735c0&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST397PIE0wXefnff0seMFesYiavgIC3k9xUAkSUkIqlUVhaTXP608fiafrZg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python"># x/y 为标量
+plt.plot(2,[&#39;z&#39;],marker = &#39;o&#39;) 
+[&lt;matplotlib.lines.Line2D at 0x7f6f03461b38&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39CZ8MdAibecAibWlkD3L6wSJzKwumMsyRWvAaRq17GOicCR9HVP2huQutw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h3 id="toc_11">(y,fmt)形式</h3>
+
+<pre><code class="language-python"># plt.plot(2,&#39;z&#39;,marker = &#39;o&#39;) #Unrecognized character z in format string
+# y 为标量 
+plt.plot(2,&#39;r&#39;,marker = &#39;o&#39;) 
+[&lt;matplotlib.lines.Line2D at 0x7f6f033b7cf8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST3938jXcMiarekvStV0e2aI3K1RjGibvo5iaP964zY7fA0dmibH94q66UB0Zw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python"># y 为序列
+plt.plot([2,1,3],&#39;r--*&#39;) 
+[&lt;matplotlib.lines.Line2D at 0x7f6f033a1cf8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39QiboMicydP9kTiaiajMK6UEqqTQnfNHyp3NySbvMsRp1UfD76WgAklnsoA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_12">3个参数</h2>
+
+<h3 id="toc_13">（[x],y,[fmt]）形式</h3>
+
+<pre><code class="language-python">plt.plot([2,1,3],[0.5,2,2.5],&#39;p--g&#39;, 
+#          marker=&#39;o&#39;
+         markersize = 15
+        )
+[&lt;matplotlib.lines.Line2D at 0x7f6f0331e048&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39U9qQviar0ovic5XJdITv7UuBDNGC7g9l7TV0PeaJfJeQpdT5LWYWPUQQ/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python"># fmt不写，或者‘’，则使用默认样式
+plt.plot([2,1,3],[0.5,2,2.5],&#39;&#39;,
+#          marker=&#39;o&#39;
+         markersize = 15
+        )
+[&lt;matplotlib.lines.Line2D at 0x7f6f03289390&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39yKjNZACg9R33F1DvfW9AARQERJyCNQxuPWExRdrfjhS5tNIksMlh4A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_14">绘图Line2D</h1>
+
+<h2 id="toc_15">仅画线：绘图的默认情况</h2>
+
+<p>默认样式：蓝色的【线】【无标记】</p>
+
+<pre><code class="language-python"># marker = None 表示不做设置
+plt.plot([2,2.5,1])
+[&lt;matplotlib.lines.Line2D at 0x7f6f031f86a0&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39fG59O2RMPT6hQiaNhDYFw7ficIrT7JobbBbcQrdAFpFSqljdNxemicnWw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_16">仅画标记</h2>
+
+<pre><code class="language-python">plt.plot([2,2.5,1],&#39;o&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f03afcba8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39cZMibaLWr6wotXqib2UoGnPO2MBCmm3qOr6MDO7XibUyE06ibZDMFWx3zw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_17">画线+标记</h2>
+
+<pre><code class="language-python">plt.plot([2,2.5,1],&#39;o-&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f031d62e8&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39I4BQ2ZiawZjxsJlpkiadlktj9zJxQCwdJbKHNHic2Fu4gehN8YAr6vD0Q/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<pre><code class="language-python">plt.plot([2,1,3],&#39;bo--&#39;)
+[&lt;matplotlib.lines.Line2D at 0x7f6f0317b128&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39Rj7EuEPqtXJbKE81a9tL3ec0sQaum1XN8VYI2CTGNgXWkbzz3rNo8w/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_18">fmt的组合顺序随意的？</h1>
+
+<h2 id="toc_19">6图合一及结论</h2>
+
+<pre><code class="language-python"># 6种组合
+# [color][marker][line],3种任意组合为6种可能
+
+# b :蓝色
+# o: 圆圈标记
+# --：虚线
+
+fmt = [&#39;bo--&#39;,&#39;b--o&#39;,&#39;ob--&#39;,&#39;o--b&#39;,&#39;--bo&#39;,&#39;--ob&#39;]
+for i in range(len(fmt)):
+    plt.subplot(2,3,i+1)
+    plt.plot([2,1,3],fmt[i])
+    
+# 结论：[color][marker][line]，每个都是可选的，每个属性可以选择写或者不写
+# 而且与组合中它们所在的位置顺序无关
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39WhhJjtR4ibibs2l3ggYbcLeqUovOYdV0J4xBpiaogusYV3mWAr9SRWuFQ/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_20">fmt支持的【线】-line</h2>
+
+<p><strong>Line Styles</strong></p>
+
+<p>==== character description ====</p>
+
+<p><code>&#39;-&#39;</code> solid line style <code>&#39;--&#39;</code> dashed line style <code>&#39;-.&#39;</code> dash-dot line style <code>&#39;:&#39;</code> dotted line style </p>
+
+<h2 id="toc_21">fmt支持的【标记】-marker</h2>
+
+<p><strong>Markers</strong></p>
+
+<p>==== character description ====</p>
+
+<p><code>&#39;.&#39;</code> point marker <code>&#39;,&#39;</code> pixel marker <code>&#39;o&#39;</code> circle marker <code>&#39;v&#39;</code> triangle_down marker <code>&#39;^&#39;</code> triangle_up marker <code>&#39;&lt;&#39;</code> triangle_left marker <code>&#39;&gt;&#39;</code> triangle_right marker <code>&#39;1&#39;</code> tri_down marker <code>&#39;2&#39;</code> tri_up marker <code>&#39;3&#39;</code> tri_left marker <code>&#39;4&#39;</code> tri_right marker <code>&#39;s&#39;</code> square marker <code>&#39;p&#39;</code> pentagon marker <code>&#39;*&#39;</code> star marker <code>&#39;h&#39;</code> hexagon1 marker <code>&#39;H&#39;</code> hexagon2 marker <code>&#39;+&#39;</code> plus marker <code>&#39;x&#39;</code> x marker <code>&#39;D&#39;</code> diamond marker <code>&#39;d&#39;</code> thin_diamond marker <code>&#39;|&#39;</code> vline marker <code>&#39;_&#39;</code> hline marker</p>
+
+<h2 id="toc_22">fmt支持的【颜色】-color</h2>
+
+<p><strong>Colors</strong></p>
+
+<p>The supported color abbreviations are the single letter codes</p>
+
+<p>==== character color ====</p>
+
+<p><code>&#39;b&#39;</code> blue <code>&#39;g&#39;</code> green <code>&#39;r&#39;</code> red <code>&#39;c&#39;</code> cyan <code>&#39;m&#39;</code> magenta <code>&#39;y&#39;</code> yellow <code>&#39;k&#39;</code> black <code>&#39;w&#39;</code> white </p>
+
+<h2 id="toc_23">所有样式：标记、线、颜色参考大全</h2>
+
+<p>链接：<strong><a href="https://www.kesci.com/home/project/5ea4e5da105d91002d506ac6">https://www.kesci.com/home/project/5ea4e5da105d91002d506ac6</a></strong></p>
+
+<pre><code>
+</code></pre>
+
+<h1 id="toc_24">样式属性</h1>
+
+<h2 id="toc_25">线条的属性</h2>
+
+<pre><code class="language-python"># 包含：(颜色除外）
+# 线的样式、线的宽度
+# linestyle or ls: {&#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;, &#39;&#39;, }
+# linewidth or lw: float
+
+ls_lst = [&#39;-&#39;, &#39;--&#39;, &#39;-.&#39;, &#39;:&#39;,] 
+lw_lst = [1,3,5,7]
+for i in range(len(ls_lst)):
+    plt.plot([1,2,3,4],[i+1]*4,ls_lst[i],lw = lw_lst[i])
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39c0a9u0s52BHVc7JsJkAWtBdB7ibCRy7ZPUIuulVU3jT0yNxicoIz5fMA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_26">标记的属性</h2>
+
+<pre><code class="language-python"># 包含：
+&#39;&#39;&#39;
+marker: marker style
+#边框（颜色及边框粗细）
+markeredgecolor or mec: color
+markeredgewidth or mew: float
+#面颜色
+markerfacecolor or mfc: color
+markerfacecoloralt or mfcalt: color  #备用标记颜色
+#标记的大小
+markersize or ms: float
+markevery: None or int or (int, int) or slice or List[int] or float or (float, float)
+&#39;&#39;&#39;
+
+# linestyle = None 表示不做设置，以默认值方式
+# linestyle = &#39;&#39;  linestyle = &#39;none&#39; 表示无格式，无线条
+
+plt.plot([4,2,1,3],linestyle = &#39;none&#39;, 
+         marker = &#39;o&#39;,
+         markersize = 30,
+         # edge
+         markeredgecolor = &#39;r&#39;,
+         markeredgewidth = 5,
+         # face 
+         markerfacecolor = &#39;g&#39;,
+#          markerfacecolor = &#39;none&#39;,
+#          markerfacecolor = None,
+        )
+[&lt;matplotlib.lines.Line2D at 0x7f6f02f085c0&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39IO2mK8Wc6op7qb66crQZnTNFhvKICicMBQZOhPAoDeYFsRxDPZ1b77Q/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_27">综合：带有空心圆标记的线条图</h1>
+
+<pre><code class="language-python">&#39;&#39;&#39;
+标记点是覆盖在线条的上面，位于上层
+
+图层层次：[top]  spines &gt; marker &gt; line &gt; backgroud  [bottom]
+spines：轴的4个边框
+spines 将线条图围在里面
+&#39;&#39;&#39;
+
+plt.plot([1,5,3,4], 
+         marker = &#39;o&#39;,
+         markersize = 20,
+         # edge
+         markeredgecolor = &#39;r&#39;,
+         markeredgewidth = 5,
+         # face 
+         markerfacecolor = &#39;w&#39;,    # 白色，与背景色相同，把线条覆盖着，营造空心的视觉效果
+#          markerfacecolor = &#39;none&#39;, # 无色，透明，会看到线条
+#          markerfacecolor = None, # 不设置，默认颜色
+        )
+
+# markerfacecolor = &#39; &#39;, # 无法识别
+# markerfacecolor = &#39;&#39;, # 无法识别
+[&lt;matplotlib.lines.Line2D at 0x7f6f02e6e470&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39RUIgr2Mu3lWzya5OMyP8nBWDINmXrBBw2accly5s8e5smh6xNumicng/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_28">data关键字的使用</h1>
+
+<h2 id="toc_29">字典数据</h2>
+
+<pre><code class="language-python">#字典数据
+d = {&#39;name&#39;:list(&#39;abcd&#39;),&#39;age&#39;:[22,20,18,27]}
+plt.plot(&#39;name&#39;,&#39;age&#39;,data = d)
+[&lt;matplotlib.lines.Line2D at 0x7f6f02e52e48&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39RdZ6iaHpKRvD3iblvyZe6dzeuhiaxXiaUemmGUj0qfn24xo2Mg2PHGyZpA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h2 id="toc_30">DataFrame数据</h2>
+
+<pre><code class="language-python">#DataFrame数据
+d = {&#39;name&#39;:list(&#39;abcd&#39;),&#39;age&#39;:[22,20,18,27]}
+df = pd.DataFrame(d)
+df
+</code></pre>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: left"></th>
+<th style="text-align: left">name</th>
+<th style="text-align: left">age</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: left">0</td>
+<td style="text-align: left">a</td>
+<td style="text-align: left">22</td>
+</tr>
+<tr>
+<td style="text-align: left">1</td>
+<td style="text-align: left">b</td>
+<td style="text-align: left">20</td>
+</tr>
+<tr>
+<td style="text-align: left">2</td>
+<td style="text-align: left">c</td>
+<td style="text-align: left">18</td>
+</tr>
+<tr>
+<td style="text-align: left">3</td>
+<td style="text-align: left">d</td>
+<td style="text-align: left">27</td>
+</tr>
+</tbody>
+</table>
+
+<pre><code>plt.plot(&#39;name&#39;,&#39;age&#39;,data = df)
+[&lt;matplotlib.lines.Line2D at 0x7f6f02d7a940&gt;]
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS3ovSxAycsQ0mSDsAv7ST39RdZ6iaHpKRvD3iblvyZe6dzeuhiaxXiaUemmGUj0qfn24xo2Mg2PHGyZpA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<h1 id="toc_31">总结</h1>
+
+<p>定义：</p>
+
+<ul>
+<li>plt.plot(<em>args,scalex = True,scaley = True,data = None ,</em>*kwargs)</li>
+</ul>
+
+<p>调用：</p>
+
+<ul>
+<li>plot([x], y, [fmt], *, data=None, **kwargs)</li>
+<li>plot([x], y, [fmt], [x2], y2, [fmt2], ..., **kwargs)</li>
+</ul>
+
+<p>x,y,fmt均不能使用关键字传参</p>
+
+<p>推荐使用：</p>
+
+<ul>
+<li>plt.plot(x,y,fmt)</li>
+<li>多组数据时，再次调用</li>
+<li>plt.plot(x2,y2,fmt2) 画第2条线即可...</li>
+<li>默认样式：蓝色的【线】+【无标记】，即无标记的线</li>
+<li>可使用fmt来快捷控制线条的基本属性：颜色、线、标记</li>
+<li>[color][marker][line]</li>
+<li>fmt与关键字属性可混合使用，当两者有冲突时，以关键字的为准。</li>
+<li>对于已有的带标签的数据如df，可使用</li>
+<li>plt.plot(&#39;columns_name1&#39;,&#39;columns_name2&#39;,data = df)</li>
+</ul>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python数据形态及IO操作]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15929209176741.html"/>
+    <updated>2020-06-23T22:01:57+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15929209176741.html</id>
+    <content type="html"><![CDATA[
+<h2 id="toc_0">1.数据型态</h2>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkN0CekufXU3LkIdEkDb0UUKKhXO9gkCo10kicveu17cyRWhRjmhFqtaSw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<ul>
+<li><strong>定性数据（Qualitative or Categorical Data）：是一组表示事物性质、规定事物类别的文字表述型数据，不能将其量化，只能将其定性。</strong></li>
+<li>叙述特性或种类</li>
+<li><strong>定量数据（Quantitative or Numerical Data）：可以被计数或测量。</strong></li>
+</ul>
+
+<blockquote>
+<ul>
+<li>定性分析与定量分析应该是统一的，相互补充的；定性分析是定量分析的基本前提，没有定性的定量是一种盲目的、毫无价值的定量；定量分析使定性分析更加科学、准确，它可以促使定性分析得出广泛而深入的结论。</li>
+<li>定量分析是依据统计数据，建立数学模型，并用数学模型计算出分析对象的各项指标及其数值的一种方法。定性分析则是主要凭分析者的直觉、经验，凭分析对象过去和现在的延续状况及最新的信息资料，对分析对象的性质、特点、发展变化规律作出判断的一种方法。</li>
+<li>相比而言，前一种方法更加科学，但需要较高深的数学知识，而后一种方法虽然较为粗糙，但在数据资料不够充分或分析者数学基础较为薄弱时比较适用，更适合于一般的投资者与经济工作者。但是必须指出，两种分析方法对数学知识的要求虽然有高有低，但并不能就此把定性分析与定量分析截然划分开来。事实上，现代定性分析方法同样要采用数学工具进行计算，而定量分析则必须建立在定性预测基础上，二者相辅相成，定性是定量的依据，定量是定性的具体化，二者结合起来灵活运用才能取得最佳效果。</li>
+<li>不同的分析方法各有其不同的特点与性能，但是都具有一个共同之处，即它们一般都是通过比较对照来分析问题和说明问题的。正是通过对各种指标的比较或不同时期同一指标的对照才反映出数量的多少、质量的优劣、效率的高低、消耗的大小、发展速度的快慢等等，才能作为鉴别、下判断提供确凿有据的信息。</li>
+</ul>
+</blockquote>
+
+<p>举个例子：</p>
+
+<p><strong>◆ 定性分析：</strong><br/>
+分析: _ 知几写了很多篇文章<br/>
+<strong>◆ 定量分析：</strong><br/>
+分析:_ 知几写了107篇文章。</p>
+
+<blockquote>
+<p>我的理解是定量分析主要关注的是频率；定性分析关注的是意义。</p>
+</blockquote>
+
+<h3 id="toc_1">定量数据又可分为：</h3>
+
+<ul>
+<li><p><strong>离散数据（Discrete Data）：</strong>指其数值只能用自然数或整数单位计算，例如企业的人数</p></li>
+<li><ul>
+<li>只能用自然数或整数单位计算</li>
+</ul>
+
+<ul>
+<li>只能按计量单位数计数，可由一般计数方法取得</li>
+</ul></li>
+<li><p><strong>连续数据（Continuous Data）：</strong>在一定区间内可以任意取值的数据，其数值是连续不断的，例如人的身高</p></li>
+<li><ul>
+<li>一定区间内可以任意取值的数据，其数值是连续不断的，相邻两个数值可取无限个数值</li>
+</ul>
+
+<ul>
+<li>其数值只能用测量或计量的方法获得</li>
+</ul></li>
+</ul>
+
+<h2 id="toc_2">2.结构化vs半结构化vs非结构化数据</h2>
+
+<ul>
+<li>结构化数据</li>
+<li>每笔数据都有固定的字段、固定的格式，方便程序进行后续取用与分析</li>
+<li>例如数据库</li>
+<li>半结构化数据</li>
+<li>数据介于数据化结构与非结构化数据之间</li>
+<li>数据具有字段，也可以依据字段来进行查找，使用方便，但每笔数据的字段可能不一致</li>
+<li>例如：XML，JSON</li>
+<li>非结构化数据</li>
+<li>没有固定的格式，必须整理以后才能存取</li>
+<li>没有格式的文字、网页数据</li>
+</ul>
+
+<h3 id="toc_3">1.结构化数据</h3>
+
+<ul>
+<li>结构化数据也称作行数据，是由二维表结构来逻辑表达和实现的数据，严格地遵循数据格式与长度规范，主要通过关系型数据库进行存储和管理。</li>
+<li>对数据的处理和捞取可以通过<strong>SQL语句</strong>。</li>
+</ul>
+
+<h3 id="toc_4">2.半结构化数据 - XML</h3>
+
+<pre><code>&lt;users&gt;
+    &lt;user&gt;
+        &lt;name&gt;xsl&lt;/name&gt;
+        &lt;gender&gt;boy&lt;/gender&gt;
+        &lt;age&gt;23&lt;/age&gt;
+    &lt;/user&gt;
+    &lt;user&gt;
+      &lt;name&gt;xlm&lt;/name&gt;
+      &lt;gender&gt;girl&lt;/gender&gt;
+    &lt;/user&gt;
+&lt;/users&gt;
+</code></pre>
+
+<ul>
+<li>可以使用字段存储数据内容</li>
+<li>字段不固定，例如xlm就少了age字段</li>
+<li>可以弹性的存放各种字段格式的数据</li>
+</ul>
+
+<h3 id="toc_5">3.半结构化数据 - JSON</h3>
+
+<pre><code>[
+  user:{
+    name:xsl,
+    gender:boy,
+    age:12,
+},
+  user:{
+    name:xsl,
+    gender:girl,
+}
+]
+</code></pre>
+
+<ul>
+<li>如同XML可以使用字段存储数据内容</li>
+<li>使用<code>Key:Value</code>存放数据</li>
+<li>不用宣告字段的结尾，可以比XML更快更有效传输数据</li>
+</ul>
+
+<h3 id="toc_6">4.非结构化数据</h3>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkNu1m3OjWzaOCHJ7cvHFBh32b80KuXjY9HkhUCpKNEkd28852RPs6V5A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<ul>
+<li>没有固定的数据格式</li>
+<li>例如网站数据</li>
+<li>必须透过ETL(Extract,Transformation,Loading)工具将数据转换为结构化数据才能取用</li>
+</ul>
+
+<p>由于我们常见的数据是非结构化数据，为了进行数据分析，我们就需要从非结构化数据中挖掘数据，我们就需要先把非结构化数据转换成结构化数据，此时我们就可以使用ETL工具。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkNiaHTjH8cxjFFfJOufjXPnMFibxZ1VvhSja3LiabTMiaicQKkIbSk0KPteOA/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="数据抽取、转换、存储过程"/></p>
+
+<p>​                                                                                                   数据抽取、转换、存储过程</p>
+
+<h2 id="toc_7">3.Python IO与档案处理</h2>
+
+<p>Python提供了默认操作文件所必需的基本功能和方法。可以使用文件对象执行大部分文件操作。</p>
+
+<h3 id="toc_8">打开文件</h3>
+
+<p>在读取或写入文件之前，需要使用Python的内置<code>open()</code>函数打开文件。此函数创建一个文件对象，该对象将用于调用与其相关联的其他支持方法。</p>
+
+<p><strong>语法：</strong></p>
+
+<pre><code>f = open(file_name [, access_mode][, buffering])
+</code></pre>
+
+<ul>
+<li><code>file_name</code>参数是一个字符串值，指定要访问的文件的名称。</li>
+<li><code>access_mode</code>确定文件打开的模式，即读取，写入，追加等。可能的值的完整列表如下表所示。这是一个可选参数，默认文件访问模式为(r - 也就是只读)。</li>
+<li><code>bufferin</code>如果buffering值设置为0，则不会发生缓冲。如果缓冲值buffering为1，则在访问文件时执行行缓冲。如果将缓冲值buffering指定为大于1的整数，则使用指定的缓冲区大小执行缓冲操作。如果为负，则缓冲区大小为系统默认值(默认行为)。</li>
+</ul>
+
+<table>
+<thead>
+<tr>
+<th style="text-align: center">编号</th>
+<th style="text-align: left">模式</th>
+<th style="text-align: left">描述</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td style="text-align: center">1</td>
+<td style="text-align: left"><code>r</code></td>
+<td style="text-align: left">打开的文件为只读模式。文件指针位于文件的开头，这是默认模式。</td>
+</tr>
+<tr>
+<td style="text-align: center">2</td>
+<td style="text-align: left"><code>rb</code></td>
+<td style="text-align: left">打开仅用二进制格式读取的文件。文件指针位于文件的开头，这是默认模式。</td>
+</tr>
+<tr>
+<td style="text-align: center">3</td>
+<td style="text-align: left"><code>r+</code></td>
+<td style="text-align: left">打开读写文件。文件指针放在文件的开头。</td>
+</tr>
+<tr>
+<td style="text-align: center">4</td>
+<td style="text-align: left"><code>rb+</code></td>
+<td style="text-align: left">以二进制格式打开一个用于读写文件。文件指针放在文件的开头。</td>
+</tr>
+<tr>
+<td style="text-align: center">5</td>
+<td style="text-align: left"><code>w</code></td>
+<td style="text-align: left">打开仅供写入的文件。如果文件存在，则覆盖该文件。如果文件不存在，则创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">6</td>
+<td style="text-align: left"><code>wb</code></td>
+<td style="text-align: left">打开仅用二进制格式写入的文件。如果文件存在，则覆盖该文件。如果文件不存在，则创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">7</td>
+<td style="text-align: left"><code>w+</code></td>
+<td style="text-align: left">打开写入和取读的文件。如果文件存在，则覆盖现有文件。如果文件不存在，创建一个新文件进行阅读和写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">8</td>
+<td style="text-align: left"><code>wb+</code></td>
+<td style="text-align: left">打开一个二进制格式的写入和读取文件。如果文件存在，则覆盖现有文件。如果文件不存在，创建一个新文件进行阅读和写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">9</td>
+<td style="text-align: left"><code>a</code></td>
+<td style="text-align: left">打开一个文件进行追加。如果文件存在，则文件指针位于文件末尾。也就是说，文件处于追加模式。如果文件不存在，它将创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">10</td>
+<td style="text-align: left"><code>ab</code></td>
+<td style="text-align: left">打开一个二进制格式的文件。如果文件存在，则文件指针位于文件末尾。也就是说，文件处于追加模式。如果文件不存在，它将创建一个新文件进行写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">11</td>
+<td style="text-align: left"><code>a+</code></td>
+<td style="text-align: left">打开一个文件，用于追加和阅读。如果文件存在，则文件指针位于文件末尾。文件以附加模式打开。如果文件不存在，它将创建一个新文件进行阅读和写入。</td>
+</tr>
+<tr>
+<td style="text-align: center">12</td>
+<td style="text-align: left"><code>ab+</code></td>
+<td style="text-align: left">打开一个二进制格式的附加和读取文件。如果文件存在，则文件指针位于文件末尾。文件以附加模式打开。如果文件不存在，它将创建一个新文件进行读取和写入。</td>
+</tr>
+</tbody>
+</table>
+
+<ul>
+<li><strong>write()方法</strong>：将任何字符串写入打开的文件。重要的是要注意，Python字符串可以是二进制数据，而不仅仅是文本。</li>
+<li><strong>close()方法</strong>：刷新任何未写入的信息并关闭文件对象，之后不能再进行写入操作。</li>
+</ul>
+
+<pre><code>f =open(&#39;zj.txt&#39;, &#39;w&#39;)  #读写模式
+f.write(&#39;hello xlm&#39;) #写入 hello xlm
+f.close() 关闭文件
+
+#用with写
+with open(&#39;zj.txt&#39;, &#39;r&#39;) as f:
+    print(f.read()) #全部读取
+
+with open(&#39;zj.txt&#39;, &#39;r&#39;) as f:
+    for line in f.readlines():
+        print(line)   #分行打印出来
+        print(line.strip())  #去除多余的换行
+</code></pre>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/aSJyGw23SZD4C1QiceHyVNSicwKEUvlgkNR8icWZHiaC8ZV2fcvDKsicUUJlR2D9J9HJAYnBlpolnXUtKcsLc0TWW1A/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="打开本地文件，可以看到&lt;code&gt;hello xlm&lt;/code&gt; 已经写入文件"/>   </p>
+
+<p>打开本地文件，可以看到<code>hello xlm</code> 已经写入文件</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[Python 为什么要保留显式的 self]]></title>
+    <link href="https://sparkbye.github.io/myBlog/15929207363484.html"/>
+    <updated>2020-06-23T21:58:56+08:00</updated>
+    <id>https://sparkbye.github.io/myBlog/15929207363484.html</id>
+    <content type="html"><![CDATA[
+<p>布鲁斯·埃克尔（Bruce Eckel）<strong>发了篇博文</strong>[1]，提议从类方法的形参列表中删除“self”。我将解释为什么这个提议不能通过。（译注：Bruce 是《Thinking in Java》、《Thinking in C++》等多本书籍的作者，也是个 Python 开发者。他的文章总结了当年在巴西 Pycon 上的一次讨论，主要观点是在定义类方法时，形参中的“self”是多余的，而且由它引发的报错信息具有一定的误导性。）</p>
+
+<h2 id="toc_0"><strong>Bruce 的提议</strong></h2>
+
+<p>Bruce 知道，我们需要一种方法来区分对实例变量的引用和对其它变量的引用，因此他建议将“self”设为关键字。</p>
+
+<p>考虑一种典型的类，它有一个方法，例如：</p>
+
+<pre><code class="language-C">class C:
+   def meth(self, arg):
+      self.val = arg
+      return self.val
+</code></pre>
+
+<p>跟据 Bruce 的提议，这将变为：</p>
+
+<pre><code class="language-C">class C:
+   def meth(arg):# Look ma, no self!
+      self.val = arg
+      return self.val
+</code></pre>
+
+<p>这样每个方法会节省 6 个字符。但我不觉得 Bruce 提出这个建议是为了减少打字。</p>
+
+<p>我认为他真正关心的是程序员（可能来自其它语言）所浪费的时间，有时候似乎不需要指定“self”参数，而且他们偶尔忘记了要加（即使他们十分清楚——习惯是一种强大的力量）。确实，与忘记在实例变量或方法引用之前键入“self.”相比，从参数列表中省略“self”，往往会导致很模糊的错误消息。</p>
+
+<p>也许更糟糕的是（如 Bruce 所述），当正确地声明了方法，但是在调用时的参数数量不对，这时收到的错误消息。如 Bruce 给出的以下示例：</p>
+
+<pre><code>Traceback (most recent call last):
+File &quot;classes.py&quot;, line 9, in
+   obj.m2(1)
+TypeError: m2() takes exactly 3 arguments (2 given)
+</code></pre>
+
+<p>我赞同它是令人困惑的，但是我宁愿去解决此错误消息，而不是修改语言。</p>
+
+<h2 id="toc_1"><strong>为什么 Bruce 的提议不可行</strong></h2>
+
+<p>首先，让我提出一些与 Bruce 的提议相反的典型论点。</p>
+
+<p>这有一个很好的论据可以证明，在参数列表中使用显式的“self”，可以增强以下两种调用方法在理论上的等效性。假设“ foo”是“C”的一个实例：</p>
+
+<pre><code>foo.meth(arg) == C.meth(foo, arg)
+</code></pre>
+
+<p>（译注：说实话，我没有理解这个例子的意思。以下仅是个人看法。在类的内部定义方法时，可能会产生几种不同的方法：<strong>实例方法</strong>、<strong>类方法</strong>和 <strong>静态方法</strong>。它们的作用和行为是不同的，那么在定义和调用时怎么做区分呢？Python 约定了一种方式，即在定义时用第一个参数作区分：self 表示实例方法、cls或其它符号 表示类方法……三种方法都可以被类的实例调用，而且看起来一模一样，如上例的等号左侧那样。这时候就要靠定义时赋予的参数来区分了，像上例等号右侧，第一个参数是实例对象，表明此处是个实例方法。）</p>
+
+<p>另一个论据是，在参数列表中使用显式的“self”，将一个函数插入一个类，获得动态地修改一个类的能力，创建出相应的一个类方法。</p>
+
+<p>例如，我们可以创建一个与上面的“C”完全等效的类，如下所示：</p>
+
+<pre><code># Define an empty class:
+class C:
+   pass
+
+# Define a global function:
+def meth(myself, arg):
+   myself.val = arg
+   return myself.val
+
+# Poke the method into the class:
+C.meth = meth
+</code></pre>
+
+<p>请注意，我将“self”参数重命名为“myself”，以强调（在语法上）我们不是在此处定义一个方法（译注：类外部的是<strong>函数</strong>，即 function，类内部的是<strong>方法</strong>，即 method）。</p>
+
+<p>这样之后，C 的实例就具有了一个“meth”方法，该方法有一个参数，且功能跟之前的完全一样。对于在把方法插入类之前就创建的那些 C 的实例，它甚至也适用。</p>
+
+<p>我想 Bruce 并不特别在意前述的等效性。我同意这只是理论上的重要。我能想到的唯一例外是旧式的调用超级方法的习语（idiom）。但是，这个习语很容易出错（正是由于需要显式地传递&quot;self&quot;的原因），这就是为什么在 Python 3000中，我建议在所有情况下都使用&quot;super()&quot;的原因。</p>
+
+<p>Bruce 可能会想到一种使第二个等效例子起作用的方法——在某些情况下，这种等效性真的很重要。我不知道 Bruce 花了多少时间思考如何实现他的提议，但是我想他正在考虑将一个名为“self”的额外形参自动地添加到直接地在类内部定义的所有方法的思路（我必须说是“直接地”，以便那些嵌套在方法内部的函数，能免于这种自动操作）。这样，可以使第一个等效例子保持等效。</p>
+
+<p>但是，有一种情况我认为 Bruce 不能在不向编译器中添加某种 ESP 的情况下解决：<strong>装饰器。</strong>我相信这是 Bruce 的提议的最终败笔。</p>
+
+<p>当装饰一个方法时，我们不知道是否要自动地给它加一个“self”参数：装饰器可以将函数变成一个静态方法（没有“self”）或一个类方法（有一个有趣的 self，它指向一个类而不是一个实例），或者可以做一些完全不同的事情（用纯 Python 实现“ @classmethod”或“ @staticmethod”的装饰器是繁琐的）。除非知道装饰器的用途，否则没有其它办法来确定是否要赋予正在定义的方法一个隐式的“self”参数。</p>
+
+<p>我拒绝诸如特殊包装的“@classmethod”和“@staticmethod”之类的黑科技。我也认为除了自检外，自动地确定某个方法是类方法（class method）、实例方法（instance method）还是静态方法（static method），这不是一个好主意（就像在 Bruce 的文章的评论中，有人建议的那样）：这使得很难仅仅根据方法前的“def”，来决定应该怎样调用该方法。</p>
+
+<p>（译注：对于一个方法，在当前的添加了相应参数的情况下，可以简单地加装饰器，区分它是哪种方法，调用时也容易区分调用；但是，如果没有加参数，即使可以用神奇的自动机制来区分出它是哪种方法，但在调用时，你不好确定该怎么调用）。</p>
+
+<p>在评论中，我看到了一些非常极端的对 Bruce 的提议的附和，但通常的代价是使得规则难以遵循，或者要求对语言进行更深层的修改，这令我们极其难以接受它，特别是合入 Python 3.1。顺便说一句，对于 3.1，再次声明我们的规则，新特性只有在保持向后兼容的情况下才是可接受的。</p>
+
+<p>有一个似乎可行的建议（可以使它向后兼容）是把类中的</p>
+
+<pre><code>def foo(self, arg): ...
+</code></pre>
+
+<p>改成这样的语法糖：</p>
+
+<pre><code>def self.foo(arg): ...
+</code></pre>
+
+<p>但我不认同它把“self”变为保留字（reserved word），或者要求前缀必须是“self”。如果这样做了，那对于类方法，很容易也出现这种情况：</p>
+
+<pre><code>@classmethod
+def cls.foo(arg): ...
+</code></pre>
+
+<p>好了，相比于现状，我并没有更喜欢这个。但是相比于 Bruce 的提议或在他的博客评论区中提出的更极端的说法，我认为这个要好得多，而且它具有向后兼容的巨大优势，并且不需要很费力，就可以写成带有参考实现的 PEP。（我想 Bruce 应该会发现自己提案中的缺陷，如果他真的付出努力尝试编写可靠的 PEP 或者尝试实现它。）</p>
+
+<p>我可以继续聊很多，但这是一个阳光明媚的周日早晨，而我还有其它的计划... :-)</p>
+
+<p>作者：Guido van Rossum，写于：2008.10.26</p>
+
+<p><strong>参考资料</strong></p>
+
+<p>[1] Bruce博文：<a href="http://www.artima.com/weblogs/viewpost.jsp?thread=239003">http://www.artima.com/weblogs/viewpost.jsp?thread=239003</a></p>
+
+<p>[2] Guido原文: <a href="https://neopythonic.blogspot.com/2008/10/why-explicit-self-has-to-stay.html">https://neopythonic.blogspot.com/2008/10/why-explicit-self-has-to-stay.html</a></p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
+]]></content>
+  </entry>
+  
+  <entry>
+    <title type="html"><![CDATA[详解Python 3.8的海象算子]]></title>
     <link href="https://sparkbye.github.io/myBlog/15928352455072.html"/>
     <updated>2020-06-22T22:14:05+08:00</updated>
     <id>https://sparkbye.github.io/myBlog/15928352455072.html</id>
@@ -217,6 +1250,10 @@ SyntaxError: cannot use named assignment with lambda
 <li>后向兼容问题：这个特性无法向后兼容，也无法运行在之前的 Python 版本上。</li>
 <li>算子名称问题：人们建议不要使用「海象算子」这样的代号，而是使用「赋值算子」、「命名表达式算子」、「成为算子」等术语，以免人们不明白。</li>
 </ul>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
 ]]></content>
   </entry>
@@ -842,6 +1879,10 @@ list(combinations_with_replacement(&#39;ABC&#39;, 2))
 <pre><code>[(&#39;A&#39;, &#39;A&#39;), (&#39;A&#39;, &#39;B&#39;), (&#39;A&#39;, &#39;C&#39;), (&#39;B&#39;, &#39;B&#39;), (&#39;B&#39;, &#39;C&#39;), (&#39;C&#39;, &#39;C&#39;)]
 </code></pre>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -1218,6 +2259,10 @@ Website(name=&#39;163&#39;, url=&#39;http://www.163.com/&#39;, founder=&#39;Ding
 163
 </code></pre>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -1333,6 +2378,10 @@ print(b)
 
 <pre><code>[9, 8, 1, 7, 3]
 </code></pre>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
 ]]></content>
   </entry>
@@ -1456,6 +2505,10 @@ print(A() is A())
 
 <pre><code>False
 </code></pre>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
 ]]></content>
   </entry>
@@ -1624,6 +2677,10 @@ dict 中的 key 引用是强引用类型，会造成对应对象的引用计数�
 
 <p>这道题涉及的东西比较多，这里给出一点参考链接， invoking-descriptors , Descriptor HowTo Guide , PEP 487 , what`s new in Python 3.6 。</p>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -1699,6 +2756,10 @@ TypeError: object of type &#39;C&#39; has no len()
 </code></pre>
 
 <p>回到我们的例子上来，当我们在执行 a.__call__ = lambda :&quot; invoking __call__ from lambda &quot; 时，的确在我们在 a.__dict__ 中新增加了一个 key 为 __call__ 的 item ，但是当我们执行 a () 时，因为涉及特殊方法的调用，因此我们的调用过程不会从 a.__dict__ 中寻找属性，而是从 tyee ( a ). __dict__ 中寻找属性。因此，就会出现如上所述的情况。</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
 ]]></content>
   </entry>
@@ -1804,6 +2865,10 @@ a.func()
 
 <pre><code>&#39;invoking method func&#39;
 </code></pre>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
 ]]></content>
   </entry>
@@ -1925,6 +2990,10 @@ a = (s = 3)出错的原因是因为s = 3是赋值语句，而不是表达式。<
 Python的表达式是由操作符连接而成的，但“=”在Python中并不是操作符（Operator），只是语法分隔符（Delimiters）。<br/><br/>
 参见：<a href="https://docs.python.org/release/3.6.1/reference/lexical_analysis.html">https://docs.python.org/release/3.6.1/reference/lexical_analysis.html</a>  </p>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -1994,6 +3063,10 @@ list[0].append(10) 将10附加在第一个列表上。<br/>
 [[10, 20], [10, 20], [10, 20], [10, 20], [10, 20]]<br/><br/>
 作为对比， list.append(30)是将整个新的元素附加在外列表上，因此产生的结果是：[[10, 20], [10, 20], [10, 20], [10, 20], [10, 20], 30]。</p>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -2045,6 +3118,10 @@ div2(5.,2.)
 5.0//2.0 = 2.0  </p>
 
 <p>注：在 Python 3 中，/ 操作符是做浮点除法，而 // 是做整除（即商没有余数，比如 10 // 3 其结果就为 3，余数会被截除掉，而 (-7) // 3 的结果却是 -3。这个算法与其它很多编程语言不一样，需要注意，它们的整除运算会向0的方向取值。而在 Python 2 中，/ 就是整除，即和 Python 3 中的 // 操作符一样）</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
 ]]></content>
   </entry>
@@ -2134,6 +3211,10 @@ sys.argv.append(2)
 good()
 </code></pre>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -2222,6 +3303,10 @@ sys.argv.append(2)
 good()
 </code></pre>
 
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
 ]]></content>
   </entry>
   
@@ -2281,327 +3366,9 @@ def g():
 1    # Printed a second time, this one is our call to &#39;g&#39;
 </code></pre>
 
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python常见的错误<六>]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15655122908336.html"/>
-    <updated>2019-08-11T16:31:30+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15655122908336.html</id>
-    <content type="html"><![CDATA[
-<h4 id="toc_0">常见错误6: 不明白Python在闭包中是如何绑定变量的</h4>
-
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x : i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>8
-8
-8
-8
-8
-</code></pre>
-
-<p>你也许希望获得下面的输出结果：  0  2  4  6  8<br/><br/>
-惊讶吧!<br/><br/>
-这之所以会发生是由于Python中的“后期绑定”行为，也叫做闭包的延迟绑定。<br/><br/>
-<b>闭包中用到的变量只有在函数被调用的时候才会被赋值。</b><br/>
-因此，当任何由create_multipliers()返回的函数被调用时，Python会在该函数被调用时的作用域中查找i对应的值。那时，不管返回的函数是否被调用，for循环已经完成，i被赋予了最终的值4。<br/><br/>
-解决的办法有很多：</p>
-
-<p>第一种办法是用yield惰性求值：</p>
-
-<pre><code class="language-python">def create_multipliers():
-    for i in range(5): yield lambda x : i * x
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>第二种办法就是创造一个闭包，利用默认函数立即绑定。<br/><br/>
-在这里，我们利用了默认参数来生成一个匿名的函数以便实现我们想要的结果。有人说这个方法很巧妙，有人说它难以理解，还有人讨厌这种做法。但是，如果你是一个 Python 开发者，理解这种行为很重要。</p>
-
-<pre><code class="language-python">def create_multipliers():
-    return [lambda x, i=i: i * x for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-<p>还有种替代的方案是，使用偏函数：</p>
-
-<pre><code class="language-python">from functools import partial
-from operator import mul
-def create_multipliers():
-    return [partial(mul, i) for i in range(5)]
-
-for multiplier in create_multipliers():
-    print(multiplier(2))
-</code></pre>
-
-<pre><code>0
-2
-4
-6
-8
-</code></pre>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python常见的错误<五>]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15655122526636.html"/>
-    <updated>2019-08-11T16:30:52+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15655122526636.html</id>
-    <content type="html"><![CDATA[
-<h4 id="toc_0">常见错误5: 当迭代时修改一个列表（List）</h4>
-
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-for i in range(len(numbers)):
-     if odd(numbers[i]):
-            del numbers[i]
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-IndexError                                Traceback (most recent call last)
-
-&lt;ipython-input-1-c259828f5d17&gt; in &lt;module&gt;
-      2 numbers = [n for n in range(10)]
-      3 for i in range(len(numbers)):
-----&gt; 4      if odd(numbers[i]):
-      5             del numbers[i]
-
-
-IndexError: list index out of range
-</code></pre>
-
-<p>当迭代的时候，从一个 列表或者数组中删除元素，对于任何有经验的开发者来说，这是一个众所周知的错误。尽管上面的例子非常明显，但是许多高级开发者在更复杂的代码中也并非是故意而为之的。<br/>
-幸运的是，Python包含大量简洁优雅的编程范例，若使用得当，能大大简化和精炼代码。<br/><br/>
-这样的好处是能得到更简化和更精简的代码，能更好的避免程序中出现当迭代时修改一个列表这样的bug。一个这样的范例是递推式列表（list comprehensions）。<br/><br/>
-<a href="https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps">https://docs.python.org/2/tutorial/datastructures.html#tut-listcomps</a><br/><br/>
-而且，递推式列表（list comprehensions）针对这个问题是特别有用的，通过更改上文中的实现，得到一段极佳的代码：</p>
-
-<pre><code class="language-python">odd = lambda x : bool(x % 2)
-numbers = [n for n in range(10)]
-numbers[:] = [n for n in numbers if not odd(n)]  # ahh, the beauty of it all
-numbers
-</code></pre>
-
-<pre><code>[0, 2, 4, 6, 8]
-</code></pre>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python常见的错误<四>]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15655122052917.html"/>
-    <updated>2019-08-11T16:30:05+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15655122052917.html</id>
-    <content type="html"><![CDATA[
-<h4 id="toc_0">常见错误4: 不理解Python的作用域</h4>
-
-<p>Python是基于 LEGB 来进行作用于解析的, LEGB<br/><br/>
-是 Local, Enclosing, Global,Built-in 的缩写。看起来“见文知意”，对吗？实际上，在Python中还有一些需要注意的地方，先看下面一段代码：</p>
-
-<pre><code class="language-python">x = 10
-def foo():
-    x += 1
-    print(x)
-
-foo()
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-UnboundLocalError                         Traceback (most recent call last)
-
-&lt;ipython-input-1-ec96c7a5b5d8&gt; in &lt;module&gt;
-      4     print(x)
-      5 
-----&gt; 6 foo()
-
-
-&lt;ipython-input-1-ec96c7a5b5d8&gt; in foo()
-      1 x = 10
-      2 def foo():
-----&gt; 3     x += 1
-      4     print(x)
-      5 
-
-
-UnboundLocalError: local variable &#39;x&#39; referenced before assignment
-</code></pre>
-
-<p>这里出什么问题了？<br/><br/>
-上面的问题之所以会发生是因为当你给作用域中的一个变量赋值时，Python 会自动的把它当做是当前作用域的局部变量，从而会隐藏外部作用域中的同名变量。<br/><br/>
-很多人会感到很吃惊，当他们给之前可以正常运行的代码的函数体的某个地方添加了一句赋值语句之后就得到了一个 UnboundLocalError 的错误。<br/><br/>
-尤其是当开发者使用 lists 时，这个问题就更加常见。请看下面这个例子：</p>
-
-<pre><code class="language-python">lst = [1, 2, 3]
-def foo_1():
-    lst.append(5)
-
-foo_1()
-lst
-</code></pre>
-
-<pre><code>[1, 2, 3, 5]
-</code></pre>
-
-<pre><code class="language-python">def foo_2():
-    lst += [5]
-
-foo_2()
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-UnboundLocalError                         Traceback (most recent call last)
-
-&lt;ipython-input-5-4f369a1ee364&gt; in &lt;module&gt;
-      2     lst += [5]
-      3 
-----&gt; 4 foo_2()
-
-
-&lt;ipython-input-5-4f369a1ee364&gt; in foo_2()
-      1 def foo_2():
-----&gt; 2     lst += [5]
-      3 
-      4 foo_2()
-
-
-UnboundLocalError: local variable &#39;lst&#39; referenced before assignment
-</code></pre>
-
-<p>嗯？为什么 foo2 报错，而foo1没有问题呢？<br/><br/>
-原因和之前那个例子的一样，不过更加令人难以捉摸。foo1 没有对 lst 进行赋值操作，而 foo2 做了。<br/><br/>
-要知道， lst += [5] 是 lst = lst + [5] 的缩写，我们试图对 lst 进行赋值操作（Python把他当成了局部变量）。<br/><br/>
-此外，我们对 lst 进行的赋值操作是基于 lst 自身（这再一次被Python当成了局部变量），但此时还未定义。因此出错！</p>
-
-<p>下面我们再来看看这个作用域的问题。<br/><br/>
-看看下面的代码为什么报错？</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-    gen = (x for _ in range(10))
-
-print(list(A.gen))
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-NameError                                 Traceback (most recent call last)
-
-&lt;ipython-input-7-7c568240446a&gt; in &lt;module&gt;
-      3     gen = (x for _ in range(10))
-      4 
-----&gt; 5 print(list(A.gen))
-
-
-&lt;ipython-input-7-7c568240446a&gt; in &lt;genexpr&gt;(.0)
-      1 class A(object):
-      2     x = 1
-----&gt; 3     gen = (x for _ in range(10))
-      4 
-      5 print(list(A.gen))
-
-
-NameError: name &#39;x&#39; is not defined
-</code></pre>
-
-<p>这个问题是变量作用域问题，在 gen =( x for _ in xrange (10)) 中 gen 是一个 generator ,在 generator 中变量有自己的一套作用域，与其余作用域空间相互隔离。<br/><br/>
-因此，将会出现这样的 NameError:name &#39; x &#39; is not defined 的问题，那么解决方案是什么呢？答案是：用 lambda 。</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-    gen = (lambda x: (x for _ in range(10)))(x)
-
-print(list(A.gen))
-</code></pre>
-
-<pre><code>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-</code></pre>
-
-<p>或者这样</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-    gen = (A.x for _ in range(10))
-
-print(list(A.gen))
-</code></pre>
-
-<pre><code>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-</code></pre>
-
 <blockquote>
-<p>The scope of names defined in a class block is limited to the class block ;<br/><br/>
-It does not extend to the code blocks of methods - this includes comprehensions and generator expressions since they are implemented using a function scope.<br/><br/>
-This means that the following will fail :</p>
+<p>转载自微信，仅供个人学习使用</p>
 </blockquote>
-
-]]></content>
-  </entry>
-  
-  <entry>
-    <title type="html"><![CDATA[Python常见的错误<三>]]></title>
-    <link href="https://sparkbye.github.io/myBlog/15655121732301.html"/>
-    <updated>2019-08-11T16:29:33+08:00</updated>
-    <id>https://sparkbye.github.io/myBlog/15655121732301.html</id>
-    <content type="html"><![CDATA[
-<h4 id="toc_0">常见错误3: 为 except 指定错误的参数</h4>
-
-<p>我们来看下面这个例子：</p>
-
-<pre><code class="language-python">try:
-    l = [&quot;a&quot;, &quot;b&quot;]
-    int(l[2])
-except ValueError, IndexError:
-    pass
-</code></pre>
-
-<pre><code>  File &quot;&lt;ipython-input-2-4f54e4adb7ee&gt;&quot;, line 4
-    except ValueError, IndexError:
-                     ^
-SyntaxError: invalid syntax
-</code></pre>
-
-<p>这里的问题在于 except 语句并不接受以这种方式指定的异常列表。相反，在Python 2.x中，使用语法 except Exception, e 是将一个异常对象绑定到第二个可选参数（在这个例子中是 e）上，以便在后面使用。所以，在上面这个例子中，IndexError 这个异常并不是被except语句捕捉到的，而是被绑定到一个名叫 IndexError的参数上时引发的。<br/><br/>
-在一个except语句中捕获多个异常的正确做法是将第一个参数指定为一个含有所有要捕获异常的元组。并且，为了代码的可移植性，要使用as关键词，因为Python 2 和Python 3都支持这种语法：</p>
-
-<pre><code class="language-python">try:
-    l = [&quot;a&quot;, &quot;b&quot;]
-    int(l[2])
-except (ValueError, IndexError) as e:
-    pass
-</code></pre>
 
 ]]></content>
   </entry>

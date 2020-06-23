@@ -109,154 +109,94 @@
 		<div class="markdown-body home-categories">
 		
 			<div class="article">
-                <a class="clearlink" href="15655122052917.html">
+                <a class="clearlink" href="15655124251876.html">
                 
-                  <h1>Python常见的错误<四></h1>
+                  <h1>Python常见的错误<八></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误4: 不理解Python的作用域</h4>
+                        	<h4 id="toc_0">常见错误8: 未能解决Python 2和Python 3之间的差异</h4>
 
-<p>Python是基于 LEGB 来进行作用于解析的, LEGB<br/><br/>
-是 Local, Enclosing, Global,Built-in 的缩写。看起来“见文知意”，对吗？实际上，在Python中还有一些需要注意的地方，先看下面一段代码：</p>
+<p>请看下面这个 filefoo.py:</p>
 
-<pre><code class="language-python">x = 10
-def foo():
-    x += 1
-    print(x)
+<pre><code class="language-python">import sys
 
-foo()
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+
+def bad():
+    e = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        print(&#39;value error&#39;)
+    print(e)
+
+bad()
 </code></pre>
 
-<pre><code>---------------------------------------------------------------------------
+<p>在Python 2中运行正常：</p>
 
-UnboundLocalError                         Traceback (most recent call last)
-
-&lt;ipython-input-1-ec96c7a5b5d8&gt; in &lt;module&gt;
-      4     print(x)
-      5 
-----&gt; 6 foo()
-
-
-&lt;ipython-input-1-ec96c7a5b5d8&gt; in foo()
-      1 x = 10
-      2 def foo():
-----&gt; 3     x += 1
-      4     print(x)
-      5 
-
-
-UnboundLocalError: local variable &#39;x&#39; referenced before assignment
+<pre><code class="language-python">$ python foo.py 1
+key error
+1
+$ python foo.py 2
+value error
+2
 </code></pre>
 
-<p>这里出什么问题了？<br/><br/>
-上面的问题之所以会发生是因为当你给作用域中的一个变量赋值时，Python 会自动的把它当做是当前作用域的局部变量，从而会隐藏外部作用域中的同名变量。<br/><br/>
-很多人会感到很吃惊，当他们给之前可以正常运行的代码的函数体的某个地方添加了一句赋值语句之后就得到了一个 UnboundLocalError 的错误。<br/><br/>
-尤其是当开发者使用 lists 时，这个问题就更加常见。请看下面这个例子：</p>
+<p>但是，现在让我们把它在Python 3中运行一下：</p>
 
-<pre><code class="language-python">lst = [1, 2, 3]
-def foo_1():
-    lst.append(5)
-
-foo_1()
-lst
+<pre><code class="language-python">&gt;&gt;&gt; python3 foo.py 1
+key error
+Traceback (most recent call last):
+  File &quot;foo.py&quot;, line 19, in &lt;module&gt;
+    bad()
+  File &quot;foo.py&quot;, line 17, in bad
+    print(e)
+UnboundLocalError: local variable &#39;e&#39; referenced before assignment
 </code></pre>
 
-<pre><code>[1, 2, 3, 5]
-</code></pre>
+<p>出什么问题了？ “问题”就是，在 Python 3 中，异常的对象在 except 代码块之外是不可见的。（这样做的原因是，它将保存一个对内存中堆栈帧的引用周期，直到垃圾回收器运行并且从内存中清除掉引用。了解更多技术细节请参考）</p>
 
-<pre><code class="language-python">def foo_2():
-    lst += [5]
+<p><a href="https://docs.python.org/3/reference/compound_stmts.html#except">https://docs.python.org/3/reference/compound_stmts.html#except</a></p>
 
-foo_2()
-</code></pre>
+<p>一种解决办法是在 except 代码块的外部作用域中定义一个对异常对象的引用，以便访问。下面的例子使用了该方法，因此最后的代码可以在Python 2 和 Python 3中运行良好。</p>
 
-<pre><code>---------------------------------------------------------------------------
+<pre><code class="language-python">import sys
 
-UnboundLocalError                         Traceback (most recent call last)
+def bar(i):
+    if i == 1:
+        raise KeyError(1)
+    if i == 2:
+        raise ValueError(2)
+        
+def good():
+    exception = None
+    try:
+        bar(int(sys.argv[1]))
+    except KeyError as e:
+        exception = e
+        print(&#39;key error&#39;)
+    except ValueError as e:
+        exception = e
+        print(&#39;value error&#39;)
+    print(exception)
 
-&lt;ipython-input-5-4f369a1ee364&gt; in &lt;module&gt;
-      2     lst += [5]
-      3 
-----&gt; 4 foo_2()
-
-
-&lt;ipython-input-5-4f369a1ee364&gt; in foo_2()
-      1 def foo_2():
-----&gt; 2     lst += [5]
-      3 
-      4 foo_2()
-
-
-UnboundLocalError: local variable &#39;lst&#39; referenced before assignment
-</code></pre>
-
-<p>嗯？为什么 foo2 报错，而foo1没有问题呢？<br/><br/>
-原因和之前那个例子的一样，不过更加令人难以捉摸。foo1 没有对 lst 进行赋值操作，而 foo2 做了。<br/><br/>
-要知道， lst += [5] 是 lst = lst + [5] 的缩写，我们试图对 lst 进行赋值操作（Python把他当成了局部变量）。<br/><br/>
-此外，我们对 lst 进行的赋值操作是基于 lst 自身（这再一次被Python当成了局部变量），但此时还未定义。因此出错！</p>
-
-<p>下面我们再来看看这个作用域的问题。<br/><br/>
-看看下面的代码为什么报错？</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-    gen = (x for _ in range(10))
-
-print(list(A.gen))
-</code></pre>
-
-<pre><code>---------------------------------------------------------------------------
-
-NameError                                 Traceback (most recent call last)
-
-&lt;ipython-input-7-7c568240446a&gt; in &lt;module&gt;
-      3     gen = (x for _ in range(10))
-      4 
-----&gt; 5 print(list(A.gen))
-
-
-&lt;ipython-input-7-7c568240446a&gt; in &lt;genexpr&gt;(.0)
-      1 class A(object):
-      2     x = 1
-----&gt; 3     gen = (x for _ in range(10))
-      4 
-      5 print(list(A.gen))
-
-
-NameError: name &#39;x&#39; is not defined
-</code></pre>
-
-<p>这个问题是变量作用域问题，在 gen =( x for _ in xrange (10)) 中 gen 是一个 generator ,在 generator 中变量有自己的一套作用域，与其余作用域空间相互隔离。<br/><br/>
-因此，将会出现这样的 NameError:name &#39; x &#39; is not defined 的问题，那么解决方案是什么呢？答案是：用 lambda 。</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-    gen = (lambda x: (x for _ in range(10)))(x)
-
-print(list(A.gen))
-</code></pre>
-
-<pre><code>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-</code></pre>
-
-<p>或者这样</p>
-
-<pre><code class="language-python">class A(object):
-    x = 1
-    gen = (A.x for _ in range(10))
-
-print(list(A.gen))
-</code></pre>
-
-<pre><code>[1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
+sys.argv.append(1)
+good()
+sys.argv.append(2)
+good()
 </code></pre>
 
 <blockquote>
-<p>The scope of names defined in a class block is limited to the class block ;<br/><br/>
-It does not extend to the code blocks of methods - this includes comprehensions and generator expressions since they are implemented using a function scope.<br/><br/>
-This means that the following will fail :</p>
+<p>转载自微信，仅供个人学习使用</p>
 </blockquote>
 
                         
@@ -266,7 +206,7 @@ This means that the following will fail :</p>
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:30 PM</span>
+                    <span class="date">2019/8/11 16:33 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -283,39 +223,66 @@ This means that the following will fail :</p>
               </div><!-- article -->
         
 			<div class="article">
-                <a class="clearlink" href="15655121732301.html">
+                <a class="clearlink" href="15655123624150.html">
                 
-                  <h1>Python常见的错误<三></h1>
+                  <h1>Python常见的错误<七></h1>
                   <div class="a-content">
                       
                       <div class="a-content-text">
                         
-                        	<h4 id="toc_0">常见错误3: 为 except 指定错误的参数</h4>
+                        	<h4 id="toc_0">常见错误7: 创建循环依赖模块</h4>
 
-<p>我们来看下面这个例子：</p>
+<p>让我们假设你有两个文件，a.py 和 b.py，他们之间相互引用，如下所示：</p>
 
-<pre><code class="language-python">try:
-    l = [&quot;a&quot;, &quot;b&quot;]
-    int(l[2])
-except ValueError, IndexError:
-    pass
+<pre><code class="language-python">import b
+
+def f():
+    return b.x
+print(f())
 </code></pre>
 
-<pre><code>  File &quot;&lt;ipython-input-2-4f54e4adb7ee&gt;&quot;, line 4
-    except ValueError, IndexError:
-                     ^
-SyntaxError: invalid syntax
+<pre><code class="language-python">import a
+
+x = 1
+def g():
+    print(a.f())
 </code></pre>
 
-<p>这里的问题在于 except 语句并不接受以这种方式指定的异常列表。相反，在Python 2.x中，使用语法 except Exception, e 是将一个异常对象绑定到第二个可选参数（在这个例子中是 e）上，以便在后面使用。所以，在上面这个例子中，IndexError 这个异常并不是被except语句捕捉到的，而是被绑定到一个名叫 IndexError的参数上时引发的。<br/><br/>
-在一个except语句中捕获多个异常的正确做法是将第一个参数指定为一个含有所有要捕获异常的元组。并且，为了代码的可移植性，要使用as关键词，因为Python 2 和Python 3都支持这种语法：</p>
+<p>首先，让我们尝试引入 a.py：</p>
 
-<pre><code class="language-python">try:
-    l = [&quot;a&quot;, &quot;b&quot;]
-    int(l[2])
-except (ValueError, IndexError) as e:
-    pass
+<pre><code class="language-python">import a
 </code></pre>
+
+<p>可以正常工作。这也许是你感到很奇怪。毕竟，我们确实在这里引入了一个循环依赖的模块，我们推测这样会出问题的，不是吗？<br/><br/>
+答案就是在Python中，仅仅引入一个循环依赖的模块是没有问题的。如果一个模块已经被引入了，Python并不会去再次引入它。但是，根据每个模块要访问其他模块中的函数和变量位置的不同，就很可能会遇到问题。<br/><br/>
+所以，回到我们这个例子，当我们引入 a.py 时，再引入 b.py 不会产生任何问题，因为当引入的时候，b.py 不需要 a.py 中定义任何东西。b.py 中唯一引用 a.py 中的东西是调用 a.f()。 但是那个调用是发生在g() 中的，并且 a.py 和 b.py 中都没有调用 g()。所以运行正常。<br/><br/>
+但是，如果我们尝试去引入b.py 会发生什么呢？（在这之前不引入a.py），如下所示:</p>
+
+<pre><code class="language-python">import b
+</code></pre>
+
+<p>啊哦。 出问题了！此处的问题是，在引入b.py的过程中，Python尝试去引入 a.py，但是a.py 要调用f()，而f() 有尝试去访问 b.x。但是此时 b.x 还没有被定义呢。所以发生了 AttributeError 异常。</p>
+
+<p>至少，解决这个问题很简单，只需修改b.py，使其在g()中引入 a.py：</p>
+
+<pre><code class="language-python">x = 1
+
+def g():
+    import a    # 只有当g()被调用的时候才会引入a
+    print a.f()
+</code></pre>
+
+<p>现在，当我们再引入b，没有任何问题：</p>
+
+<pre><code class="language-python">&gt;&gt;&gt; import b
+&gt;&gt;&gt; b.g()
+1    # Printed a first time since module &#39;a&#39; calls &#39;print f()&#39; at the end
+1    # Printed a second time, this one is our call to &#39;g&#39;
+</code></pre>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
 
                         
                       </div>
@@ -324,7 +291,7 @@ except (ValueError, IndexError) as e:
                 <div class="read-more clearfix">
                   <div class="more-left left">
                   
-                    <span class="date">2019/8/11 16:29 PM</span>
+                    <span class="date">2019/8/11 16:32 PM</span>
                     <span>posted in&nbsp;</span> 
           				  
           					    <span class="posted-in"><a href='Python.html'>Python</a></span>
@@ -421,31 +388,31 @@ except (ValueError, IndexError) as e:
 	      
 		      
 			      <li class="post">
-			        <a href="15928352455072.html">【pythonic】详解Python 3.8的海象算子</a>
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710349835.html">Swift基本语法</a>
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15726710075785.html"></a>
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662172714318.html">Python Modules - 03 - Python itertools</a>
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
 			      </li>
 		     
 		  
 		      
 			      <li class="post">
-			        <a href="15662171970710.html">Python Modules - 02 - Python collections</a>
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
 			      </li>
 		     
 		  

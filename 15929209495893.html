@@ -1,0 +1,497 @@
+<!doctype html>
+<html class="no-js" lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>
+    
+  **高性能 Pandas 方法：query 和 eval** - Ascetic in the deadlock
+  
+  </title>
+  
+  
+  <link href="atom.xml" rel="alternate" title="Ascetic in the deadlock" type="application/atom+xml">
+    <link rel="stylesheet" href="asset/css/foundation.min.css" />
+    <link rel="stylesheet" href="asset/css/docs.css" />
+    <script src="asset/js/vendor/modernizr.js"></script>
+    <script src="asset/js/vendor/jquery.js"></script>
+  <script src="asset/highlightjs/highlight.pack.js"></script>
+  <link href="asset/highlightjs/styles/github.css" media="screen, projection" rel="stylesheet" type="text/css">
+  <script>hljs.initHighlightingOnLoad();</script>
+<script type="text/javascript">
+  function before_search(){
+    var searchVal = 'site:sparkbye.github.io/myBlog ' + document.getElementById('search_input').value;
+    document.getElementById('search_q').value = searchVal;
+    return true;
+  }
+</script>
+  </head>
+  <body class="antialiased hide-extras">
+    
+    <div class="marketing off-canvas-wrap" data-offcanvas>
+      <div class="inner-wrap">
+
+
+<nav class="top-bar docs-bar hide-for-small" data-topbar>
+
+
+  <section class="top-bar-section">
+  <div class="row">
+      <div style="position: relative;width:100%;"><div style="position: absolute; width:100%;">
+        <ul id="main-menu" class="left">
+        
+        <li id=""><a target="self" href="index.html">Home</a></li>
+        
+        <li id=""><a target="_self" href="archives.html">Archives</a></li>
+        
+        </ul>
+
+        <ul class="right" id="search-wrap">
+          <li>
+<form target="_blank" onsubmit="return before_search();" action="http://google.com/search" method="get">
+    <input type="hidden" id="search_q" name="q" value="" />
+    <input tabindex="1" type="search" id="search_input"  placeholder="Search"/>
+</form>
+</li>
+          </ul>
+      </div></div>
+  </div>
+  </section>
+
+</nav>
+
+        <nav class="tab-bar show-for-small">
+  <a href="javascript:void(0)" class="left-off-canvas-toggle menu-icon">
+    <span> &nbsp; Ascetic in the deadlock</span>
+  </a>
+</nav>
+
+<aside class="left-off-canvas-menu">
+      <ul class="off-canvas-list">
+       
+       <li><a href="index.html">HOME</a></li>
+    <li><a href="archives.html">Archives</a></li>
+    <li><a href="about.html">ABOUT</a></li>
+
+    <li><label>Categories</label></li>
+
+        
+            <li><a href="UI%20Basic.html">UI Basic</a></li>
+        
+            <li><a href="Linux.html">Linux</a></li>
+        
+            <li><a href="Python.html">Python</a></li>
+        
+            <li><a href="Swift.html">Swift</a></li>
+        
+            <li><a href="Bootstrap.html">Bootstrap</a></li>
+        
+            <li><a href="Objective-C.html">Objective-C</a></li>
+         
+
+      </ul>
+    </aside>
+
+<a class="exit-off-canvas" href="#"></a>
+
+
+        <section id="main-content" role="main" class="scroll-container">
+        
+       
+
+ <script type="text/javascript">
+  $(function(){
+    $('#menu_item_index').addClass('is_active');
+  });
+</script>
+<div class="row">
+  <div class="large-8 medium-8 columns">
+      <div class="markdown-body article-wrap">
+       <div class="article">
+          
+          <h1>**高性能 Pandas 方法：query 和 eval**</h1>
+     
+        <div class="read-more clearfix">
+          <span class="date">2020/6/23 22:2 PM</span>
+
+          <span>posted in&nbsp;</span> 
+          
+              <span class="posted-in"><a href='Python.html'>Python</a></span>
+           
+         
+          <span class="comments">
+            
+
+            
+          </span>
+
+        </div>
+      </div><!-- article -->
+
+      <div class="article-content">
+      <h2 id="toc_0">为什么不喜欢写方括号</h2>
+
+<p>对于一个最开始从 R 语言的 Tidyverse 生态中转到 Pandas 中的人来说，除了管道操作符和链式调用的方式外，最不习惯的方式就是 Pandas 在对 DataFrame 做条件筛选或查询时，使用过多的方括号。</p>
+
+<p>先看看在 R 语言的 Tidyverse 生态中筛选操作是怎样的（主要基于 <code>dplyr</code> 包），这里以 iris 数据集为例。</p>
+
+<pre><code>library(tidyverse)
+
+# normal way
+iris[which(iris$Sepal.Length &gt; 5 &amp; iris$Petal.Length &lt;= 1.5), ]
+
+# Tidyverse way
+iris %&gt;% filter(
+    Sepal.Length &gt; 5 &amp; 
+    Petal.Length &lt;= 1.5
+)
+</code></pre>
+
+<p>虽然在 R 语言也可以用方括号加 <code>which</code> 的方式来进行行索引定位，但是相比于 <code>filter</code> 来说反而略显啰嗦。因此 <code>filter</code> 的方式反而更容易被记住且频繁使用。</p>
+
+<p>在 Pandas 中，大部分人往往在初学时最先接触到的就是通过方括号的形式来进行筛选查询，像是这样：</p>
+
+<pre><code># !pip install seaborn
+import pandas as pd
+import seaborn as sns
+
+# Load iris dataset
+iris = sns.load_dataset(&#39;iris&#39;)
+
+# 等价于 iris[(iris.sepal_length &gt; 5) &amp; (iris.petal_length &lt;= 1.5)]
+iris[(iris[&#39;sepal_length&#39;] &gt; 5) &amp; (iris[&#39;petal_length&#39;] &lt;= 1.5)]
+</code></pre>
+
+<p>尽管可以直接通过 <code>iris.column</code> 的形式来调用相应的字段，但是这很容易和方法混在一起，因此在实际项目中往往我更偏好用方括号和引号来表示字段，以增强可读性并同方法相区分。</p>
+
+<p>可我们也很容易看到 Pandas 的筛选写法其实相当冗长，同时这样的形式即便是熟练使用 Pandas 的「老鸟」也会经常这么写，甚至在各种课程中也屡见不鲜。</p>
+
+<p>但其实对于每个使用 Pandas 库的人来说，让代码更简洁才符合 <strong>Pythonic</strong> 的风格。这就是为什么本文所要谈论 <code>query</code> 和 <code>eval</code> 这两个方法的原因。</p>
+
+<h2 id="toc_1">query 和 eval</h2>
+
+<p><code>query</code> 和 <code>eval</code> 方法在 2014年 1 月 3 日的 0.13.0 版本中首次加入，它们允许使用者以传入字符串表达式（Expression）的形式来对 DataFrame 进行操作。</p>
+
+<h3 id="toc_2">用法一：条件筛选与查询</h3>
+
+<p>前面分所述的写法其实可以变成这样：</p>
+
+<pre><code># query
+iris.query(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+
+# eval
+cond = iris.eval(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+iris[cond]
+</code></pre>
+
+<p>相比于传统的括号写法，<code>query</code> 和<code>eval</code> 方法能有效减少在筛选查询时符号冗余的情况，尤其是 <code>query</code> 方法能够紧密地同链式调用相结合从而达到了 R 语言 Tidyverse 中的 <code>filter</code> 用法，类似于这样：</p>
+
+<pre><code>(iris
+    .query(&quot;sepal_length &gt; 5 &amp; petal_length &lt;= 1.5&quot;)
+    .assign(sepal_len_cut = lambda df: df[&#39;sepal_length&#39;]
+                .pipe(pd.cut, bins=3), 
+            petal_len_cut = lambda df: df[&#39;petal_length&#39;]
+                .pipe(pd.cut, bins=3))
+    .groupby([&#39;sepal_len_cut&#39;, &#39;petal_len_cut&#39;])
+    .sum()
+    .dropna()
+)
+</code></pre>
+
+<p>当筛选的条件为多条件时，除了使用六个引号的长字符串之外，还<strong>需要注意</strong>的就是手动加上<code>\</code> 进行断行，就像这样：</p>
+
+<pre><code>iris.query(
+    &quot;&quot;&quot;
+    sepal_length &gt; 5 &amp; \
+    petal_length &lt;= 1.5
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<p>否则会导致报错，因为这段查询表达式的字符串中<strong>多出了不恰当的换行符</strong>，从而导致表达式不能够被正确解析。</p>
+
+<p>同时需要注意的是，如果你的数据字段命存在一些空格或者下划线之类的特殊符号，那么可能也会同样导致报错。在 R 语言中你可以通过加上反引号「``」（键盘上 Esc 键下面的那个符号）来避免，就像这样：</p>
+
+<pre><code>library(tidyverse)
+
+df &lt;- data.frame(
+  A = seq(0,10,2),
+  B = seq(1,11,2)
+) 
+
+df %&gt;% 
+  rename(`B B` = &quot;B&quot;) %&gt;% 
+  filter(`B B` &gt; 5)
+</code></pre>
+
+<p>当然，在 Python 中你也可以同样如此，Pandas 对此也已经进行了支持：</p>
+
+<pre><code>df = pd.DataFrame(np.arange(12).reshape(6,2), columns=[&quot;A&quot;, &quot;B B&quot;])
+
+df.query(&quot;B B == 3&quot;) # error
+df.query(&quot;`B B` == 3&quot;) # right
+</code></pre>
+
+<h3 id="toc_3">用法二：结合 DataFrame 之外的其他对象进行操作</h3>
+
+<p><code>query</code> 和<code>eval</code> 方法还能有效将数据同非 DataFrame 之外的变量进行结合并操作，只需要在表达式字符串中加入<code>@</code>符号，就像这样：</p>
+
+<pre><code>sepal_len, petal_len = 5, 1.5
+iris.query(
+    &quot;&quot;&quot;
+    sepal_length &gt; @sepal_len &amp; \
+    petal_length &lt;= @petal_len
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<p>当条件过长时，对条件进行适当分解之后通过这样的用法，也能提高代码的可读性以及简洁程度。</p>
+
+<p>除此之外，你也可以用来创建新字段、对字段作运算等（限于 <code>eval</code>），以下例子源自于 Pandas 官方文档，详细的示例可以参考Pandas 官方的这部分内容。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSghaTv14YnII1IFibuscYbgjRpFgkkCGTroIkBJdbWeowINPqaiaVpyTg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>eval官方例子</p>
+
+<p>你甚至也可以直接在表达式字符串中写入代码语句，但是我<strong>不太建议你这么操作</strong>，即便是可行的。因为一旦表达式在执行时出现错误，Debug 时很有可能无法定位到当中代码语句的错误。</p>
+
+<pre><code>other = iris.copy()
+
+iris.query(
+    &quot;&quot;&quot;
+    species in @other.query(&quot;species==&#39;setosa&#39;&quot;)[&#39;species&#39;]
+    &quot;&quot;&quot;
+)
+</code></pre>
+
+<h1 id="toc_4">尾巴</h1>
+
+<p><code>query</code> 和 <code>eval</code> 方法应该是每个适用 Pandas 应该掌握的一种技巧，当进行多条件索引筛选或查询时，裹脚布般的方括号及当中的条件括号简直就是噩梦般的存在。</p>
+
+<p>这两个方法都是基于 <code>numexpr</code> 这一个库实现，该库由 C/C++ 编写，在性能上就不用多说；同时，在官方文档中也可以看到，处理大数据集时使用 <code>query</code> 或 <code>eval</code> 方法是多么高效：</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSKyE66UfaZZNR5GS8IIBQhuicDH9HMaarPYb9XqoKfg7z45b7StVfBJg/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>numexpr性能表现</p>
+
+<p>尽管官方文档中有说明，当数据中的记录小于 10000 行时，性能表现上 <code>numexpr</code> 略逊于 Python 原生的解析器；但是从图可以看到，在小数据集中使用二者的差别连一秒钟都不到，因此也不必有所顾虑。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsS2jQlTRibTkuTxKYMkwk4ShFcVhIQaa671aWcl0fTiaENKLKyFibFecicCw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>原生解析器表现</p>
+
+<p>虽然 <code>query</code> 和 <code>eval</code> 默认使用 <code>numexpr</code> 作为解析引擎，但在源码中可以发现，在你使用这两个方法时，都会预先检查你是否安装了 <code>numexpr</code> 库，如果不存在则会调用 Python 原生的解析器，这一点在文档中也有所说明。</p>
+
+<p><img src="https://mmbiz.qpic.cn/mmbiz_png/5mt0ewv9OS36LnibQdlw6GL75pcjQRKsSNiaOP14zq7JjfF22aaWnNKfeTvs7gOUCBx4TKiak7vuYhQGNf75thiaHw/640?wx_fmt=png&amp;tp=webp&amp;wxfrom=5&amp;wx_lazy=1&amp;wx_co=1" alt="img"/></p>
+
+<p>引擎检查源码</p>
+
+<p>如果不需要中间变量、步骤不需要分解且保证最后返回的就是 DataFrame 类型，那么就愉快地使用链式调用方法来完成你的数据流程吧！</p>
+
+<blockquote>
+<p>转载自微信，仅供个人学习使用</p>
+</blockquote>
+
+
+    
+
+      </div>
+
+      <div class="row">
+        <div class="large-6 columns">
+        <p class="text-left" style="padding:15px 0px;">
+      
+        </p>
+        </div>
+        <div class="large-6 columns">
+      <p class="text-right" style="padding:15px 0px;">
+      
+          <a  href="15929209361947.html" 
+          title="Next Post: 超详解 matplotlib 中的折线图方法 plot()">超详解 matplotlib 中的折线图方法 plot() &raquo;</a>
+      
+      </p>
+        </div>
+      </div>
+      <div class="comments-wrap">
+        <div class="share-comments">
+          
+
+          
+
+          
+        </div>
+      </div>
+    </div><!-- article-wrap -->
+  </div><!-- large 8 -->
+
+
+
+
+ <div class="large-4 medium-4 columns">
+  <div class="hide-for-small">
+    <div id="sidebar" class="sidebar">
+          <div id="site-info" class="site-info">
+            
+                <div class="site-a-logo"><img src="asset/img/icon.jpg" /></div>
+            
+                <h1>Ascetic in the deadlock</h1>
+                <div class="site-des"></div>
+                <div class="social">
+<a target="_blank" class="facebook" href="https://www.facebook.com/evan.yang.7927" title="Facebook">Facebook</a>
+
+
+
+
+
+
+
+<a target="_blank" class="twitter" target="_blank" href="https://twitter.com/Phoenine" title="Twitter">Twitter</a>
+<a target="_blank" class="github" target="_blank" href="https://github.com/SPARKBYE/phoenine" title="GitHub">GitHub</a>
+
+  <a target="_blank" class="rss" href="atom.xml" title="RSS">RSS</a>
+                
+              	 </div>
+          	</div>
+
+             
+
+              <div id="site-categories" class="side-item ">
+                <div class="side-header">
+                  <h2>Categories</h2>
+                </div>
+                <div class="side-content">
+
+      	<p class="cat-list">
+        
+            <a href="UI%20Basic.html"><strong>UI Basic</strong></a>
+        
+            <a href="Linux.html"><strong>Linux</strong></a>
+        
+            <a href="Python.html"><strong>Python</strong></a>
+        
+            <a href="Swift.html"><strong>Swift</strong></a>
+        
+            <a href="Bootstrap.html"><strong>Bootstrap</strong></a>
+        
+            <a href="Objective-C.html"><strong>Objective-C</strong></a>
+         
+        </p>
+
+
+                </div>
+              </div>
+
+              <div id="site-categories" class="side-item">
+                <div class="side-header">
+                  <h2>Recent Posts</h2>
+                </div>
+                <div class="side-content">
+                <ul class="posts-list">
+	      
+		      
+			      <li class="post">
+			        <a href="15929209495893.html">**高性能 Pandas 方法：query 和 eval**</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15929209361947.html">超详解 matplotlib 中的折线图方法 plot()</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15929209176741.html">Python数据形态及IO操作</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15929207363484.html">Python 为什么要保留显式的 self</a>
+			      </li>
+		     
+		  
+		      
+			      <li class="post">
+			        <a href="15928352455072.html">详解Python 3.8的海象算子</a>
+			      </li>
+		     
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		  
+		      
+		   
+		  		</ul>
+                </div>
+              </div>
+        </div><!-- sidebar -->
+      </div><!-- hide for small -->
+</div><!-- large 4 -->
+
+</div><!-- row -->
+
+ <div class="page-bottom clearfix">
+  <div class="row">
+   <p class="copyright">Copyright &copy; 2015
+Powered by <a target="_blank" href="http://www.mweb.im">MWeb</a>,&nbsp; 
+Theme used <a target="_blank" href="http://github.com">GitHub CSS</a>.</p>
+  </div>
+</div>
+
+        </section>
+      </div>
+    </div>
+
+  
+    
+
+    <script src="asset/js/foundation.min.js"></script>
+    <script>
+      $(document).foundation();
+      function fixSidebarHeight(){
+        var w1 = $('.markdown-body').height();
+          var w2 = $('#sidebar').height();
+          if (w1 > w2) { $('#sidebar').height(w1); };
+      }
+      $(function(){
+        fixSidebarHeight();
+      })
+      $(window).load(function(){
+          fixSidebarHeight();
+      });
+     
+    </script>
+
+    
+
+
+
+  </body>
+</html>
